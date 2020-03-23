@@ -1,0 +1,9 @@
+autopep8==1.5
+entrypoints==0.3
+flake8==3.7.9
+mccabe==0.6.1
+msgpack==1.0.0
+pycodestyle==2.5.0
+pyflakes==2.1.1
+pyzmq==19.0.0
+zmq==0.0.0

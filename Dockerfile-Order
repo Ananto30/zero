@@ -1,0 +1,12 @@
+FROM pypy:3
+
+WORKDIR /usr/src/
+
+COPY ./app/requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY app ./app
+
+EXPOSE 6666
+
+CMD [ "pypy3", "-m", "app.order.server" ]
