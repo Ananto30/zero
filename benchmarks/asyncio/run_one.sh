@@ -1,0 +1,1 @@
+gunicorn benchmarks.asyncio.redis_reader:redis_app --bind localhost:8000 --worker-class aiohttp.GunicornWebWorker --workers 10
