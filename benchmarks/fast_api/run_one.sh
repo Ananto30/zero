@@ -1,0 +1,1 @@
+uvicorn benchmarks.fast_api.redis_reader:app --workers 10 --port 8000
