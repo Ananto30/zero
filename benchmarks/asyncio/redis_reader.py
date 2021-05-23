@@ -10,8 +10,11 @@ from benchmarks.model import Order, OrderStatus
 
 # from benchmarks.redis_repository import save_order
 
-
 async def hello(request):
+    return web.Response(text="hello world")
+
+
+async def get_order(request):
     saved_order = await save_order(
         Order(
             id=str(uuid.uuid4()),
@@ -54,6 +57,7 @@ async def order(request):
 
 async def redis_app():
     app = web.Application()
-    app.router.add_get('/', hello)
+    app.router.add_get('/', get_order)
     app.router.add_post("/order", order)
+    app.router.add_get('/hello', hello)
     return app
