@@ -1,17 +1,16 @@
-import logging
 import uuid
 from datetime import datetime
 
 from benchmarks.async_redis_repository import save_order as saveOrder
 from benchmarks.model import Order, OrderStatus, OrderResp
-from zero import ZeroServer, Logger
+from zero import Logger, ZeroSubscriber
 from zero.logger import AsyncLogger
 
 logger = Logger()
 
 
 async def hello_world(msg):
-    return "hello world"
+    logger.log(str(msg))
 
 
 async def save_order(msg):
@@ -37,8 +36,7 @@ async def save_order(msg):
 
 
 if __name__ == "__main__":
-    app = ZeroServer()
-    app.register_rpc(hello_world)
-    app.register_rpc(save_order)
+    app = ZeroSubscriber()
+    app.register_listener("hello_world", hello_world)
     AsyncLogger.start()
     app.run()

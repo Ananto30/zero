@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from app.serializers.serialization_types import Btype
 
 
@@ -19,3 +21,10 @@ class Order(Btype):
         self.created_at = created_at
         self.status = status
         self.updated_at = updated_at
+
+
+@dataclass
+class OrderResp(Btype):
+    order_id: str
+    status: int
+    items: list

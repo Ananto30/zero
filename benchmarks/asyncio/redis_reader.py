@@ -3,9 +3,8 @@ from datetime import datetime
 
 from aiohttp import web
 
-from app.serializers import OrderResp, Btype
 from benchmarks.async_redis_repository import save_order
-from benchmarks.model import Order, OrderStatus
+from benchmarks.model import Order, OrderStatus, OrderResp
 
 
 # from benchmarks.redis_repository import save_order
@@ -26,7 +25,6 @@ async def get_order(request):
     )
 
     resp = OrderResp(saved_order.id, saved_order.status, saved_order.items)
-    print(f"Request served - {Btype.get_all_vars(resp)}")
     return web.json_response({
         "id": resp.order_id,
         "status": resp.status,
@@ -47,7 +45,6 @@ async def order(request):
     )
 
     resp = OrderResp(saved_order.id, saved_order.status, saved_order.items)
-    print(f"Request served - {Btype.get_all_vars(resp)}")
     return web.json_response({
         "id": resp.order_id,
         "status": resp.status,

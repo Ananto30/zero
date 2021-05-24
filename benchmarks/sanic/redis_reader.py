@@ -4,9 +4,8 @@ from datetime import datetime
 from sanic import Sanic
 from sanic.response import json, text
 
-from app.serializers import OrderResp, Btype
 from benchmarks.async_redis_repository import save_order
-from benchmarks.model import Order, OrderStatus
+from benchmarks.model import Order, OrderStatus, OrderResp
 
 app = Sanic("My Hello, world app")
 
@@ -24,7 +23,6 @@ async def root(request):
     )
 
     resp = OrderResp(saved_order.id, saved_order.status, saved_order.items)
-    print(f"Request served - {Btype.get_all_vars(resp)}")
     return json({
         "id": resp.order_id,
         "status": resp.status,
