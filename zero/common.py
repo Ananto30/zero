@@ -1,8 +1,11 @@
-def check_allowed_types(msg):
-    if isinstance(msg, dict) or isinstance(msg, str) or isinstance(msg, int) or isinstance(msg, float) or isinstance(msg, bool) or isinstance(msg, list):
+def check_allowed_types(msg, rpc_method=None):
+    if isinstance(msg, (dict, str, int, float, bool, list, tuple)):
         pass
     else:
-        raise Exception("`msg` should be any of dict, str, int, float, bool, list type")
+        if rpc_method:
+            raise Exception(f"return of `{rpc_method}` should be any of dict, str, int, float, bool, list type; found {type(msg)}")
+        else:
+            raise Exception(f"`msg` should be any of dict, str, int, float, bool, list type; not {type(msg)}")
 
 
 class SingletonMeta(type):

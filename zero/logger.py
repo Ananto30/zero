@@ -1,12 +1,10 @@
 import logging
-from multiprocessing import Process
 
 import zmq.asyncio
 
-from zero.common import SingletonMeta
 
+class AsyncLogger:
 
-class Logger(metaclass=SingletonMeta):
     def __init__(self):
         self._init_push_logger()
 
@@ -16,19 +14,14 @@ class Logger(metaclass=SingletonMeta):
         self.log_pusher.connect("tcp://127.0.0.1:12345")
 
     def log(self, msg):
-        self.log_pusher.send_string(msg)
+        self.log_pusher.send_string(str(msg))
 
-
-class AsyncLogger:
-    @staticmethod
-    def log_poller():
+    @classmethod
+    def start_log_poller(cls):
         ctx = zmq.Context()
         log_listener = ctx.socket(zmq.PULL)
         log_listener.bind("tcp://127.0.0.1:12345")
+        logging.info(f"Async logger starting at tcp://127.0.0.1:12345")
         while True:
             log = log_listener.recv_string()
             logging.info(log)
-
-    @staticmethod
-    def start():
-        Process(target=AsyncLogger.log_poller, args=()).start()

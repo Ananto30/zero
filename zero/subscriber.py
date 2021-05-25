@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import sys
+import typing
 from multiprocessing import Process
 
 import msgpack
@@ -8,24 +9,30 @@ import zmq
 import zmq.asyncio
 import zmq.asyncio
 
+from .logger import AsyncLogger
+
 logging.basicConfig(format='%(asctime)s | %(threadName)s | %(process)d | %(module)s : %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.INFO)
 
 
 class ZeroSubscriber:
-    def __init__(self, port=5558):
+    def __init__(self, host: str = "127.0.0.1", port: int = 5558, use_async_logger: bool = True):
         self.__topic_map = {}
+        self.__host = host
         self.__port = port
+        self.__use_async_logger = use_async_logger
 
-    def register_listener(self, topic, func):
+    def register_listener(self, topic: str, func: typing.Callable):
+        if not isinstance(func, typing.Callable):
+            raise Exception(f"topic should listen to function not {type(func)}")
         self.__topic_map[topic] = func
 
     def run(self):
         processes = []
         try:
-            for topic in self.__topic_map:
-                p = Process(target=Listener.spawn_listener_worker, args=(topic, self.__topic_map[topic]))
-                processes.append(p)
-
+            processes = [Process(target=Listener.spawn_listener_worker, args=(topic, self.__topic_map[topic]))
+                         for topic in self.__topic_map]
+            if self.__use_async_logger:
+                processes.append(Process(target=AsyncLogger.start_log_poller, args=()))
             [prcs.start() for prcs in processes]
             self._create_zmq_device()
         except KeyboardInterrupt:
@@ -69,13 +76,13 @@ class Listener:
     @classmethod
     def spawn_listener_worker(cls, topic, func):
         worker = Listener(topic, func)
-        asyncio.run(worker.create_worker())
+        asyncio.run(worker._create_worker())
 
     def __init__(self, topic, func):
         self.__topic = topic
         self.__func = func
 
-    async def create_worker(self):
+    async def _create_worker(self):
         ctx = zmq.asyncio.Context()
         socket = ctx.socket(zmq.SUB)
 
@@ -89,7 +96,6 @@ class Listener:
 
         while True:
             topic, msg = await socket.recv_multipart()
-            # logging.info(f"received rpc call: {rpc.decode()} | {msg}")
             try:
                 await self._handle_msg(msgpack.unpackb(msg))
             except Exception as e:
@@ -99,4 +105,4 @@ class Listener:
         try:
             return await self.__func(msg)
         except Exception as e:
-            logging.error(e)
+            logging.exception(e)

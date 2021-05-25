@@ -1,4 +1,5 @@
 import logging
+import typing
 
 import msgpack
 import zmq
@@ -8,7 +9,7 @@ from .common import check_allowed_types
 
 
 class ZeroClient:
-    def __init__(self, host, port, use_async=False):
+    def __init__(self, host: str, port: int, use_async: bool = True):
         self.__host = host
         self.__port = port
         self.__socket = None
