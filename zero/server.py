@@ -16,7 +16,7 @@ import zmq.asyncio
 
 from .common import check_allowed_types, get_next_available_port
 
-logging.basicConfig(format='%(asctime)s | %(threadName)s | %(process)d | %(module)s : %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s  %(levelname)s  %(process)d  %(module)s > %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.INFO)
 
 
 class ZeroServer:
@@ -26,6 +26,10 @@ class ZeroServer:
 
         By default ZeroServer uses all of the cores for best performance possible.
         A zmq queue device load balances the requests and runs on the main thread.
+
+        Ensure to run the server inside
+        `if __name__ == "__main__":`
+        As the server runs on multiple processes.
 
         @param host:
         Host of the ZeroServer.
@@ -244,4 +248,4 @@ class Worker:
             except Exception as e:
                 logging.exception(e)
         else:
-            logging.error(f"{rpc} is not found!")
+            logging.error(f"method `{rpc}` is not found!")
