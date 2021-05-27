@@ -1,10 +1,15 @@
 import uuid
 from datetime import datetime
 
-from app.serializers import CreateOrderReq, OrderResp, GetOrderReq
+from app.serializers import CreateOrderReq, GetOrderReq, OrderResp
 
 from .model import Order, OrderStatus
-from .repository import save_order, get_order as query_order
+# from .repository import save_order, get_order as query_order
+from app.helper import exec_time
+
+
+# @exec_time
+from .redis_repository import save_order, get_order as query_order
 
 
 def create_order(req: CreateOrderReq) -> OrderResp:
@@ -21,6 +26,7 @@ def create_order(req: CreateOrderReq) -> OrderResp:
     return OrderResp(saved_order.id, saved_order.status, saved_order.items)
 
 
+# @exec_time
 def get_order(req: GetOrderReq) -> OrderResp:
     order = query_order(req.order_id)
 

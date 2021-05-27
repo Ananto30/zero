@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 import logging
 import os
 import signal
@@ -190,7 +191,8 @@ class Worker:
         worker = Worker(rpc_router, ipc, port, serializer, struct_registry)
         # loop = asyncio.get_event_loop()
         # loop.run_until_complete(worker.create_worker(worker_id))
-        asyncio.run(worker.create_worker(worker_id))
+        # asyncio.run(worker.start_async_dealer_worker(worker_id))
+        worker.start_dealer_worker(worker_id)
 
     def __init__(
             self,
@@ -205,6 +207,7 @@ class Worker:
         self._port = port
         self._serializer = serializer
         self._struct_registry = struct_registry
+        self._loop = asyncio.get_event_loop()
         self._init_serializer()
 
     def _init_serializer(self):
@@ -219,7 +222,7 @@ class Worker:
             self._encode = msgpack.packb
             self._decode = msgpack.unpackb
 
-    async def create_worker(self, worker_id):
+    async def start_async_dealer_worker(self, worker_id):
         ctx = zmq.asyncio.Context()
         socket = ctx.socket(zmq.DEALER)
 
@@ -235,13 +238,48 @@ class Worker:
                 ident, rpc, msg = await socket.recv_multipart()
                 rpc_method = rpc.decode()
                 msg = self._decode(msg)
-                response = await self._handle_msg(rpc_method, msg)
+                response = await self._handle_msg_async(rpc_method, msg)
                 response = self._encode(response)
-                await socket.send_multipart([ident, response])
+                await socket.send_multipart([ident, response], zmq.DONTWAIT)
             except Exception as e:
                 logging.exception(e)
 
-    async def _handle_msg(self, rpc, msg):
+    def start_dealer_worker(self, worker_id):
+        ctx = zmq.Context()
+        socket = ctx.socket(zmq.DEALER)
+
+        if os.name == "posix":
+            socket.connect(f"ipc://{self._ipc}")
+        else:
+            socket.connect(f"tcp://127.0.0.1:{self._port}")
+
+        logging.info(f"Starting worker: {worker_id}")
+
+        while True:
+            try:
+                ident, rpc, msg = socket.recv_multipart()
+                rpc_method = rpc.decode()
+                msg = self._decode(msg)
+                response = self._handle_msg(rpc_method, msg)
+                response = self._encode(response)
+                socket.send_multipart([ident, response], zmq.DONTWAIT)
+            except Exception as e:
+                logging.exception(e)
+
+    def _handle_msg(self, rpc, msg):
+        if rpc in self._rpc_router:
+            func = self._rpc_router[rpc]
+            try:
+                # TODO: is this a bottleneck
+                if inspect.iscoroutinefunction(func):
+                    return self._loop.run_until_complete(func(msg))
+                return func(msg)
+            except Exception as e:
+                logging.exception(e)
+        else:
+            logging.error(f"method `{rpc}` is not found!")
+
+    async def _handle_msg_async(self, rpc, msg):
         if rpc in self._rpc_router:
             try:
                 return await self._rpc_router[rpc](msg)

@@ -104,7 +104,7 @@ class ZeroClient:
         Returns the response of ZeroServer's rpc method.
         """
         try:
-            self._socket.send_multipart([rpc_method_name.encode(), self._encode(msg)])
+            self._socket.send_multipart([rpc_method_name.encode(), self._encode(msg)], zmq.DONTWAIT)
             resp = self._socket.recv()
             return self._decode(resp)
         except Exception as e:
@@ -126,7 +126,7 @@ class ZeroClient:
         Returns the response of ZeroServer's rpc method.
         """
         try:
-            await self._socket.send_multipart([rpc_method_name.encode(), self._encode(msg)])
+            await self._socket.send_multipart([rpc_method_name.encode(), self._encode(msg)], zmq.DONTWAIT)
             resp = await self._socket.recv()
             return self._decode(resp)
         except Exception as e:

@@ -1,3 +1,6 @@
+from app.serializers.serialization_types import Btype
+
+
 class OrderStatus:
     INITIATED = 0
     PACKING = 1
@@ -5,7 +8,7 @@ class OrderStatus:
     DELIVERED = 3
 
 
-class Order:
+class Order(Btype):
     # For now, just save here
     orders = {}
 
