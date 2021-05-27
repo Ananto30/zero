@@ -1,58 +1,135 @@
 import logging
-import typing
 
 import msgpack
+import quickle
 import zmq
 import zmq.asyncio
 
-from .common import check_allowed_types
-
 
 class ZeroClient:
-    def __init__(self, host: str, port: int, use_async: bool = True):
-        self.__host = host
-        self.__port = port
-        self.__socket = None
+    def __init__(
+            self,
+            host: str,
+            port: int,
+            use_async: bool = True,
+            serializer: str = "msgpack",
+            default_timeout: int = 2000
+    ):
+        """
+        ZeroClient provides the client interface for calling the ZeroServer.
+
+        @param host:
+        Host of the ZeroServer.
+
+        @param port:
+        Port of the ZeroServer.
+
+        @param use_async:
+        For using async/await Python. The client calls will be async.
+        True by default.
+        Please use the `call_async` method to use the async interface.
+
+        @param serializer:
+        Serializer is used to convert the msg to bytes and vice-versa.
+        Only `msgpack` is supported for now.
+
+        @param default_timeout:
+        Default timeout for each call. In milliseconds.
+        """
+        self._host = host
+        self._port = port
+        self._default_timeout = default_timeout
         if use_async:
             self._init_async_socket()
         else:
             self._init_socket()
+        self._serializer = serializer
+
+        # TODO: quickle is king of broken for python objects, why? I dont know
+        if serializer not in ["quickle", "msgpack"]:
+            raise Exception("serializer not supported")
+        self._init_serializer()
+
+    def _init_serializer(self):
+        if self._serializer == "quickle":
+            self._encode = quickle.Encoder.dumps
+            self._decode = quickle.Decoder.loads
+
+        # msgpack is the default serializer
+        else:
+            self._encode = msgpack.packb
+            self._decode = msgpack.unpackb
 
     def _init_socket(self):
         ctx = zmq.Context()
-        self.__socket: zmq.Socket = ctx.socket(zmq.DEALER)
+        self._socket: zmq.Socket = ctx.socket(zmq.DEALER)
         self._set_socket_opt()
-        self.__socket.connect(f"tcp://{self.__host}:{self.__port}")
+        self._socket.connect(f"tcp://{self._host}:{self._port}")
 
     def _init_async_socket(self):
         ctx = zmq.asyncio.Context()
-        self.__socket: zmq.Socket = ctx.socket(zmq.DEALER)
+        self._socket: zmq.Socket = ctx.socket(zmq.DEALER)
         self._set_socket_opt()
-        self.__socket.connect(f"tcp://{self.__host}:{self.__port}")
+        self._socket.connect(f"tcp://{self._host}:{self._port}")
 
     def _set_socket_opt(self):
-        self.__socket.setsockopt(zmq.RCVTIMEO, 2000)
-        self.__socket.setsockopt(zmq.SNDTIMEO, 2000)
-        self.__socket.setsockopt(zmq.LINGER, 0)
+        self._socket.setsockopt(zmq.RCVTIMEO, self._default_timeout)
+        self._socket.setsockopt(zmq.SNDTIMEO, self._default_timeout)
+        self._socket.setsockopt(zmq.LINGER, 0)  # dont buffer messages
 
-    def call(self, rpc, msg):
-        check_allowed_types(msg)
+    def register_msg_types(self, classes: [quickle.Struct]) -> None:
+        """
+        Add the list of `quickle.Struct` classes that will be sent in the call.
+        Only effective for `quickle` serializer.
+
+        @param classes: List of Dataclass or python class that extends `quickle.Struct`
+        """
+        if self._serializer == "quickle":
+            enc = quickle.Encoder(registry=classes)
+            dec = quickle.Decoder(registry=classes)
+            self._encode = enc.dumps
+            self._decode = dec.loads
+
+    def call(self, rpc_method_name: str, msg):
+        """
+        Call the rpc method of the ZeroServer.
+
+        @param rpc_method_name:
+        Method name should be string. This method should reside on the ZeroServer to get a successful response.
+
+        @param msg:
+        For msgpack serializer, msg should be base Python types. Cannot be objects.
+
+        @return:
+        Returns the response of ZeroServer's rpc method.
+        """
         try:
-            self.__socket.send_multipart([rpc.encode(), msgpack.packb(msg)])
-            resp = self.__socket.recv()
-            return msgpack.unpackb(resp)
+            self._socket.send_multipart([rpc_method_name.encode(), self._encode(msg)])
+            resp = self._socket.recv()
+            return self._decode(resp)
         except Exception as e:
-            self.__socket.close()
+            self._socket.close()
             self._init_socket()
-            logging.error(e)
+            logging.exception(e)
 
-    async def call_async(self, rpc, msg):
-        check_allowed_types(msg)
+    async def call_async(self, rpc_method_name: str, msg):
+        """
+        Async version of the `call`.
+
+        @param rpc_method_name:
+        Method name should be string. This method should reside on the ZeroServer to get a successful response.
+
+        @param msg:
+        For msgpack serializer, msg should be base Python types. Cannot be objects.
+
+        @return:
+        Returns the response of ZeroServer's rpc method.
+        """
         try:
-            await self.__socket.send_multipart([rpc.encode(), msgpack.packb(msg)])
-            resp = await self.__socket.recv()
-            return msgpack.unpackb(resp)
+            await self._socket.send_multipart([rpc_method_name.encode(), self._encode(msg)])
+            resp = await self._socket.recv()
+            return self._decode(resp)
         except Exception as e:
-            self.__socket.close()
+            self._socket.close()
             self._init_async_socket()
-            logging.error(e)
+            logging.exception(e)
