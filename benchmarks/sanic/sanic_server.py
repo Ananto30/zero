@@ -10,13 +10,14 @@ from benchmarks.model import Order, OrderStatus, OrderResp
 app = Sanic("My Hello, world app")
 
 
-@app.get("/order")
+@app.post("/order")
 async def root(request):
+    body = request.json
     saved_order = await save_order(
         Order(
             id=str(uuid.uuid4()),
-            created_by="1",
-            items=["apple", "python"],
+            created_by=body['user_id'],
+            items=body['items'],
             created_at=datetime.now().isoformat(),
             status=OrderStatus.INITIATED
         )
