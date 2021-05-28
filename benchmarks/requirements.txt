@@ -4,3 +4,6 @@ aiohttp
 aioredis
 gunicorn
 quickle
+uvicorn
+httpx
+fastapi

@@ -16,6 +16,6 @@ async def hello(request):
 
 async def gateway_app():
     app = web.Application()
-    app.router.add_get('/', order)
+    app.router.add_get('/order', order)
     app.router.add_get('/hello', hello)
     return app

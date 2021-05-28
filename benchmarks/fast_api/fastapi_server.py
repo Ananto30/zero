@@ -17,8 +17,13 @@ class Request(BaseModel):
 app = FastAPI()
 
 
-@app.get("/")
-async def root():
+@app.get("/hello")
+async def hello():
+    return "hello world"
+
+
+@app.get("/order")
+async def get_order():
     saved_order = await save_order(
         Order(
             id=str(uuid.uuid4()),
@@ -38,7 +43,7 @@ async def root():
 
 
 @app.post("/order")
-async def root(req: Request):
+async def save_order(req: Request):
     saved_order = await save_order(
         Order(
             id=str(uuid.uuid4()),

@@ -54,7 +54,7 @@ async def order(request):
 
 async def aiohttp_app():
     app = web.Application()
-    app.router.add_get('/', get_order)
+    app.router.add_get('/order', get_order)
     app.router.add_post("/order", order)
     app.router.add_get('/hello', hello)
     return app
