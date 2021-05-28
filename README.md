@@ -58,11 +58,87 @@ There are two endpoints in every tests,
     $ wrk -d10s -t50 -c200 http://127.0.0.1:8000/hello
     ```
 
-Compare the results!
+Compare the results! Or just see the [benchmarks](https://github.com/Ananto30/zero#benchmarks).
 
-### Benchmarks
+## Example
 
-Here is the result on my pc (MacBook Pro (16-inch, 2019), 2.6 GHz 6-Core Intel Core i7, 16 GB 2667 MHz DDR4)
+- Create a `server.py`
+```python
+from zero import ZeroServer
+
+
+def echo(msg):
+    return msg
+
+
+async def hello_world(msg):
+    return "hello world"
+
+
+if __name__ == "__main__":
+    app = ZeroServer(port=5559)
+    app.register_rpc(echo)
+    app.register_rpc(hello_world)
+    app.run()
+
+```
+See the method type async or sync, doesn't matter.
+
+- Run it
+```
+python -m server
+```
+
+- Call the rpc methods
+```python
+import asyncio
+
+from zero import ZeroClient
+
+zero_client = ZeroClient("localhost", 5559)
+
+
+async def echo():
+    resp = await zero_client.call_async("echo", "Hi there!")
+    print(resp)
+
+async def hello():
+    resp = await zero_client.call_async("hello_world", "")
+    print(resp)
+
+
+if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(echo())
+    loop.run_until_complete(hello())
+
+```
+
+Or using sync client -
+```python
+from zero import ZeroClient
+
+zero_client = ZeroClient("localhost", 5559, use_async=False)
+
+
+def echo():
+    resp = zero_client.call("echo", "Hi there!")
+    print(resp)
+
+def hello():
+    resp = zero_client.call("hello_world", "")
+    print(resp)
+
+
+if __name__ == "__main__":
+    echo()
+    hello()
+
+```
+
+## Benchmarks
+
+Here is the result on MacBook Pro (16-inch, 2019), 2.6 GHz 6-Core Intel Core i7, 16 GB 2667 MHz DDR4
 
 For aiohttp -
 ```
