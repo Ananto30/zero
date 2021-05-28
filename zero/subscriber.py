@@ -7,7 +7,6 @@ from multiprocessing import Process
 import msgpack
 import zmq
 import zmq.asyncio
-import zmq.asyncio
 
 from .logger import AsyncLogger
 
@@ -65,7 +64,6 @@ class ZeroSubscriber:
             logging.error(e)
             logging.error("bringing down zmq device")
         finally:
-            pass
             gateway.close()
             backend.close()
             ctx.term()

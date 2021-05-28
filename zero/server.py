@@ -109,8 +109,6 @@ class ZeroServer:
             print("Caught KeyboardInterrupt, terminating workers")
         except Exception as e:
             print(e)
-        except:
-            print("Unknown error!")
 
     def _sig_handler(self, signum, frame):
         print('Signal handler called with signal', signum)

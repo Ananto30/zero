@@ -29,8 +29,7 @@ class ZeroPublisher:
 
     def _set_socket_opt(self):
         # self.__socket.setsockopt(zmq.RCVTIMEO, 2000)
-        # self.__socket.setsockopt(zmq.LINGER, 0)
-        pass
+        self.__socket.setsockopt(zmq.LINGER, 0)
 
     def publish(self, topic, msg):
         check_allowed_types(msg)

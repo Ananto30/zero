@@ -59,8 +59,6 @@ class AsyncLogger:
             print("Caught KeyboardInterrupt, terminating async logger")
         except Exception as e:
             print(e)
-        except:
-            print("Unknown error!")
         finally:
             log_listener.close()
             sys.exit()
