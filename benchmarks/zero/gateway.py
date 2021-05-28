@@ -7,15 +7,15 @@ zero_publisher = ZeroPublisher("localhost", "5558", use_async=True)
 
 
 async def hello(request):
-    msg = await zero_client.call_async("hello_world", "")
-    print(msg)
-    return web.Response(text=msg)
+    resp = await zero_client.call_async("hello_world", "")
+    # print(resp)
+    return web.Response(text=resp)
 
 
 async def order(request):
-    msg = await zero_client.call_async("save_order", {"user_id": "1", "items": ['apple', 'python']})
-    # print(msg)
-    return web.json_response(msg)
+    resp = await zero_client.call_async("save_order", {"user_id": "1", "items": ['apple', 'python']})
+    # print(resp)
+    return web.json_response(resp)
 
 
 async def pubs(request):
@@ -23,9 +23,27 @@ async def pubs(request):
     return web.Response()
 
 
+async def enc_dec_jwt(request):
+    resp = await zero_client.call_async("decode_jwt", {'user_id': 'a1b2c3'})
+    # print(resp)
+    # encoded_jwt = jwt.encode({'user_id': 'a1b2c3'}, 'secret', algorithm='HS256')
+    # resp = await zero_client.call_async("decode_jwt", encoded_jwt)
+    return web.json_response(resp)
+
+
+async def echo(request):
+    big_list = ["hello world" for i in range(100_000)]
+    resp = await zero_client.call_async("echo", big_list)
+    # print(resp)
+    return web.Response(text=str(resp))
+
+
+
 async def gateway_app():
     app = web.Application()
-    app.router.add_get('/', order)
+    app.router.add_get('/order', order)
     app.router.add_get('/hello', hello)
     app.router.add_get('/pub', pubs)
+    app.router.add_get('/echo', echo)
+    app.router.add_get('/jwt', enc_dec_jwt)
     return app

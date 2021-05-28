@@ -1,13 +1,57 @@
+import asyncio
+import socket
+from functools import partial, wraps
+from multiprocessing import Pool
+
 import msgpack
+import requests
+from aiohttp import ClientSession
 
 from zero import ZeroClient, ZeroPublisher
 
-zero_client = ZeroClient("localhost", "5559")
-zero_pub = ZeroPublisher("localhost", "5558", use_async=True)
+zero_client_sync = ZeroClient("localhost", 5559, use_async=False)
+zero_client_async = ZeroClient("localhost", 5559, use_async=True)
+zero_pub = ZeroPublisher("localhost", 5558, use_async=True)
+
+
+def async_wrap(func):
+    @wraps(func)
+    async def run(*args, loop=None, executor=None, **kwargs):
+        if loop is None:
+            loop = asyncio.get_event_loop()
+        pfunc = partial(func, *args, **kwargs)
+        return await loop.run_in_executor(executor, pfunc)
+
+    return run
+
+
+async_call = async_wrap(zero_client_sync.call)
+
+
+# WORST
+def hello_test_requests():
+    resp = requests.get("http://localhost:8000/hello")
+
+
+async def hello_test_aiohttp():
+    async with ClientSession() as session:
+        resp = await session.get('http://localhost:8000/hello')
 
 
 def hello_test():
-    resp = zero_client.call("hello_world", "")
+    resp = zero_client_sync.call("hello_world", "")
+
+
+async def hello_test_async():
+    resp = await async_call("hello_world", "")
+
+
+def echo_test():
+    resp = zero_client_sync.call("echo", "hi")
+
+
+async def echo_test_async():
+    resp = await zero_client_async.call_async("echo", "hi")
 
 
 def pub_test():
@@ -15,22 +59,52 @@ def pub_test():
 
 
 def socket_test():
-    import socket
-
     HOST = '127.0.0.1'  # The server's hostname or IP address
-    PORT = 65432  # The port used by the server
+    PORT = 65430  # The port used by the server
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((HOST, PORT))
+
     s.sendall(msgpack.packb('Hello, world'))
     data = s.recv(1024)
 
 
-if __name__ == "__main__":
+def time_it(func):
     import timeit
 
     num_runs = 10_000
-    duration = timeit.Timer(pub_test).timeit(number=num_runs)
-    avg_duration = duration / num_runs
-    req_per_sec = num_runs / duration
-    print(f'On average it took {avg_duration} seconds, total {duration}, rps {req_per_sec}')
+    duration = timeit.Timer(func).timeit(number=num_runs)
+    print(f'{func.__name__} took {duration / num_runs} seconds, total {duration}, rps {num_runs / duration}')
+
+
+def run_async(func):
+    def runner():
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(func())
+
+    return runner
+
+
+def async_hello():
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(hello_test_async())
+
+
+def async_hello_aiohttp():
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(hello_test_aiohttp())
+
+
+if __name__ == "__main__":
+    # async_hello = run_async(hello_test_async)
+    async_echo = run_async(echo_test_async)
+
+    # pool = Pool(12)
+    # t = partial(time_it, async_hello)
+    # pool.starmap(t, [() for i in range(12)])
+    # pool.close()
+    # pool.join()
+    time_it(async_hello)
+    # time_it(hello_test)
+    # time_it(echo_test)
+    # time_it(async_echo)
