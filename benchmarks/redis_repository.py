@@ -17,7 +17,6 @@ class SingletonMeta(type):
 class RedisClient(metaclass=SingletonMeta):
 
     def __init__(self):
-        # self.host = "192.168.0.105"
         self.host = "0.0.0.0"
         self.client = redis.StrictRedis(host=self.host, port="6379", connection_pool=None)
 

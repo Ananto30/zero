@@ -2,3 +2,5 @@ zmq
 msgpack
 aiohttp
 aioredis
+gunicorn
+quickle
