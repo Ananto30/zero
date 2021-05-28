@@ -1,0 +1,7 @@
+pyzmq
+msgpack
+quickle
+pytest
+pytest-cov
+PyJWT
+pytest-asyncio
