@@ -3,7 +3,11 @@
 
 Zero is a high performance and fast (see [benchmarks](https://github.com/Ananto30/zero#benchmarks)) Python microservice framework that provides RPC and Pub Sub interface.
 
-Zero provides faster communication between the microservices.
+Features: 
+- Zero provides **faster communication** between the microservices using [zeromq](https://zeromq.org/) under the hood.
+- Zero uses messages for communication and traditional **client-server** or **request-reply** pattern is supported. 
+- Support for both **Async** and **sync**.
+- The base server (ZeroServer) **utilizes all cpu cores**.
 
 Philosophy behind **Zero**: 
 - **Zero learning curve**: The learning curve is tends to zero. You just add your functions and spin up a server, literally that's it! 
