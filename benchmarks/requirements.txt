@@ -7,3 +7,4 @@ quickle
 uvicorn
 httpx
 fastapi
+sanic
