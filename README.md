@@ -1,4 +1,6 @@
-# Zero
+# Zero 
+[![codecov](https://codecov.io/gh/Ananto30/zero/branch/main/graph/badge.svg?token=k0aA0G6NLs)](https://codecov.io/gh/Ananto30/zero)
+
 *(Work in progress)*
 
 Zero is a high performance and fast (see [benchmarks](https://github.com/Ananto30/zero#benchmarks)) Python microservice framework that provides RPC and Pub Sub interface.
