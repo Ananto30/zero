@@ -8,12 +8,12 @@ import zmq.asyncio
 
 class ZeroClient:
     def __init__(
-            self,
-            host: str,
-            port: int,
-            use_async: bool = True,
-            serializer: str = "msgpack",
-            default_timeout: int = 2000
+        self,
+        host: str,
+        port: int,
+        use_async: bool = True,
+        serializer: str = "msgpack",
+        default_timeout: int = 2000,
     ):
         """
         ZeroClient provides the client interface for calling the ZeroServer.
@@ -104,7 +104,9 @@ class ZeroClient:
         Returns the response of ZeroServer's rpc method.
         """
         try:
-            self._socket.send_multipart([rpc_method_name.encode(), self._encode(msg)], zmq.DONTWAIT)
+            self._socket.send_multipart(
+                [rpc_method_name.encode(), self._encode(msg)], zmq.DONTWAIT
+            )
             resp = self._socket.recv()
             return self._decode(resp)
         except Exception as e:
@@ -126,7 +128,9 @@ class ZeroClient:
         Returns the response of ZeroServer's rpc method.
         """
         try:
-            await self._socket.send_multipart([rpc_method_name.encode(), self._encode(msg)], zmq.DONTWAIT)
+            await self._socket.send_multipart(
+                [rpc_method_name.encode(), self._encode(msg)], zmq.DONTWAIT
+            )
             resp = await self._socket.recv()
             return self._decode(resp)
         except Exception as e:

@@ -8,17 +8,19 @@ import msgpack
 import zmq
 import zmq.asyncio
 
-from .logger import AsyncLogger
 
-logging.basicConfig(format='%(asctime)s | %(threadName)s | %(process)d | %(module)s : %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.INFO)
+logging.basicConfig(
+    format="%(asctime)s | %(threadName)s | %(process)d | %(module)s : %(message)s",
+    datefmt="%d-%b-%y %H:%M:%S",
+    level=logging.INFO,
+)
 
 
 class ZeroSubscriber:
-    def __init__(self, host: str = "127.0.0.1", port: int = 5558, use_async_logger: bool = True):
+    def __init__(self, host: str = "127.0.0.1", port: int = 5558):
         self.__topic_map = {}
         self.__host = host
         self.__port = port
-        self.__use_async_logger = use_async_logger
 
     def register_listener(self, topic: str, func: typing.Callable):
         if not isinstance(func, typing.Callable):
@@ -28,10 +30,13 @@ class ZeroSubscriber:
     def run(self):
         processes = []
         try:
-            processes = [Process(target=Listener.spawn_listener_worker, args=(topic, self.__topic_map[topic]))
-                         for topic in self.__topic_map]
-            if self.__use_async_logger:
-                processes.append(Process(target=AsyncLogger.start_log_poller, args=()))
+            processes = [
+                Process(
+                    target=Listener.spawn_listener_worker,
+                    args=(topic, self.__topic_map[topic]),
+                )
+                for topic in self.__topic_map
+            ]
             [prcs.start() for prcs in processes]
             self._create_zmq_device()
         except KeyboardInterrupt:
@@ -70,7 +75,6 @@ class ZeroSubscriber:
 
 
 class Listener:
-
     @classmethod
     def spawn_listener_worker(cls, topic, func):
         worker = Listener(topic, func)

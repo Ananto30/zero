@@ -17,7 +17,11 @@ import zmq.asyncio
 
 from .common import check_allowed_types, get_next_available_port
 
-logging.basicConfig(format='%(asctime)s  %(levelname)s  %(process)d  %(module)s > %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.INFO)
+logging.basicConfig(
+    format="%(asctime)s  %(levelname)s  %(process)d  %(module)s > %(message)s",
+    datefmt="%d-%b-%y %H:%M:%S",
+    level=logging.INFO,
+)
 
 
 class ZeroServer:
@@ -87,12 +91,12 @@ class ZeroServer:
             self._device_ipc = uuid.uuid4().hex[18:]
             self._pool = Pool(cores)
             spawn_worker = partial(
-                Worker.spawn_worker,
+                _Worker.spawn_worker,
                 self._rpc_router,
                 self._device_ipc,
                 self._device_port,
                 self._serializer,
-                self._struct_registry
+                self._struct_registry,
             )
             self._pool.map_async(spawn_worker, list(range(1, cores + 1)))
 
@@ -111,7 +115,7 @@ class ZeroServer:
             print(e)
 
     def _sig_handler(self, signum, frame):
-        print('Signal handler called with signal', signum)
+        print("Signal handler called with signal", signum)
         self._terminate_server()
 
     def _terminate_server(self):
@@ -173,33 +177,25 @@ class ZeroServer:
             logging.error(f"{rpc} is not found!")
 
 
-class Worker:
-
+class _Worker:
     @classmethod
     def spawn_worker(
-            cls,
-            rpc_router: dict,
-            ipc: str,
-            port: int,
-            serializer: str,
-            struct_registry: dict,
-            worker_id: int
+        cls,
+        rpc_router: dict,
+        ipc: str,
+        port: int,
+        serializer: str,
+        struct_registry: dict,
+        worker_id: int,
     ):
-        time.sleep(.2)
-        worker = Worker(rpc_router, ipc, port, serializer, struct_registry)
+        time.sleep(0.2)
+        worker = _Worker(rpc_router, ipc, port, serializer, struct_registry)
         # loop = asyncio.get_event_loop()
         # loop.run_until_complete(worker.create_worker(worker_id))
         # asyncio.run(worker.start_async_dealer_worker(worker_id))
         worker.start_dealer_worker(worker_id)
 
-    def __init__(
-            self,
-            rpc_router,
-            ipc,
-            port,
-            serializer,
-            struct_registry
-    ):
+    def __init__(self, rpc_router, ipc, port, serializer, struct_registry):
         self._rpc_router = rpc_router
         self._ipc = ipc
         self._port = port
