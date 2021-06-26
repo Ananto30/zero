@@ -1,5 +1,15 @@
-# Zero 
-[![codecov](https://codecov.io/gh/Ananto30/zero/branch/main/graph/badge.svg?token=k0aA0G6NLs)](https://codecov.io/gh/Ananto30/zero)
+<p align="center">
+    <img height="500px" src="https://lh3.googleusercontent.com/lhj69nAwml9E6gedbpgyCDbL9b_B8TDuokbxhk4GjcYW64x8qpnk33rXDOh_DEG19QEs944q0sLLdQD1yPLs=w3264-h1774-rw" /> 
+</p>
+<p align="center">
+    <em>Zero is a RPC framework to build fast and high performance Python microservices</em>
+</p>
+<p align="center">
+    <a href="https://codecov.io/gh/Ananto30/zero" target="_blank">
+        <img src="https://codecov.io/gh/Ananto30/zero/branch/main/graph/badge.svg?token=k0aA0G6NLs" />
+    </a>
+</p>
+<hr>
 
 *(Work in progress)*
 
