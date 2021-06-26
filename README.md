@@ -1,5 +1,5 @@
 <p align="center">
-    <img height="500px" src="https://lh3.googleusercontent.com/lhj69nAwml9E6gedbpgyCDbL9b_B8TDuokbxhk4GjcYW64x8qpnk33rXDOh_DEG19QEs944q0sLLdQD1yPLs=w3264-h1774-rw" /> 
+    <img height="500px" src="https://ananto30.github.io/i/1200xCL_TP.png" /> 
 </p>
 <p align="center">
     <em>Zero is a RPC framework to build fast and high performance Python microservices</em>
