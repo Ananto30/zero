@@ -251,3 +251,11 @@ Running 10s test @ http://127.0.0.1:8000/order
 Requests/sec:   7936.92
 Transfer/sec:      1.95MB
 ```
+
+## Todo list
+- Graceful shutdown server
+- Improve error handling
+- Fault tolerance
+
+## Contribution
+Contributors are welcomed 🙏
