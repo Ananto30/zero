@@ -1,7 +1,7 @@
-pyzmq
-msgpack
-quickle
-pytest
-pytest-cov
-PyJWT
-pytest-asyncio
+pyzmq==22.1.0
+msgpack==1.0.2
+quickle==0.4.0
+pytest==6.2.4
+pytest-cov==2.12.1
+PyJWT==2.1.0
+pytest-asyncio==0.15.1
