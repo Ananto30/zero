@@ -1,3 +1,4 @@
+import logging
 import typing
 import uuid
 from datetime import datetime
@@ -7,6 +8,16 @@ from pydantic import BaseModel
 
 from benchmarks.async_redis_repository import save_order as saveOrder
 from benchmarks.model import Order, OrderStatus, OrderResp
+
+logger = logging.getLogger(__name__)
+
+try:
+    import uvloop
+
+    uvloop.install()
+except ImportError:
+    logger.warn("Cannot use uvloop")
+    pass
 
 
 class Request(BaseModel):
@@ -30,7 +41,7 @@ async def save_order(req: Request):
             created_by=req.user_id,
             items=req.items,
             created_at=datetime.now().isoformat(),
-            status=OrderStatus.INITIATED
+            status=OrderStatus.INITIATED,
         )
     )
 

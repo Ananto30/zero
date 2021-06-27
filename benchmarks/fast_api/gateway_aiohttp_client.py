@@ -1,7 +1,9 @@
 import logging
 from typing import Optional
 
-from aiohttp import ClientSession, web
+import httpx
+from aiohttp import ClientSession
+from fastapi import FastAPI
 
 logger = logging.getLogger(__name__)
 
@@ -15,31 +17,29 @@ except ImportError:
 
 session: Optional[ClientSession] = None
 
+app = FastAPI()
 
-async def hello(request):
+
+@app.get("/hello")
+async def root():
     global session
     if session is None:
         session = ClientSession()
 
-    resp = await session.get("http://localhost:8011/hello")
-    txt = await resp.text()
-    return web.Response(text=txt)
+    r = await session.get("http://localhost:8011/hello")
+    resp = await r.json()
+    return resp
 
 
-async def order(request):
+@app.get("/order")
+async def root():
     global session
     if session is None:
         session = ClientSession()
 
-    resp = await session.post(
+    r = await session.post(
         "http://localhost:8011/order",
         json={"user_id": "1", "items": ["apple", "python"]},
     )
-    return web.json_response(await resp.json())
-
-
-async def gateway_app():
-    app = web.Application()
-    app.router.add_get("/order", order)
-    app.router.add_get("/hello", hello)
-    return app
+    resp = await r.json()
+    return resp

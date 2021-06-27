@@ -9,11 +9,10 @@ class Yo:
         self.token = token
 
 
-@routes.get('/')
+@routes.get("/")
 async def hello(request):
-
-    encoded_jwt = jwt.encode({'user_id': 'a1b2c3'}, 'secret', algorithm='HS256')
-    decoded_jwt = jwt.decode(encoded_jwt, 'secret', algorithms=['HS256'])
+    encoded_jwt = jwt.encode({"user_id": "a1b2c3"}, "secret", algorithm="HS256")
+    decoded_jwt = jwt.decode(encoded_jwt, "secret", algorithms=["HS256"])
     unpacked = Yo(decoded_jwt)
 
     return web.Response(text=str(vars(unpacked)))
@@ -21,5 +20,5 @@ async def hello(request):
 
 async def my_web_app():
     app = web.Application()
-    app.router.add_get('/', hello)
+    app.router.add_get("/", hello)
     return app

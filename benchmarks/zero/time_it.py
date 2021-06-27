@@ -35,7 +35,7 @@ def hello_test_requests():
 
 async def hello_test_aiohttp():
     async with ClientSession() as session:
-        resp = await session.get('http://localhost:8000/hello')
+        resp = await session.get("http://localhost:8000/hello")
 
 
 def hello_test():
@@ -59,13 +59,13 @@ def pub_test():
 
 
 def socket_test():
-    HOST = '127.0.0.1'  # The server's hostname or IP address
+    HOST = "127.0.0.1"  # The server's hostname or IP address
     PORT = 65430  # The port used by the server
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((HOST, PORT))
 
-    s.sendall(msgpack.packb('Hello, world'))
+    s.sendall(msgpack.packb("Hello, world"))
     data = s.recv(1024)
 
 
@@ -74,7 +74,9 @@ def time_it(func):
 
     num_runs = 10_000
     duration = timeit.Timer(func).timeit(number=num_runs)
-    print(f'{func.__name__} took {duration / num_runs} seconds, total {duration}, rps {num_runs / duration}')
+    print(
+        f"{func.__name__} took {duration / num_runs} seconds, total {duration}, rps {num_runs / duration}"
+    )
 
 
 def run_async(func):

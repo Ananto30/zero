@@ -7,7 +7,13 @@ import jwt
 
 # from benchmarks.async_redis_repository import save_order as saveOrder
 from benchmarks.redis_repository import save_order as saveOrder
-from benchmarks.model import Order, OrderStatus, OrderResp, CreateOrderReqQuickle, CreateOrderReq
+from benchmarks.model import (
+    Order,
+    OrderStatus,
+    OrderResp,
+    CreateOrderReqQuickle,
+    CreateOrderReq,
+)
 from zero import ZeroServer
 
 
@@ -15,7 +21,7 @@ async def echo(msg):
     return msg
 
 
-async def hello_world(msg):
+def hello_world(msg):
     return "hello world"
 
 
@@ -28,7 +34,7 @@ def save_order(msg: CreateOrderReqQuickle):
             created_by=req.user_id,
             items=req.items,
             created_at=datetime.now().isoformat(),
-            status=OrderStatus.INITIATED
+            status=OrderStatus.INITIATED,
         )
     )
 
@@ -38,8 +44,8 @@ def save_order(msg: CreateOrderReqQuickle):
 
 
 def decode_jwt(msg):
-    encoded_jwt = jwt.encode(msg, 'secret', algorithm='HS256')
-    decoded_jwt = jwt.decode(encoded_jwt, 'secret', algorithms=['HS256'])
+    encoded_jwt = jwt.encode(msg, "secret", algorithm="HS256")
+    decoded_jwt = jwt.decode(encoded_jwt, "secret", algorithms=["HS256"])
     logging.info(decoded_jwt)
     return decoded_jwt
 

@@ -16,25 +16,21 @@ async def root(request):
     saved_order = await save_order(
         Order(
             id=str(uuid.uuid4()),
-            created_by=body['user_id'],
-            items=body['items'],
+            created_by=body["user_id"],
+            items=body["items"],
             created_at=datetime.now().isoformat(),
-            status=OrderStatus.INITIATED
+            status=OrderStatus.INITIATED,
         )
     )
 
     resp = OrderResp(saved_order.id, saved_order.status, saved_order.items)
-    return json({
-        "id": resp.order_id,
-        "status": resp.status,
-        "items": resp.items
-    })
+    return json({"id": resp.order_id, "status": resp.status, "items": resp.items})
 
 
-@app.route('/hello')
+@app.route("/hello")
 async def test(request):
     return text("hello world")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run()

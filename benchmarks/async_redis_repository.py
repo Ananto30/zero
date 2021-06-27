@@ -15,7 +15,6 @@ class SingletonMeta(type):
 
 
 class RedisClient(metaclass=SingletonMeta):
-
     def __init__(self):
         self.client = aioredis.from_url("redis://localhost")
 

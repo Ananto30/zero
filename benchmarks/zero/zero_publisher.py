@@ -19,7 +19,7 @@ async def save_order(msg):
             created_by=req.user_id,
             items=req.items,
             created_at=datetime.now().isoformat(),
-            status=OrderStatus.INITIATED
+            status=OrderStatus.INITIATED,
         )
     )
 

@@ -1,7 +1,10 @@
 import logging
 from typing import Optional
 
-from aiohttp import ClientSession, web
+import httpx
+from aiohttp import ClientSession
+from sanic import Sanic
+from sanic.response import text, json
 
 logger = logging.getLogger(__name__)
 
@@ -15,31 +18,31 @@ except ImportError:
 
 session: Optional[ClientSession] = None
 
+app = Sanic("My Hello, world app")
 
-async def hello(request):
+
+@app.route("/hello")
+async def test(request):
     global session
     if session is None:
         session = ClientSession()
 
-    resp = await session.get("http://localhost:8011/hello")
-    txt = await resp.text()
-    return web.Response(text=txt)
+    r = await session.get("http://localhost:8011/hello")
+    return text(await r.text())
 
 
-async def order(request):
+@app.route("/order")
+async def test(request):
     global session
     if session is None:
         session = ClientSession()
 
-    resp = await session.post(
+    r = await session.post(
         "http://localhost:8011/order",
         json={"user_id": "1", "items": ["apple", "python"]},
     )
-    return web.json_response(await resp.json())
+    return json(r.json())
 
 
-async def gateway_app():
-    app = web.Application()
-    app.router.add_get("/order", order)
-    app.router.add_get("/hello", hello)
-    return app
+if __name__ == "__main__":
+    app.run()
