@@ -9,9 +9,10 @@ import typing
 import uuid
 from functools import partial
 from multiprocessing.pool import Pool
+import uvloop
 
 import msgpack
-import quickle
+
 import zmq
 import zmq.asyncio
 
@@ -27,7 +28,7 @@ logging.basicConfig(
 class ZeroServer:
     def __init__(self, host: str = "127.0.0.1", port: int = 5559, serializer="msgpack"):
         """
-        ZeroServer is the server where the rpc methods are registered to be called from a ZeroClient.
+        ZeroServer registers rpc methods that are called from a ZeroClient.
 
         By default ZeroServer uses all of the cores for best performance possible.
         A zmq queue device load balances the requests and runs on the main thread.
@@ -51,10 +52,10 @@ class ZeroServer:
         self._serializer = serializer
         self._rpc_router = {}
 
-        # TODO: quickle is king of broken for python objects, why? I dont know
-        if serializer not in ["quickle", "msgpack"]:
+        # TODO: quickle is kind of broken for python objects, why? I dont know
+        if serializer not in ["msgpack"]:
             raise Exception("serializer not supported")
-        # registry for quickle
+        # registry for quickle, not used right now
         self._struct_registry = []
 
     def register_rpc(self, func: typing.Callable):
@@ -72,14 +73,15 @@ class ZeroServer:
         if typing.get_type_hints(func):
             self._struct_registry.append(typing.get_type_hints(func))
 
-    def register_msg_types(self, classes: [quickle.Struct]):
-        """
-        Add the list of `quickle.Struct` classes that will be sent in the call.
-        Only effective for `quickle` serializer.
-
-        @param classes: List of Dataclass or python class that extends `quickle.Struct`
-        """
-        self._struct_registry = classes
+    # quickle is removed as it is kind of broken for python objects, or my mere knowledge
+    # def register_msg_types(self, classes: typing.List[quickle.Struct]):
+    #     """
+    #     Add the list of `quickle.Struct` classes that will be sent in the call.
+    #     Only effective for `quickle` serializer.
+    #
+    #     @param classes: List of Dataclass or python class that extends `quickle.Struct`
+    #     """
+    #     self._struct_registry = classes
 
     def run(self):
         try:
@@ -202,17 +204,12 @@ class _Worker:
         self._serializer = serializer
         self._struct_registry = struct_registry
         self._loop = asyncio.get_event_loop()
+        # self._loop = uvloop.new_event_loop()
         self._init_serializer()
 
     def _init_serializer(self):
-        if self._serializer == "quickle":
-            enc = quickle.Encoder(registry=[self._struct_registry])
-            dec = quickle.Decoder(registry=[self._struct_registry])
-            self._encode = enc.dumps
-            self._decode = dec.loads
-
         # msgpack is the default serializer
-        else:
+        if self._serializer == "msgpack":
             self._encode = msgpack.packb
             self._decode = msgpack.unpackb
 
@@ -227,7 +224,7 @@ class _Worker:
 
         logging.info(f"Starting worker: {worker_id}")
 
-        while True:
+        async def process_message():
             try:
                 ident, rpc, msg = await socket.recv_multipart()
                 rpc_method = rpc.decode()
@@ -237,6 +234,9 @@ class _Worker:
                 await socket.send_multipart([ident, response], zmq.DONTWAIT)
             except Exception as e:
                 logging.exception(e)
+
+        while True:
+            await process_message()
 
     def start_dealer_worker(self, worker_id):
         ctx = zmq.Context()
@@ -249,7 +249,7 @@ class _Worker:
 
         logging.info(f"Starting worker: {worker_id}")
 
-        while True:
+        def process_message():
             try:
                 ident, rpc, msg = socket.recv_multipart()
                 rpc_method = rpc.decode()
@@ -259,6 +259,9 @@ class _Worker:
                 socket.send_multipart([ident, response], zmq.DONTWAIT)
             except Exception as e:
                 logging.exception(e)
+
+        while True:
+            process_message()
 
     def _handle_msg(self, rpc, msg):
         if rpc in self._rpc_router:

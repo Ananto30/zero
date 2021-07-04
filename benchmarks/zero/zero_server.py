@@ -1,17 +1,15 @@
-import inspect
 import logging
 import uuid
 from datetime import datetime
 
 import jwt
 
-# from benchmarks.async_redis_repository import save_order as saveOrder
+
 from benchmarks.redis_repository import save_order as saveOrder
 from benchmarks.model import (
     Order,
     OrderStatus,
     OrderResp,
-    CreateOrderReqQuickle,
     CreateOrderReq,
 )
 from zero import ZeroServer
@@ -25,9 +23,8 @@ def hello_world(msg):
     return "hello world"
 
 
-def save_order(msg: CreateOrderReqQuickle):
+def save_order(msg: CreateOrderReq):
     req = CreateOrderReq(**msg)
-    # req = msg
     saved_order = saveOrder(
         Order(
             id=str(uuid.uuid4()),
@@ -40,7 +37,6 @@ def save_order(msg: CreateOrderReqQuickle):
 
     resp = OrderResp(saved_order.id, saved_order.status, saved_order.items)
     return resp.__dict__
-    # return req
 
 
 def decode_jwt(msg):
@@ -56,5 +52,4 @@ if __name__ == "__main__":
     app.register_rpc(hello_world)
     app.register_rpc(save_order)
     app.register_rpc(decode_jwt)
-    # app.register_msg_types([CreateOrderReqQuickle])
     app.run()

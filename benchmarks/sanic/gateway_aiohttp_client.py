@@ -41,7 +41,7 @@ async def test(request):
         "http://localhost:8011/order",
         json={"user_id": "1", "items": ["apple", "python"]},
     )
-    return json(r.json())
+    return json(await r.json())
 
 
 if __name__ == "__main__":

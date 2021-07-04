@@ -39,7 +39,7 @@ There are two endpoints in every tests,
 - `/order`: Save a Order object in redis (ensure running `redis-server` first)
 
 
-*Ensure Python 3.7+*
+*Ensure Python 3.8+*
 
 - Setup 
     ```zsh
@@ -154,102 +154,106 @@ if __name__ == "__main__":
 
 ## Benchmarks
 
-Here is the result on MacBook Pro (16-inch, 2019), 2.6 GHz 6-Core Intel Core i7, 16 GB 2667 MHz DDR4
+Here is the result on MacBook Pro (13-inch, M1, 2020), Apple M1, 8 cores (4 performance and 4 efficiency), 8 GB RAM
 
 For aiohttp -
 ```
-> wrk -d10s -t50 -c200 http://127.0.0.1:8000/hello
+> wrk -d10s -t8 -c240 http://127.0.0.1:8000/hello
 Running 10s test @ http://127.0.0.1:8000/hello
-  50 threads and 200 connections
+  8 threads and 240 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   112.02ms  136.57ms 665.72ms   82.15%
-    Req/Sec    60.74     44.44   200.00     60.98%
-  15202 requests in 10.10s, 2.44MB read
-Requests/sec:   1504.41
-Transfer/sec:    246.82KB
+    Latency    35.06ms   44.90ms 412.88ms   84.98%
+    Req/Sec     1.56k   444.76     5.09k    77.25%
+  124255 requests in 10.01s, 19.91MB read
+  Socket errors: connect 0, read 102, write 0, timeout 0
+Requests/sec:  12409.50
+Transfer/sec:      1.99MB
 
-> wrk -d10s -t50 -c200 http://127.0.0.1:8000/order
+> wrk -d10s -t8 -c240 http://127.0.0.1:8000/order
 Running 10s test @ http://127.0.0.1:8000/order
-  50 threads and 200 connections
+  8 threads and 240 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   148.15ms   95.78ms 772.12ms   74.66%
-    Req/Sec    29.10     13.99    90.00     70.95%
-  14191 requests in 10.10s, 3.41MB read
-Requests/sec:   1404.88
-Transfer/sec:    345.80KB
+    Latency    50.83ms   52.31ms 386.97ms   83.64%
+    Req/Sec   774.89    219.09     1.73k    69.62%
+  61807 requests in 10.03s, 14.85MB read
+  Socket errors: connect 0, read 101, write 0, timeout 0
+Requests/sec:   6161.43
+Transfer/sec:      1.48MB
 ```
 
 For sanic -
 ```
-> wrk -d10s -t50 -c200 http://127.0.0.1:8000/hello
+> wrk -d10s -t8 -c240 http://127.0.0.1:8000/hello
 Running 10s test @ http://127.0.0.1:8000/hello
-  50 threads and 200 connections
+  8 threads and 240 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   372.58ms  225.79ms   1.18s    57.34%
-    Req/Sec    13.19      9.26    50.00     79.10%
-  5299 requests in 10.10s, 595.10KB read
-  Socket errors: connect 0, read 138, write 0, timeout 0
-Requests/sec:    524.46
-Transfer/sec:     58.90KB
+    Latency    13.69ms   14.63ms 171.07ms   87.96%
+    Req/Sec     2.85k     1.00k    6.25k    76.12%
+  226992 requests in 10.02s, 24.89MB read
+  Socket errors: connect 0, read 141, write 0, timeout 0
+Requests/sec:  22644.41
+Transfer/sec:      2.48MB
 
-> wrk -d10s -t50 -c200 http://127.0.0.1:8000/order
+> wrk -d10s -t8 -c240 http://127.0.0.1:8000/order
 Running 10s test @ http://127.0.0.1:8000/order
-  50 threads and 200 connections
+  8 threads and 240 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   458.77ms  411.95ms   1.76s    65.57%
-    Req/Sec    17.53     21.77   120.00     86.83%
-  4622 requests in 10.10s, 803.43KB read
-  Socket errors: connect 0, read 11, write 0, timeout 0
-Requests/sec:    457.76
-Transfer/sec:     79.57KB
+    Latency    42.91ms   45.96ms 320.13ms   83.70%
+    Req/Sec     0.98k   277.75     2.04k    70.96%
+  77888 requests in 10.05s, 13.22MB read
+  Socket errors: connect 0, read 126, write 0, timeout 0
+Requests/sec:   7750.49
+Transfer/sec:      1.32MB
 ```
 
 For fastApi -
 ```
-> wrk -d10s -t50 -c200 http://127.0.0.1:8000/hello
+> wrk -d10s -t8 -c240 http://127.0.0.1:8000/hello
 Running 10s test @ http://127.0.0.1:8000/hello
-  50 threads and 200 connections
+  8 threads and 240 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   503.64ms  336.89ms   1.71s    86.45%
-    Req/Sec     9.88      6.27    40.00     71.45%
-  4066 requests in 10.08s, 547.96KB read
-  Socket errors: connect 0, read 69, write 0, timeout 4
-Requests/sec:    403.25
-Transfer/sec:     54.34KB
+    Latency    30.33ms   24.27ms 215.15ms   68.17%
+    Req/Sec     1.09k   348.97     2.36k    70.00%
+  86908 requests in 10.04s, 11.44MB read
+  Socket errors: connect 0, read 97, write 0, timeout 0
+Requests/sec:   8653.16
+Transfer/sec:      1.14MB
 
-> wrk -d10s -t50 -c200 http://127.0.0.1:8000/order
+> wrk -d10s -t8 -c240 http://127.0.0.1:8000/order
 Running 10s test @ http://127.0.0.1:8000/order
-  50 threads and 200 connections
+  8 threads and 240 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   533.32ms  541.91ms   1.96s    80.37%
-    Req/Sec    18.05     21.29   111.00     84.02%
-  3945 requests in 10.09s, 824.44KB read
-  Socket errors: connect 0, read 96, write 0, timeout 71
-Requests/sec:    391.09
-Transfer/sec:     81.73KB
+    Latency    43.16ms   27.80ms 283.60ms   68.00%
+    Req/Sec   720.17    124.58     1.24k    71.62%
+  57490 requests in 10.04s, 11.73MB read
+  Socket errors: connect 0, read 100, write 0, timeout 0
+Requests/sec:   5727.53
+Transfer/sec:      1.17MB
 ```
 
 For zero -
 ```
-> wrk -d10s -t50 -c200 http://127.0.0.1:8000/hello
+> wrk -d10s -t8 -c240 http://127.0.0.1:8000/hello
 Running 10s test @ http://127.0.0.1:8000/hello
-  50 threads and 200 connections
+  8 threads and 240 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency    21.43ms   11.23ms 145.58ms   72.29%
-    Req/Sec   190.72     75.47     1.09k    74.25%
-  95331 requests in 10.10s, 15.27MB read
-Requests/sec:   9436.16
-Transfer/sec:      1.51MB
+    Latency    15.10ms    9.91ms  43.16ms   47.27%
+    Req/Sec     1.99k   777.55     3.64k    70.50%
+  158706 requests in 10.01s, 25.43MB read
+  Socket errors: connect 0, read 101, write 0, timeout 0
+Requests/sec:  15853.92
+Transfer/sec:      2.54MB
 
-> wrk -d10s -t50 -c200 http://127.0.0.1:8000/order
+> wrk -d10s -t8 -c240 http://127.0.0.1:8000/order
 Running 10s test @ http://127.0.0.1:8000/order
-  50 threads and 200 connections
+  8 threads and 240 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency    25.32ms   11.09ms 132.30ms   70.02%
-    Req/Sec   160.10     43.03   363.00     71.97%
-  80035 requests in 10.08s, 19.69MB read
-Requests/sec:   7936.92
-Transfer/sec:      1.95MB
+    Latency    24.59ms   21.15ms  94.09ms   62.77%
+    Req/Sec     1.42k   614.40     8.39k    60.80%
+  112807 requests in 10.10s, 27.76MB read
+  Socket errors: connect 0, read 102, write 0, timeout 0
+Requests/sec:  11167.89
+Transfer/sec:      2.75MB
 ```
 
 ## Todo list

@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 
 import msgpack
-import quickle as quickle
 
 
 @dataclass
@@ -51,10 +50,5 @@ class OrderResp(Btype):
 
 @dataclass
 class CreateOrderReq(Btype):
-    user_id: str
-    items: list
-
-
-class CreateOrderReqQuickle(quickle.Struct):
     user_id: str
     items: list

@@ -2,7 +2,6 @@ pyzmq
 msgpack
 aiohttp
 gunicorn
-quickle
 uvicorn
 httpx
 fastapi

@@ -50,9 +50,7 @@ class _AsyncLogger:
             logging.info(f"Async logger starting at ipc://{_AsyncLogger.ipc}")
         else:
             log_listener.bind(f"tcp://127.0.0.1:{_AsyncLogger.port}")
-            logging.info(
-                f"Async logger starting at tcp://127.0.0.1:{_AsyncLogger.port}"
-            )
+            logging.info(f"Async logger starting at tcp://127.0.0.1:{_AsyncLogger.port}")
         try:
             while True:
                 log = log_listener.recv_string()
