@@ -1,6 +1,5 @@
 pyzmq
 msgpack
-quickle
 pytest
 pytest-cov
 PyJWT

@@ -23,6 +23,11 @@ async def sum_list():
     print(resp)
 
 
+async def echo():
+    resp = await zero_client.call_async("necho", "Hi there!")
+    print(resp)
+
+
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(echo())

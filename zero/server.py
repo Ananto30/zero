@@ -9,7 +9,7 @@ import typing
 import uuid
 from functools import partial
 from multiprocessing.pool import Pool
-import uvloop
+# import uvloop
 
 import msgpack
 

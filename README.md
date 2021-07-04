@@ -11,7 +11,7 @@
 </p>
 <hr>
 
-*(Work in progress)*
+**(Work in progress)**
 
 Zero is a high performance and fast (see [benchmarks](https://github.com/Ananto30/zero#benchmarks)) Python microservice framework that provides RPC and Pub Sub interface.
 
