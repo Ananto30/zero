@@ -256,6 +256,18 @@ Requests/sec:  11167.89
 Transfer/sec:      2.75MB
 ```
 
+From the above numbers we can see only sanic has higher "hello world" performance than zero but again loses in the real-life example of redis order saving.
+
+In short - 
+
+Framework | "hello world" example | redis save example
+--- | --- | ---
+aiohttp | 12409.50 req/s | 6161.43 req/s
+sanic | 22644.41 req/s | 7750.49 req/s
+fastApi | 8653.16 req/s | 5727.53 req/s
+zero | 15853.92 req/s | 11167.89 req/s
+
+
 ## Todo list
 - Graceful shutdown server
 - Improve error handling
