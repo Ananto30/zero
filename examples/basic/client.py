@@ -1,4 +1,5 @@
 import asyncio
+from zero.errors import ZeroException
 
 import jwt
 
@@ -13,7 +14,7 @@ async def echo():
 
 
 async def enc_dec_jwt():
-    encoded_jwt = jwt.encode({'user_id': 'a1b2c3'}, 'secret', algorithm='HS256')
+    encoded_jwt = jwt.encode({"user_id": "a1b2c3"}, "secret", algorithm="HS256")
     resp = await zero_client.call_async("decode_jwt", encoded_jwt)
     print(resp)
 
@@ -23,8 +24,16 @@ async def sum_list():
     print(resp)
 
 
-async def echo():
-    resp = await zero_client.call_async("necho", "Hi there!")
+async def necho():
+    try:
+        resp = await zero_client.call_async("necho", "Hi there!")
+        print(resp)
+    except ZeroException as e:
+        print(e)
+
+
+async def two_rets():
+    resp = await zero_client.call_async("two_rets", "Hi there!")
     print(resp)
 
 
@@ -33,3 +42,5 @@ if __name__ == "__main__":
     loop.run_until_complete(echo())
     loop.run_until_complete(enc_dec_jwt())
     loop.run_until_complete(sum_list())
+    loop.run_until_complete(necho())
+    loop.run_until_complete(two_rets())

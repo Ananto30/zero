@@ -9,6 +9,7 @@ import typing
 import uuid
 from functools import partial
 from multiprocessing.pool import Pool
+
 # import uvloop
 
 import msgpack
@@ -275,6 +276,7 @@ class _Worker:
                 logging.exception(e)
         else:
             logging.error(f"method `{rpc}` is not found!")
+            return {"__zerror__method_not_found": f"method `{rpc}` is not found!"}
 
     async def _handle_msg_async(self, rpc, msg):
         if rpc in self._rpc_router:

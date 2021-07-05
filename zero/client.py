@@ -1,4 +1,5 @@
 import logging
+from zero.errors import MethodNotFoundException, ZeroException
 
 import msgpack
 
@@ -106,7 +107,15 @@ class ZeroClient:
                 [rpc_method_name.encode(), self._encode(msg)], zmq.DONTWAIT
             )
             resp = self._socket.recv()
-            return self._decode(resp)
+            decoded_resp = self._decode(resp)
+            if isinstance(decoded_resp, dict):
+                if "__zerror__method_not_found" in decoded_resp:
+                    raise MethodNotFoundException(
+                        decoded_resp.get("__zerror__method_not_found")
+                    )
+            return decoded_resp
+        except ZeroException as ze:
+            raise ze
         except Exception as e:
             self._socket.close()
             self._init_socket()
@@ -130,7 +139,15 @@ class ZeroClient:
                 [rpc_method_name.encode(), self._encode(msg)], zmq.DONTWAIT
             )
             resp = await self._socket.recv()
-            return self._decode(resp)
+            decoded_resp = self._decode(resp)
+            if isinstance(decoded_resp, dict):
+                if "__zerror__method_not_found" in decoded_resp:
+                    raise MethodNotFoundException(
+                        decoded_resp.get("__zerror__method_not_found")
+                    )
+            return decoded_resp
+        except ZeroException as ze:
+            raise ze
         except Exception as e:
             self._socket.close()
             self._init_async_socket()

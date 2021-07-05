@@ -26,7 +26,7 @@ def test_two_servers_can_be_run():
     p.start()
     time.sleep(1)
 
-    assert (get_next_available_port(4344) == 4345)
+    assert get_next_available_port(4344) == 4345
 
     p2 = Process(target=server2)
     p2.start()
