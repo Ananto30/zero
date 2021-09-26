@@ -27,7 +27,7 @@ logging.basicConfig(
 
 
 class ZeroServer:
-    def __init__(self, host: str = "127.0.0.1", port: int = 5559, serializer="msgpack"):
+    def __init__(self, host: str = "0.0.0.0", port: int = 5559, serializer="msgpack"):
         """
         ZeroServer registers rpc methods that are called from a ZeroClient.
 
