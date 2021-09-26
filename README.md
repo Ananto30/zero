@@ -28,7 +28,13 @@ The framework hides the complexity of messaging pattern that enables faster comm
 
 Take a look at an example server [here](https://github.com/Ananto30/zero/tree/develop/examples/basic).
 
-### Tired of hearing buzzwords? Let's test!
+
+## Installation
+```
+pip install zeroapi
+```
+
+## Tired of hearing buzzwords? Let's test!
 
 Zero is talking about inter service communication. In most real life scenarios, we need to call another microservice. 
 

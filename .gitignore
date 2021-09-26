@@ -4,3 +4,8 @@ venv/
 venv-pypy/
 .pytest_cache
 .idea
+
+
+build
+dist
+zeroapi.egg-info
