@@ -1,5 +1,5 @@
 <p align="center">
-    <img height="500px" src="https://ananto30.github.io/i/1200xCL_TP.png" /> 
+    <img height="300px" src="https://ananto30.github.io/i/1200xCL_TP.png" /> 
 </p>
 <p align="center">
     <em>Zero is a RPC framework to build fast and high performance Python microservices</em>
@@ -11,7 +11,6 @@
 </p>
 <hr>
 
-**(Work in progress)**
 
 Zero is a high performance and fast (see [benchmarks](https://github.com/Ananto30/zero#benchmarks)) Python microservice framework that provides RPC and Pub Sub interface.
 
@@ -26,15 +25,96 @@ Zero is a high performance and fast (see [benchmarks](https://github.com/Ananto3
 The framework hides the complexity of messaging pattern that enables faster communication. 
 - **ZeroMQ**: An awesome messaging library enables the power of Zero.
 
-Take a look at an example server [here](https://github.com/Ananto30/zero/tree/develop/examples/basic).
+Let's get started!
 
 
-## Installation
+## Getting started 🚀
+*Ensure Python 3.8+*
 ```
 pip install zeroapi
 ```
 
-## Tired of hearing buzzwords? Let's test!
+
+
+- Create a `server.py`
+```python
+from zero import ZeroServer
+
+
+def echo(msg: str):
+    return msg
+
+
+async def hello_world():
+    return "hello world"
+
+
+if __name__ == "__main__":
+    app = ZeroServer(port=5559)
+    app.register_rpc(echo)
+    app.register_rpc(hello_world)
+    app.run()
+
+```
+**Please note that server RPC methods' args are type hinted. Type hint is MUST in Zero server.**
+
+*See the method type async or sync, doesn't matter.* 😃
+
+- Run it
+```
+python -m server
+```
+
+- Call the rpc methods
+```python
+import asyncio
+
+from zero import ZeroClient
+
+zero_client = ZeroClient("localhost", 5559)
+
+async def echo():
+    resp = await zero_client.call_async("echo", "Hi there!")
+    print(resp)
+
+async def hello():
+    resp = await zero_client.call_async("hello_world", None)
+    print(resp)
+
+
+if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(echo())
+    loop.run_until_complete(hello())
+
+```
+
+Or using sync client -
+```python
+from zero import ZeroClient
+
+zero_client = ZeroClient("localhost", 5559, use_async=False)
+
+def echo():
+    resp = zero_client.call("echo", "Hi there!")
+    print(resp)
+
+def hello():
+    resp = zero_client.call("hello_world", None)
+    print(resp)
+
+
+if __name__ == "__main__":
+    echo()
+    hello()
+
+```
+
+## Important notes
+- `ZeroServer` should always be run under `if __name__ == "__main__":` this, as it uses multiprocessing.
+- The methods which are under `register_rpc()` in `ZeroServer` should have **type hinting**, like `def echo(msg: str):`
+
+## Tired of hearing buzzwords? Let's test! 🤘
 
 Zero is talking about inter service communication. In most real life scenarios, we need to call another microservice. 
 
@@ -82,83 +162,7 @@ There are two endpoints in every tests,
 
 Compare the results! Or just see the [benchmarks](https://github.com/Ananto30/zero#benchmarks).
 
-## Example
-
-- Create a `server.py`
-```python
-from zero import ZeroServer
-
-
-def echo(msg):
-    return msg
-
-
-async def hello_world(msg):
-    return "hello world"
-
-
-if __name__ == "__main__":
-    app = ZeroServer(port=5559)
-    app.register_rpc(echo)
-    app.register_rpc(hello_world)
-    app.run()
-
-```
-See the method type async or sync, doesn't matter.
-
-- Run it
-```
-python -m server
-```
-
-- Call the rpc methods
-```python
-import asyncio
-
-from zero import ZeroClient
-
-zero_client = ZeroClient("localhost", 5559)
-
-
-async def echo():
-    resp = await zero_client.call_async("echo", "Hi there!")
-    print(resp)
-
-async def hello():
-    resp = await zero_client.call_async("hello_world", "")
-    print(resp)
-
-
-if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(echo())
-    loop.run_until_complete(hello())
-
-```
-
-Or using sync client -
-```python
-from zero import ZeroClient
-
-zero_client = ZeroClient("localhost", 5559, use_async=False)
-
-
-def echo():
-    resp = zero_client.call("echo", "Hi there!")
-    print(resp)
-
-def hello():
-    resp = zero_client.call("hello_world", "")
-    print(resp)
-
-
-if __name__ == "__main__":
-    echo()
-    hello()
-
-```
-
-## Benchmarks
+## Benchmarks 🏆
 
 Here is the result on MacBook Pro (13-inch, M1, 2020), Apple M1, 8 cores (4 performance and 4 efficiency), 8 GB RAM
 
@@ -274,10 +278,12 @@ fastApi | 8653.16 req/s | 5727.53 req/s
 zero | 15853.92 req/s | 11167.89 req/s
 
 
-## Todo list
+## Todo list 📃
 - Graceful shutdown server
 - Improve error handling
 - Fault tolerance
 
 ## Contribution
 Contributors are welcomed 🙏
+
+**Please leave a star ⭐ if you like Zero!**
