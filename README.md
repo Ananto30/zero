@@ -12,7 +12,7 @@
 <hr>
 
 
-Zero is a high performance and fast (see [benchmarks](https://github.com/Ananto30/zero#benchmarks)) Python microservice framework that provides RPC and Pub Sub interface.
+Zero is a high performance and fast (see [benchmarks](https://github.com/Ananto30/zero#benchmarks-)) Python microservice framework that provides RPC and Pub Sub interface.
 
 **Features**: 
 - Zero provides **faster communication** between the microservices using [zeromq](https://zeromq.org/) under the hood.
