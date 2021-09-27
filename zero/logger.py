@@ -5,7 +5,7 @@ import sys
 import zmq.asyncio
 
 
-class _AsyncLogger:
+class _AsyncLogger:  # pragma: no cover
     """
     *We don't have any support for async logger now.*
 

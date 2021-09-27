@@ -1,4 +1,5 @@
 import logging
+from typing import Union
 from zero.errors import MethodNotFoundException, ZeroException
 
 import msgpack
@@ -89,7 +90,7 @@ class ZeroClient:
     #         # self._decode = dec.loads
     #         pass
 
-    def call(self, rpc_method_name: str, msg):
+    def call(self, rpc_method_name: str, msg: Union[int, float, str, dict, list, tuple, None]):
         """
         Call the rpc method of the ZeroServer.
 
@@ -103,6 +104,7 @@ class ZeroClient:
         Returns the response of ZeroServer's rpc method.
         """
         try:
+            msg = "" if msg is None else msg
             self._socket.send_multipart(
                 [rpc_method_name.encode(), self._encode(msg)], zmq.DONTWAIT
             )
@@ -121,7 +123,7 @@ class ZeroClient:
             self._init_socket()
             logging.exception(e)
 
-    async def call_async(self, rpc_method_name: str, msg):
+    async def call_async(self, rpc_method_name: str, msg: Union[int, float, str, dict, list, tuple, None]):
         """
         Async version of the `call`.
 
@@ -135,6 +137,7 @@ class ZeroClient:
         Returns the response of ZeroServer's rpc method.
         """
         try:
+            msg = "" if msg is None else msg
             await self._socket.send_multipart(
                 [rpc_method_name.encode(), self._encode(msg)], zmq.DONTWAIT
             )

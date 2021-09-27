@@ -5,7 +5,7 @@ from zero import ZeroServer
 from zero.common import get_next_available_port
 
 
-async def echo(msg):
+async def echo(msg: str):
     return msg
 
 
@@ -22,6 +22,13 @@ def server2():
 
 
 def test_two_servers_can_be_run():
+    try:
+        from pytest_cov.embed import cleanup_on_sigterm
+    except ImportError:
+        pass
+    else:
+        cleanup_on_sigterm()
+
     p = Process(target=server1)
     p.start()
     time.sleep(1)
@@ -37,6 +44,13 @@ def test_two_servers_can_be_run():
 
 
 def test_server_run():
+    try:
+        from pytest_cov.embed import cleanup_on_sigterm
+    except ImportError:
+        pass
+    else:
+        cleanup_on_sigterm()
+
     p = Process(target=server1)
     p.start()
     time.sleep(1)

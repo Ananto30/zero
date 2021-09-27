@@ -9,3 +9,7 @@ venv-pypy/
 build
 dist
 zeroapi.egg-info
+
+.coverage
+.coverage.*
+coverage.*

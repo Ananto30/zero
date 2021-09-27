@@ -70,9 +70,23 @@ class ZeroServer:
         """
         if not isinstance(func, typing.Callable):
             raise Exception(f"register function; not {type(func)}")
+        self._check_function_args(func)
         self._rpc_router[func.__name__] = func
         if typing.get_type_hints(func):
             self._struct_registry.append(typing.get_type_hints(func))
+
+    def _check_function_args(self, func: typing.Callable):
+        arg_count = func.__code__.co_argcount
+        if arg_count > 1:
+            raise Exception(
+                f"`{func.__name__}` has more than 1 args; RPC functions can have only one arg - msg, or no arg"
+            )
+
+        if arg_count == 1:
+            arg_name = func.__code__.co_varnames[0]
+            func_arg_type = typing.get_type_hints(func)
+            if arg_name not in func_arg_type:
+                raise Exception(f"`{func.__name__}` has no type hinting; RPC functions must have type hints")
 
     # quickle is removed as it is kind of broken for python objects, or my mere knowledge
     # def register_msg_types(self, classes: typing.List[quickle.Struct]):
@@ -154,7 +168,7 @@ class ZeroServer:
             logging.exception(e)
             logging.error("bringing down zmq device")
 
-    async def _start_router(self):
+    async def _start_router(self):  # pragma: no cover
         ctx = zmq.asyncio.Context()
         socket = ctx.socket(zmq.ROUTER)
         socket.bind(f"tcp://127.0.0.1:{self._port}")
@@ -214,7 +228,7 @@ class _Worker:
             self._encode = msgpack.packb
             self._decode = msgpack.unpackb
 
-    async def start_async_dealer_worker(self, worker_id):
+    async def start_async_dealer_worker(self, worker_id):  # pragma: no cover
         ctx = zmq.asyncio.Context()
         socket = ctx.socket(zmq.DEALER)
 
@@ -270,8 +284,8 @@ class _Worker:
             try:
                 # TODO: is this a bottleneck
                 if inspect.iscoroutinefunction(func):
-                    return self._loop.run_until_complete(func(msg))
-                return func(msg)
+                    return self._loop.run_until_complete(func() if msg == "" else func(msg))
+                return func() if msg == "" else func(msg)
             except Exception as e:
                 logging.exception(e)
         else:

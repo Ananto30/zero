@@ -6,15 +6,15 @@ import jwt
 from zero import ZeroServer
 
 
-async def echo(msg):
+async def echo(msg: str):
     return msg
 
 
-async def hello_world(msg):
+async def hello_world():
     return "hello world"
 
 
-async def decode_jwt(msg):
+async def decode_jwt(msg: str):
     decoded_jwt = jwt.decode(msg, "secret", algorithms=["HS256"])
     logging.info(decoded_jwt)
     return decoded_jwt
