@@ -54,7 +54,7 @@ if __name__ == "__main__":
     app.run()
 
 ```
-**Please note that server RPC methods' args are type hinted. Type hint is MUST in Zero server.**
+Please note that server **RPC methods' args are type hinted**. Type hint is **must** in Zero server.
 
 *See the method type async or sync, doesn't matter.* 😃
 
@@ -109,7 +109,7 @@ if __name__ == "__main__":
 ```
 
 ## Important notes
-- `ZeroServer` should always be run under `if __name__ == "__main__":` this, as it uses multiprocessing.
+- `ZeroServer` should always be run under `if __name__ == "__main__":`, as it uses multiprocessing.
 - The methods which are under `register_rpc()` in `ZeroServer` should have **type hinting**, like `def echo(msg: str):`
 
 ## Tired of hearing buzzwords? Let's test! 🤘
