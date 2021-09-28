@@ -15,11 +15,11 @@ from benchmarks.model import (
 from zero import ZeroServer
 
 
-async def echo(msg):
+async def echo(msg: str):
     return msg
 
 
-def hello_world(msg):
+def hello_world():
     return "hello world"
 
 
@@ -39,7 +39,7 @@ def save_order(msg: CreateOrderReq):
     return resp.__dict__
 
 
-def decode_jwt(msg):
+def decode_jwt(msg: str):
     encoded_jwt = jwt.encode(msg, "secret", algorithm="HS256")
     decoded_jwt = jwt.decode(encoded_jwt, "secret", algorithms=["HS256"])
     logging.info(decoded_jwt)
