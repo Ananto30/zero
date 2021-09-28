@@ -9,15 +9,23 @@ import typing
 import uuid
 from functools import partial
 from multiprocessing.pool import Pool
-
-# import uvloop
+from zero.codegen import CodeGen
 
 import msgpack
-
 import zmq
 import zmq.asyncio
 
 from .common import check_allowed_types, get_next_available_port
+from .type_util import (
+    get_function_input_class,
+    get_function_return_class,
+    verify_function_args,
+    verify_function_input_type,
+    verify_function_return,
+)
+
+# import uvloop
+
 
 logging.basicConfig(
     format="%(asctime)s  %(levelname)s  %(process)d  %(module)s > %(message)s",
@@ -27,7 +35,7 @@ logging.basicConfig(
 
 
 class ZeroServer:
-    def __init__(self, host: str = "0.0.0.0", port: int = 5559, serializer="msgpack"):
+    def __init__(self, host: str = "0.0.0.0", port: int = 5559):
         """
         ZeroServer registers rpc methods that are called from a ZeroClient.
 
@@ -44,20 +52,15 @@ class ZeroServer:
         @param port:
         Port of the ZeroServer.
 
-        @param serializer:
-        Serializer is used to convert the msg to bytes and vice-versa.
-        Only `msgpack` is supported for now.
         """
         self._port = port
         self._host = host
-        self._serializer = serializer
+        self._serializer = "msgpack"
         self._rpc_router = {}
 
-        # TODO: quickle is kind of broken for python objects, why? I dont know
-        if serializer not in ["msgpack"]:
-            raise Exception("serializer not supported")
-        # registry for quickle, not used right now
-        self._struct_registry = []
+        # Stores rpc functions `msg` types
+        self._rpc_input_type_map = {}
+        self._rpc_return_type_map = {}
 
     def register_rpc(self, func: typing.Callable):
         """
@@ -70,33 +73,16 @@ class ZeroServer:
         """
         if not isinstance(func, typing.Callable):
             raise Exception(f"register function; not {type(func)}")
-        self._check_function_args(func)
+        if func.__name__ in self._rpc_router:
+            raise Exception(f"Cannot have two RPC function same name: `{func.__name__}`")
+        if func.__name__ == "get_rpc_contract":
+            raise Exception("get_rpc_contract is a reserved function; cannot have `get_rpc_contract` as a RPC function")
+        verify_function_input_type(func)
+        verify_function_args(func)
+        verify_function_return(func)
         self._rpc_router[func.__name__] = func
-        if typing.get_type_hints(func):
-            self._struct_registry.append(typing.get_type_hints(func))
-
-    def _check_function_args(self, func: typing.Callable):
-        arg_count = func.__code__.co_argcount
-        if arg_count > 1:
-            raise Exception(
-                f"`{func.__name__}` has more than 1 args; RPC functions can have only one arg - msg, or no arg"
-            )
-
-        if arg_count == 1:
-            arg_name = func.__code__.co_varnames[0]
-            func_arg_type = typing.get_type_hints(func)
-            if arg_name not in func_arg_type:
-                raise Exception(f"`{func.__name__}` has no type hinting; RPC functions must have type hints")
-
-    # quickle is removed as it is kind of broken for python objects, or my mere knowledge
-    # def register_msg_types(self, classes: typing.List[quickle.Struct]):
-    #     """
-    #     Add the list of `quickle.Struct` classes that will be sent in the call.
-    #     Only effective for `quickle` serializer.
-    #
-    #     @param classes: List of Dataclass or python class that extends `quickle.Struct`
-    #     """
-    #     self._struct_registry = classes
+        self._rpc_input_type_map[func.__name__] = get_function_input_class(func)
+        self._rpc_return_type_map[func.__name__] = get_function_return_class(func)
 
     def run(self):
         try:
@@ -105,7 +91,7 @@ class ZeroServer:
             # device port is used for non-posix env
             self._device_port = get_next_available_port(6666)
             # ipc is used for posix env
-            self._device_ipc = uuid.uuid4().hex[18:]
+            self._device_ipc = uuid.uuid4().hex[18:] + ".ipc"
             self._pool = Pool(cores)
             spawn_worker = partial(
                 _Worker.spawn_worker,
@@ -113,7 +99,8 @@ class ZeroServer:
                 self._device_ipc,
                 self._device_port,
                 self._serializer,
-                self._struct_registry,
+                self._rpc_input_type_map,
+                self._rpc_return_type_map,
             )
             self._pool.map_async(spawn_worker, list(range(1, cores + 1)))
 
@@ -184,7 +171,7 @@ class ZeroServer:
                 logging.exception(e)
             await socket.send_multipart([ident, msgpack.packb(response)])
 
-    async def _handle_msg(self, rpc, msg):
+    async def _handle_msg(self, rpc, msg):  # pragma: no cover
         if rpc in self._rpc_router:
             try:
                 return await self._rpc_router[rpc](msg)
@@ -202,24 +189,27 @@ class _Worker:
         ipc: str,
         port: int,
         serializer: str,
-        struct_registry: dict,
+        rpc_input_type_map: dict,
+        rpc_return_type_map: dict,
         worker_id: int,
     ):
         time.sleep(0.2)
-        worker = _Worker(rpc_router, ipc, port, serializer, struct_registry)
+        worker = _Worker(rpc_router, ipc, port, serializer, rpc_input_type_map, rpc_return_type_map)
         # loop = asyncio.get_event_loop()
         # loop.run_until_complete(worker.create_worker(worker_id))
         # asyncio.run(worker.start_async_dealer_worker(worker_id))
         worker.start_dealer_worker(worker_id)
 
-    def __init__(self, rpc_router, ipc, port, serializer, struct_registry):
+    def __init__(self, rpc_router, ipc, port, serializer, rpc_input_type_map, rpc_return_type_map):
         self._rpc_router = rpc_router
         self._ipc = ipc
         self._port = port
         self._serializer = serializer
-        self._struct_registry = struct_registry
         self._loop = asyncio.get_event_loop()
         # self._loop = uvloop.new_event_loop()
+        self._rpc_input_type_map = rpc_input_type_map
+        self._rpc_return_type_map = rpc_return_type_map
+        self.codegen = CodeGen(self._rpc_router, self._rpc_input_type_map, self._rpc_return_type_map)
         self._init_serializer()
 
     def _init_serializer(self):
@@ -279,6 +269,8 @@ class _Worker:
             process_message()
 
     def _handle_msg(self, rpc, msg):
+        if rpc == "get_rpc_contract":
+            return self.codegen.generate_code()
         if rpc in self._rpc_router:
             func = self._rpc_router[rpc]
             try:
@@ -292,7 +284,7 @@ class _Worker:
             logging.error(f"method `{rpc}` is not found!")
             return {"__zerror__method_not_found": f"method `{rpc}` is not found!"}
 
-    async def _handle_msg_async(self, rpc, msg):
+    async def _handle_msg_async(self, rpc, msg):  # pragma: no cover
         if rpc in self._rpc_router:
             try:
                 return await self._rpc_router[rpc](msg)
@@ -300,3 +292,55 @@ class _Worker:
                 logging.exception(e)
         else:
             logging.error(f"method `{rpc}` is not found!")
+
+    def _generate_code(self):
+        lines = []
+        imports = []
+        code = """
+from zero import ZeroClient
+
+
+zero_client = ZeroClient("localhost", 5559, use_async=False)
+
+
+class RpcClient:
+    def __init__(self, zero_client: ZeroClient):
+        self.zero_client = zero_client
+        """
+        for f in self._rpc_router:
+            code += f"""
+    def {f}(msg{': ' + self._rpc_input_type_map[f].__name__ if self._rpc_input_type_map[f] else ''}) -> {self._rpc_return_type_map[f].__name__}:
+        return zero_client.call("{f}", msg)
+            """
+        # for i in self._rpc_input_type_map:
+        #     input_type = self._rpc_input_type_map[i]
+        #     if input_type and not self._is_generic(input_type):
+        #         print(input_type)
+        #         if input_type.__module__ == "typing":
+        #             imports.append("typing")
+        #             if base_input_type := typing.get_args(input_type):
+        #                 if not self._is_generic(base_input_type):
+        #                     lines.append(inspect.getsourcelines(base_input_type)[0])
+        #         else:
+        #             l = "".join(inspect.getsourcelines(input_type)[0])
+        #             lines.append(l)
+
+        # lines += [f"import {i}\n" for i in set(imports)]
+        # for f in self._rpc_router:
+        #     func = self._rpc_router[f]
+        #     l = "".join(inspect.getsourcelines(func)[0])
+        #     lines.append(l)
+
+        return code
+
+    def _is_generic(self, cls):
+        if cls.__module__ == "builtins":
+            return True
+
+        if isinstance(cls, typing._GenericAlias):
+            return True
+
+        if isinstance(cls, typing._SpecialForm):
+            return cls not in {typing.Any}
+
+        return False

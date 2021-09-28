@@ -11,39 +11,40 @@
 </p>
 <hr>
 
-
 Zero is a high performance and fast (see [benchmarks](https://github.com/Ananto30/zero#benchmarks-)) Python microservice framework that provides RPC and Pub Sub interface.
 
-**Features**: 
+**Features**:
+
 - Zero provides **faster communication** between the microservices using [zeromq](https://zeromq.org/) under the hood.
-- Zero uses messages for communication and traditional **client-server** or **request-reply** pattern is supported. 
+- Zero uses messages for communication and traditional **client-server** or **request-reply** pattern is supported.
 - Support for both **Async** and **sync**.
 - The base server (ZeroServer) **utilizes all cpu cores**.
 
-**Philosophy** behind Zero: 
-- **Zero learning curve**: The learning curve is tends to zero. You just add your functions and spin up a server, literally that's it! 
-The framework hides the complexity of messaging pattern that enables faster communication. 
+**Philosophy** behind Zero:
+
+- **Zero learning curve**: The learning curve is tends to zero. You just add your functions and spin up a server, literally that's it!
+  The framework hides the complexity of messaging pattern that enables faster communication.
 - **ZeroMQ**: An awesome messaging library enables the power of Zero.
 
 Let's get started!
 
-
 ## Getting started 🚀
-*Ensure Python 3.8+*
+
+_Ensure Python 3.8+_
+
 ```
 pip install zeroapi
 ```
 
-
-
 - Create a `server.py`
+
 ```python
 from zero import ZeroServer
 
-def echo(msg: str):
+def echo(msg: str) -> msg:
     return msg
 
-async def hello_world():
+async def hello_world() -> msg:
     return "hello world"
 
 
@@ -54,22 +55,47 @@ if __name__ == "__main__":
     app.run()
 
 ```
-Please note that server **RPC methods' args are type hinted**. Type hint is **must** in Zero server.
 
-*See the method type async or sync, doesn't matter.* 😃
+Please note that server **RPC methods are type hinted**. Type hint is **must** in Zero server.
+
+_See the method type async or sync, doesn't matter._ 😃
 
 - Run it
+
 ```
 python -m server
 ```
 
 - Call the rpc methods
+
+```python
+from zero import ZeroClient
+
+zero_client = ZeroClient("localhost", 5559)
+
+def echo():
+    resp = zero_client.call("echo", "Hi there!")
+    print(resp)
+
+def hello():
+    resp = zero_client.call("hello_world", None)
+    print(resp)
+
+
+if __name__ == "__main__":
+    echo()
+    hello()
+
+```
+
+Or using async client -
+
 ```python
 import asyncio
 
 from zero import ZeroClient
 
-zero_client = ZeroClient("localhost", 5559)
+zero_client = ZeroClient("localhost", 5559, use_async=True)
 
 async def echo():
     resp = await zero_client.call_async("echo", "Hi there!")
@@ -87,76 +113,61 @@ if __name__ == "__main__":
 
 ```
 
-Or using sync client -
-```python
-from zero import ZeroClient
-
-zero_client = ZeroClient("localhost", 5559, use_async=False)
-
-def echo():
-    resp = zero_client.call("echo", "Hi there!")
-    print(resp)
-
-def hello():
-    resp = zero_client.call("hello_world", None)
-    print(resp)
-
-
-if __name__ == "__main__":
-    echo()
-    hello()
-
-```
-
 ## Important notes
+
 - `ZeroServer` should always be run under `if __name__ == "__main__":`, as it uses multiprocessing.
 - The methods which are under `register_rpc()` in `ZeroServer` should have **type hinting**, like `def echo(msg: str):`
 
 ## Tired of hearing buzzwords? Let's test! 🤘
 
-Zero is talking about inter service communication. In most real life scenarios, we need to call another microservice. 
+Zero is talking about inter service communication. In most real life scenarios, we need to call another microservice.
 
 So we will be testing a server (gateway) calling another server for some data. (In the `benchmarks` folder, you can find more)
 
-There are two endpoints in every tests, 
+There are two endpoints in every tests,
+
 - `/hello`: Just call for a hello world response 😅
 - `/order`: Save a Order object in redis (ensure running `redis-server` first)
 
+_Ensure Python 3.8+_
 
-*Ensure Python 3.8+*
+- Setup
 
-- Setup 
-    ```zsh
-    git clone https://github.com/Ananto30/zero.git
-    cd zero
-    python3 -m venv venv
-    source venv/bin/activate
-    pip install -r benchmarks/requirements.txt
-    ```
-
+  ```zsh
+  git clone https://github.com/Ananto30/zero.git
+  cd zero
+  python3 -m venv venv
+  source venv/bin/activate
+  pip install -r benchmarks/requirements.txt
+  ```
 
 - Test the current fast framework in Python (aiohttp, sanic, fastApi etc.)
 
-    Run the gateway and server -
-    ```
-    sh benchmarks/asyncio/run_both.sh
-    ```
-    Run the benchmark using your favorite tool -
-    ```
-    $ wrk -d10s -t50 -c200 http://127.0.0.1:8000/hello
-    ```
+  Run the gateway and server -
 
+  ```
+  sh benchmarks/asyncio/run_both.sh
+  ```
+
+  Run the benchmark using your favorite tool -
+
+  ```
+  $ wrk -d10s -t50 -c200 http://127.0.0.1:8000/hello
+  ```
 
 - Test Zero
 
-    Run the gateway and server -
-    ```
-    sh benchmarks/zero/run_both.sh
-    ```
-    Run the benchmark using your favorite tool -
-    ```
-    $ wrk -d10s -t50 -c200 http://127.0.0.1:8000/hello
-    ```
+  Run the gateway and server -
+
+  ```
+  sh benchmarks/zero/run_both.sh
+  ```
+
+  Run the benchmark using your favorite tool -
+
+  ```
+  $ wrk -d10s -t50 -c200 http://127.0.0.1:8000/hello
+  ```
 
 Compare the results! Or just see the [benchmarks](https://github.com/Ananto30/zero#benchmarks).
 
@@ -165,6 +176,7 @@ Compare the results! Or just see the [benchmarks](https://github.com/Ananto30/ze
 Here is the result on MacBook Pro (13-inch, M1, 2020), Apple M1, 8 cores (4 performance and 4 efficiency), 8 GB RAM
 
 For aiohttp -
+
 ```
 > wrk -d10s -t8 -c240 http://127.0.0.1:8000/hello
 Running 10s test @ http://127.0.0.1:8000/hello
@@ -190,6 +202,7 @@ Transfer/sec:      1.48MB
 ```
 
 For sanic -
+
 ```
 > wrk -d10s -t8 -c240 http://127.0.0.1:8000/hello
 Running 10s test @ http://127.0.0.1:8000/hello
@@ -215,6 +228,7 @@ Transfer/sec:      1.32MB
 ```
 
 For fastApi -
+
 ```
 > wrk -d10s -t8 -c240 http://127.0.0.1:8000/hello
 Running 10s test @ http://127.0.0.1:8000/hello
@@ -240,6 +254,7 @@ Transfer/sec:      1.17MB
 ```
 
 For zero -
+
 ```
 > wrk -d10s -t8 -c240 http://127.0.0.1:8000/hello
 Running 10s test @ http://127.0.0.1:8000/hello
@@ -266,22 +281,23 @@ Transfer/sec:      2.75MB
 
 From the above numbers we can see only sanic has higher "hello world" performance than zero but again loses in the real-life example of redis order saving.
 
-In short - 
+In short -
 
-Framework | "hello world" example | redis save example
---- | --- | ---
-aiohttp | 12409.50 req/s | 6161.43 req/s
-sanic | 22644.41 req/s | 7750.49 req/s
-fastApi | 8653.16 req/s | 5727.53 req/s
-zero | 15853.92 req/s | 11167.89 req/s
-
+| Framework | "hello world" example | redis save example |
+| --------- | --------------------- | ------------------ |
+| aiohttp   | 12,409.50 req/s        | 6,161.43 req/s      |
+| sanic     | 22,644.41 req/s        | 7,750.49 req/s      |
+| fastApi   | 8,653.16 req/s         | 5,727.53 req/s      |
+| zero      | 15,853.92 req/s        | 11,167.89 req/s     |
 
 ## Todo list 📃
+
 - Graceful shutdown server
 - Improve error handling
 - Fault tolerance
 
 ## Contribution
+
 Contributors are welcomed 🙏
 
 **Please leave a star ⭐ if you like Zero!**

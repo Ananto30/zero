@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 import msgpack
+from pydantic import BaseModel
 
 
 @dataclass
@@ -52,3 +53,5 @@ class OrderResp(Btype):
 class CreateOrderReq(Btype):
     user_id: str
     items: list
+
+

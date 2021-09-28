@@ -37,6 +37,11 @@ async def two_rets():
     print(resp)
 
 
+async def rpc_contract():
+    resp = await zero_client.call_async("get_rpc_contract", None)
+    print(resp)
+
+
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(echo())
@@ -44,3 +49,4 @@ if __name__ == "__main__":
     loop.run_until_complete(sum_list())
     loop.run_until_complete(necho())
     loop.run_until_complete(two_rets())
+    loop.run_until_complete(rpc_contract())

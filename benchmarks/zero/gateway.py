@@ -19,7 +19,7 @@ zero_async_client = ZeroClient("localhost", "5559", use_async=True)
 
 
 async def hello(request):
-    resp = zero_sync_client.call("hello_world", "")
+    resp = await zero_async_client.call_as("hello_world", None)
     # print(resp)
     return web.Response(text=resp)
 
