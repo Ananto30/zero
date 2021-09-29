@@ -13,8 +13,7 @@ class ZeroClient:
         self,
         host: str,
         port: int,
-        use_async: bool = True,
-        serializer: str = "msgpack",
+        use_async: bool = False,
         default_timeout: int = 2000,
     ):
         """
@@ -45,11 +44,7 @@ class ZeroClient:
             self._init_async_socket()
         else:
             self._init_socket()
-        self._serializer = serializer
-
-        # removed quickle as it is kind of broken for python objects, why? I dont know
-        if serializer not in ["msgpack"]:
-            raise Exception("serializer not supported")
+        self._serializer = "msgpack"
         self._init_serializer()
 
     def _init_serializer(self):
@@ -74,21 +69,6 @@ class ZeroClient:
         self._socket.setsockopt(zmq.RCVTIMEO, self._default_timeout)
         self._socket.setsockopt(zmq.SNDTIMEO, self._default_timeout)
         self._socket.setsockopt(zmq.LINGER, 0)  # dont buffer messages
-
-    # quickle is removed as it is kind of broken for python objects, or my mere knowledge
-    # def register_msg_types(self, classes: List[quickle.Struct]) -> None:
-    #     """
-    #     Add the list of `quickle.Struct` classes that will be sent in the call.
-    #     Only effective for `quickle` serializer.
-    #
-    #     @param classes: List of Dataclass or python class that extends `quickle.Struct`
-    #     """
-    #     if self._serializer == "quickle":
-    #         # enc = quickle.Encoder(registry=classes)
-    #         # dec = quickle.Decoder(registry=classes)
-    #         # self._encode = enc.dumps
-    #         # self._decode = dec.loads
-    #         pass
 
     def call(self, rpc_method_name: str, msg: Union[int, float, str, dict, list, tuple, None]):
         """

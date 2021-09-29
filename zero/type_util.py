@@ -1,6 +1,7 @@
 import typing
 from zero.errors import ZeroException
 
+# from pydantic import BaseModel
 
 basic_types = [
     int,
@@ -21,8 +22,12 @@ special_types = [
     typing.Union,
     typing.Optional,
 ]
+pydantic_types = [
+    # BaseModel,  TODO: next feature
+]
 
-allowed_types = basic_types + typing_types + special_types
+
+allowed_types = basic_types + typing_types + special_types + pydantic_types
 
 
 def verify_function_args(func: typing.Callable):
@@ -61,13 +66,49 @@ def get_function_return_class(func: typing.Callable):
 
 
 def verify_function_input_type(func: typing.Callable):
-    if get_function_input_class(func) is None:
+    input_type = get_function_input_class(func)
+    if input_type is None:
+        return
+    if input_type in basic_types:
+        return
+    if typing.get_origin(input_type) in basic_types:
+        return
+    if typing.get_origin(input_type) in special_types:
+        return
+    if issubclass(input_type, tuple(pydantic_types)):
         return
 
-    if (input_type := get_function_input_class(func)) not in basic_types:
-        if not typing.get_origin(input_type) in basic_types:
-            if not typing.get_origin(input_type) in special_types:
-                raise TypeError(
-                    f"{func.__name__} has type {input_type} which is not allowed; "
-                    "allowed types are: \n" + "\n".join([str(t) for t in allowed_types])
-                )
+    raise TypeError(
+        f"{func.__name__} has type {input_type} which is not allowed; "
+        "allowed types are: \n" + "\n".join([str(t) for t in allowed_types])
+    )
+
+
+def verify_allowed_type(msg, rpc_method: str = None):
+    if not isinstance(msg, tuple(allowed_types)):
+        method_name = f"for method `{rpc_method}`" if rpc_method else ""
+        raise TypeError(
+            f"{msg} is not allowed {method_name}; allowed types are: \n" + "\n".join([str(t) for t in allowed_types])
+        )
+
+
+def verify_incoming_rpc_call_input_type(msg, rpc_method: str, rpc_input_type_map: dict):  # pragma: no cover
+    it = rpc_input_type_map[rpc_method]
+    if it is None:
+        return
+
+    if it in basic_types:
+        if it != type(msg):
+            raise TypeError(f"{msg} is not allowed for method `{rpc_method}`; allowed type: {it}")
+
+    if (origin_type := typing.get_origin(it)) in basic_types:
+        if origin_type != type(msg):
+            raise TypeError(f"{msg} is not allowed for method `{rpc_method}`; allowed type: {it}")
+
+
+def is_pydantic(cls):  # pragma: no cover
+    if cls not in basic_types:
+        if not typing.get_origin(cls) in basic_types:
+            if not typing.get_origin(cls) in special_types:
+                if issubclass(cls, tuple(pydantic_types)):
+                    return True

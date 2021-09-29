@@ -5,7 +5,7 @@ from zero import ZeroServer
 from zero.common import get_next_available_port
 
 
-async def echo(msg: str):
+async def echo(msg: str) -> str:
     return msg
 
 
