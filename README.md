@@ -14,11 +14,11 @@
 </p>
 <hr>
 
-Zero is a high performance and fast (see [benchmarks](https://github.com/Ananto30/zero#benchmarks-)) Python microservice framework that provides RPC and Pub Sub interface.
+Zero is actually a RPC like framework that passes message between client server like architecture. Also supports Pub-Sub.
 
 **Features**:
 
-- Zero provides **faster communication** between the microservices using [zeromq](https://zeromq.org/) under the hood.
+- Zero provides **faster communication** (see [benchmarks](https://github.com/Ananto30/zero#benchmarks-)) between the microservices using [zeromq](https://zeromq.org/) under the hood.
 - Zero uses messages for communication and traditional **client-server** or **request-reply** pattern is supported.
 - Support for both **Async** and **sync**.
 - The base server (ZeroServer) **utilizes all cpu cores**.
@@ -123,13 +123,13 @@ You can also use our code generation tool to generate Python client code!
 
 After running the server, like above, you can call the server to get the client code.
 
-```
+```shell
 python -m zero.generate_client --host localhost --port 5559 --overwrite-dir ./my_client
 ```
 
 It will generate client like this -
 
-```
+```python
 import typing  # remove this if not needed
 from typing import List, Dict, Union, Optional, Tuple  # remove this if not needed
 from zero import ZeroClient
@@ -152,7 +152,7 @@ class RpcClient:
 
 You can just use this -
 
-```
+```python
 from my_client import RpcClient, zero_client
 
 client = RpcClient(zero_client)
@@ -160,7 +160,6 @@ client = RpcClient(zero_client)
 if __name__ == "__main__":
     client.echo("Hi there!")
     client.hello_world(None)
-
 ```
 
 Using `zero.generate_client` you can generate client code for even remote servers using the `--host` and `--port` options. You don't need access to the code 😃
