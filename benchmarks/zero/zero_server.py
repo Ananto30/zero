@@ -3,27 +3,21 @@ import uuid
 from datetime import datetime
 
 import jwt
-
-
+from benchmarks.model import CreateOrderReq, Order, OrderResp, OrderStatus
 from benchmarks.redis_repository import save_order as saveOrder
-from benchmarks.model import (
-    Order,
-    OrderStatus,
-    OrderResp,
-    CreateOrderReq,
-)
+
 from zero import ZeroServer
 
 
-async def echo(msg: str):
+async def echo(msg: str) -> str:
     return msg
 
 
-def hello_world():
+def hello_world() -> str:
     return "hello world"
 
 
-def save_order(msg: CreateOrderReq):
+def save_order(msg: dict) -> dict:
     req = CreateOrderReq(**msg)
     saved_order = saveOrder(
         Order(
@@ -39,7 +33,7 @@ def save_order(msg: CreateOrderReq):
     return resp.__dict__
 
 
-def decode_jwt(msg: str):
+def decode_jwt(msg: str) -> str:
     encoded_jwt = jwt.encode(msg, "secret", algorithm="HS256")
     decoded_jwt = jwt.decode(encoded_jwt, "secret", algorithms=["HS256"])
     logging.info(decoded_jwt)

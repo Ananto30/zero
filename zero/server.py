@@ -15,10 +15,11 @@ import msgpack
 import zmq
 import zmq.asyncio
 
-from .common import check_allowed_types, get_next_available_port
+from .common import get_next_available_port
 from .type_util import (
     get_function_input_class,
     get_function_return_class,
+    verify_allowed_type,
     verify_function_args,
     verify_function_input_type,
     verify_function_return,
@@ -77,9 +78,11 @@ class ZeroServer:
             raise Exception(f"Cannot have two RPC function same name: `{func.__name__}`")
         if func.__name__ == "get_rpc_contract":
             raise Exception("get_rpc_contract is a reserved function; cannot have `get_rpc_contract` as a RPC function")
-        verify_function_input_type(func)
+
         verify_function_args(func)
+        verify_function_input_type(func)
         verify_function_return(func)
+
         self._rpc_router[func.__name__] = func
         self._rpc_input_type_map[func.__name__] = get_function_input_class(func)
         self._rpc_return_type_map[func.__name__] = get_function_return_class(func)
@@ -88,11 +91,21 @@ class ZeroServer:
         try:
             # utilize all the cores
             cores = os.cpu_count()
+
             # device port is used for non-posix env
             self._device_port = get_next_available_port(6666)
+
             # ipc is used for posix env
             self._device_ipc = uuid.uuid4().hex[18:] + ".ipc"
+
+            # this is important to catch KeyboardInterrupt
+            original_sigint_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
+
             self._pool = Pool(cores)
+
+            signal.signal(signal.SIGINT, original_sigint_handler)  # for KeyboardInterrupt
+            signal.signal(signal.SIGTERM, self._sig_handler)  # for process termination
+
             spawn_worker = partial(
                 _Worker.spawn_worker,
                 self._rpc_router,
@@ -104,10 +117,6 @@ class ZeroServer:
             )
             self._pool.map_async(spawn_worker, list(range(1, cores + 1)))
 
-            signal.signal(signal.SIGTERM, self._sig_handler)
-            # TODO: do we need sigkill
-            # signal.signal(signal.SIGKILL, self._sig_handler)
-
             self._start_queue_device()
 
             # TODO: by default we start the device with processes, but we need support to run only router
@@ -115,6 +124,7 @@ class ZeroServer:
 
         except KeyboardInterrupt:
             print("Caught KeyboardInterrupt, terminating workers")
+            self._terminate_server()
         except Exception as e:
             print(e)
 
@@ -126,6 +136,10 @@ class ZeroServer:
         self._pool.terminate()
         self._pool.close()
         self._pool.join()
+        try:
+            os.remove(self._device_ipc)
+        except:
+            pass
         sys.exit()
 
     def _start_queue_device(self):
@@ -166,7 +180,7 @@ class ZeroServer:
             rpc_method = rpc.decode()
             response = await self._handle_msg(rpc_method, msgpack.unpackb(msg))
             try:
-                check_allowed_types(response, rpc_method)
+                verify_allowed_type(response, rpc_method)
             except Exception as e:
                 logging.exception(e)
             await socket.send_multipart([ident, msgpack.packb(response)])
@@ -270,7 +284,7 @@ class _Worker:
 
     def _handle_msg(self, rpc, msg):
         if rpc == "get_rpc_contract":
-            return self.codegen.generate_code()
+            return self.codegen.generate_code(msg[0], msg[1])
         if rpc in self._rpc_router:
             func = self._rpc_router[rpc]
             try:
@@ -292,55 +306,3 @@ class _Worker:
                 logging.exception(e)
         else:
             logging.error(f"method `{rpc}` is not found!")
-
-    def _generate_code(self):
-        lines = []
-        imports = []
-        code = """
-from zero import ZeroClient
-
-
-zero_client = ZeroClient("localhost", 5559, use_async=False)
-
-
-class RpcClient:
-    def __init__(self, zero_client: ZeroClient):
-        self.zero_client = zero_client
-        """
-        for f in self._rpc_router:
-            code += f"""
-    def {f}(msg{': ' + self._rpc_input_type_map[f].__name__ if self._rpc_input_type_map[f] else ''}) -> {self._rpc_return_type_map[f].__name__}:
-        return zero_client.call("{f}", msg)
-            """
-        # for i in self._rpc_input_type_map:
-        #     input_type = self._rpc_input_type_map[i]
-        #     if input_type and not self._is_generic(input_type):
-        #         print(input_type)
-        #         if input_type.__module__ == "typing":
-        #             imports.append("typing")
-        #             if base_input_type := typing.get_args(input_type):
-        #                 if not self._is_generic(base_input_type):
-        #                     lines.append(inspect.getsourcelines(base_input_type)[0])
-        #         else:
-        #             l = "".join(inspect.getsourcelines(input_type)[0])
-        #             lines.append(l)
-
-        # lines += [f"import {i}\n" for i in set(imports)]
-        # for f in self._rpc_router:
-        #     func = self._rpc_router[f]
-        #     l = "".join(inspect.getsourcelines(func)[0])
-        #     lines.append(l)
-
-        return code
-
-    def _is_generic(self, cls):
-        if cls.__module__ == "builtins":
-            return True
-
-        if isinstance(cls, typing._GenericAlias):
-            return True
-
-        if isinstance(cls, typing._SpecialForm):
-            return cls not in {typing.Any}
-
-        return False

@@ -1,31 +1,52 @@
-import time
-from multiprocessing import Process
 
-import jwt
+from dataclasses import dataclass
+
 import pytest
-from zero import ZeroClient, ZeroServer
+from zero import ZeroClient
 from zero.errors import MethodNotFoundException
-
-
-async def echo(msg: str):
-    return msg
-
-
-async def hello_world():
-    print("kaka")
-    return "hello world"
-
-
-async def decode_jwt(msg: str):
-    encoded_jwt = jwt.encode(msg, "secret", algorithm="HS256")
-    decoded_jwt = jwt.decode(encoded_jwt, "secret", algorithms=["HS256"])
-    return decoded_jwt
 
 
 def test_hello_world():
     zero_client = ZeroClient("127.0.0.1", 5559, use_async=False)
     msg = zero_client.call("hello_world", "")
     assert msg == "hello world"
+
+
+def test_necho():
+    zero_client = ZeroClient("127.0.0.1", 5559, use_async=False)
+    with pytest.raises(MethodNotFoundException):
+        msg = zero_client.call("necho", "hello")
+
+
+def test_echo_wrong_port():
+    zero_client = ZeroClient("127.0.0.1", 5558, use_async=False, default_timeout=100)
+    msg = zero_client.call("echo", "hello")
+    assert msg is None
+
+
+def test_sum_list():
+    zero_client = ZeroClient("127.0.0.1", 5559, use_async=False)
+    msg = zero_client.call("sum_list", [1, 2, 3])
+    assert msg == 6
+
+
+def test_echo_dict():
+    zero_client = ZeroClient("127.0.0.1", 5559, use_async=False)
+    msg = zero_client.call("echo_dict", {"a": "b"})
+    assert msg == {"a": "b"}
+
+
+def test_echo_tuple():
+    zero_client = ZeroClient("127.0.0.1", 5559, use_async=False)
+    msg = zero_client.call("echo_tuple", (1, "a"))
+    assert type(msg) == list  # IMPORTANT
+    assert msg == [1, "a"]
+
+
+def test_echo_union():
+    zero_client = ZeroClient("127.0.0.1", 5559, use_async=False)
+    msg = zero_client.call("echo_union", 1)
+    assert msg == 1
 
 
 @pytest.mark.asyncio
@@ -49,26 +70,19 @@ async def test_necho_async():
         msg = await zero_client.call_async("necho", "hello")
 
 
-def server():
-    app = ZeroServer()
-    app.register_rpc(echo)
-    app.register_rpc(hello_world)
-    app.register_rpc(decode_jwt)
-    app.run()
+@pytest.mark.asyncio
+async def test_echo_wrong_port_async():
+    zero_client = ZeroClient("127.0.0.1", 5558, use_async=True, default_timeout=100)
+    msg = await zero_client.call_async("echo", "hello")
+    assert msg is None
 
 
-@pytest.fixture(autouse=True, scope="session")
-def start_server():
-    try:
-        from pytest_cov.embed import cleanup_on_sigterm
-    except ImportError:
-        pass
-    else:
-        cleanup_on_sigterm()
+@pytest.mark.asyncio
+async def test_echo_wrong_type_input_async():
+    @dataclass
+    class Example:
+        msg: str
 
-    p = Process(target=server)
-    p.start()
-    time.sleep(1)
-    yield
-    # p.kill()
-    p.terminate()
+    zero_client = ZeroClient("127.0.0.1", 5559, use_async=True)
+    msg = await zero_client.call_async("echo", Example(msg="hello"))
+    assert msg is None

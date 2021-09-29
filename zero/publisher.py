@@ -2,7 +2,7 @@ import msgpack
 import zmq
 import zmq.asyncio
 
-from .common import check_allowed_types
+from zero.type_util import verify_allowed_type
 
 
 class ZeroPublisher:
@@ -32,9 +32,9 @@ class ZeroPublisher:
         self.__socket.setsockopt(zmq.LINGER, 0)
 
     def publish(self, topic, msg):
-        check_allowed_types(msg)
+        verify_allowed_type(msg)
         self.__socket.send_multipart([topic.encode(), msgpack.packb(msg)])
 
     async def publish_async(self, topic, msg):
-        check_allowed_types(msg)
+        verify_allowed_type(msg)
         await self.__socket.send_multipart([topic.encode(), msgpack.packb(msg)])

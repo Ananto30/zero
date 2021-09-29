@@ -2,20 +2,7 @@ import logging
 import typing
 
 import jwt
-
 from zero import ZeroServer
-
-
-class SubExample:
-    sub_id: int
-
-
-class Example:
-    id: int
-    name: str
-    description: str
-    price: float
-    sub: SubExample
 
 
 async def echo(msg: str) -> str:
@@ -40,10 +27,6 @@ async def two_rets(msg: typing.List) -> typing.Tuple[int, int]:
     return 1, 2
 
 
-async def send_obj(msg: Example) -> Example:
-    return msg
-
-
 if __name__ == "__main__":
     app = ZeroServer(port=5559)
     app.register_rpc(echo)
@@ -51,5 +34,4 @@ if __name__ == "__main__":
     app.register_rpc(decode_jwt)
     app.register_rpc(sum_list)
     app.register_rpc(two_rets)
-    # app.register_rpc(send_obj)
     app.run()
