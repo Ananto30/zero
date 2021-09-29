@@ -19,6 +19,7 @@ Zero is a high performance and fast (see [benchmarks](https://github.com/Ananto3
 - Zero uses messages for communication and traditional **client-server** or **request-reply** pattern is supported.
 - Support for both **Async** and **sync**.
 - The base server (ZeroServer) **utilizes all cpu cores**.
+- **Code generation**! See [example](https://github.com/Ananto30/zero#code-generation-) 👇
 
 **Philosophy** behind Zero:
 
@@ -113,12 +114,60 @@ if __name__ == "__main__":
 
 ```
 
-## Important notes
+## Code Generation! 🙌
+
+You can also use our code generation tool to generate Python client code!
+
+After running the server, like above, you can call the server to get the client code.
+
+```
+python -m zero.generate_client --host localhost --port 5559 --overwrite-dir ./my_client
+```
+
+It will generate client like this -
+
+```
+import typing  # remove this if not needed
+from typing import List, Dict, Union, Optional, Tuple  # remove this if not needed
+from zero import ZeroClient
+
+
+zero_client = ZeroClient("localhost", 5559, use_async=False)
+
+
+class RpcClient:
+    def __init__(self, zero_client: ZeroClient):
+        self._zero_client = zero_client
+
+    def echo(self, msg: str) -> str:
+        return self.zero_client.call("echo", msg)
+
+    def hello_world(self, msg: str) -> str:
+        return self.zero_client.call("hello_world", msg)
+
+```
+
+You can just use this -
+
+```
+from my_client import RpcClient, zero_client
+
+client = RpcClient(zero_client)
+
+if __name__ == "__main__":
+    client.echo("Hi there!")
+    client.hello_world(None)
+
+```
+
+Using `zero.generate_client` you can generate client code for even remote servers using the `--host` and `--port` options. You don't need access to the code 😃
+
+## Important notes 📝
 
 - `ZeroServer` should always be run under `if __name__ == "__main__":`, as it uses multiprocessing.
 - The methods which are under `register_rpc()` in `ZeroServer` should have **type hinting**, like `def echo(msg: str):`
 
-## Tired of hearing buzzwords? Let's test! 🤘
+## Let's do some benchmarking 🤘
 
 Zero is talking about inter service communication. In most real life scenarios, we need to call another microservice.
 
@@ -169,7 +218,7 @@ _Ensure Python 3.8+_
   $ wrk -d10s -t50 -c200 http://127.0.0.1:8000/hello
   ```
 
-Compare the results! Or just see the [benchmarks](https://github.com/Ananto30/zero#benchmarks).
+Compare the results! 👇
 
 ## Benchmarks 🏆
 
@@ -285,14 +334,15 @@ In short -
 
 | Framework | "hello world" example | redis save example |
 | --------- | --------------------- | ------------------ |
-| aiohttp   | 12,409.50 req/s        | 6,161.43 req/s      |
-| sanic     | 22,644.41 req/s        | 7,750.49 req/s      |
-| fastApi   | 8,653.16 req/s         | 5,727.53 req/s      |
-| zero      | 15,853.92 req/s        | 11,167.89 req/s     |
+| aiohttp   | 12,409.50 req/s       | 6,161.43 req/s     |
+| sanic     | 22,644.41 req/s       | 7,750.49 req/s     |
+| fastApi   | 8,653.16 req/s        | 5,727.53 req/s     |
+| zero      | 15,853.92 req/s       | 11,167.89 req/s    |
 
 ## Todo list 📃
 
-- Graceful shutdown server
+- Add pydantic support
+- Code generation for pydantic models
 - Improve error handling
 - Fault tolerance
 
