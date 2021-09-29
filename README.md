@@ -8,6 +8,9 @@
     <a href="https://codecov.io/gh/Ananto30/zero" target="_blank">
         <img src="https://codecov.io/gh/Ananto30/zero/branch/main/graph/badge.svg?token=k0aA0G6NLs" />
     </a>
+    <a href="https://pypi.org/project/zeroapi/" target="_blank">
+        <img src="https://img.shields.io/pypi/v/zeroapi" />
+    </a>
 </p>
 <hr>
 
