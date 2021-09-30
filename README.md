@@ -173,7 +173,7 @@ Using `zero.generate_client` you can generate client code for even remote server
 
 Zero is talking about inter service communication. In most real life scenarios, we need to call another microservice.
 
-So we will be testing a gateway calling another server for some data. Check the `benchmark/dockerize` folder for details.
+So we will be testing a gateway calling another server for some data. Check the [benchmark/dockerize](https://github.com/Ananto30/zero/tree/main/benchmarks/dockerize) folder for details.
 
 There are two endpoints in every tests,
 
@@ -203,6 +203,9 @@ Here is the result on MacBook Pro (13-inch, M1, 2020), Apple M1, 8 cores (4 perf
 | fastApi   | 8,653.16 req/s        | 5,727.53 req/s     |
 | sanic     | 22,644.41 req/s       | 7,750.49 req/s     |
 | zero      | 15,853.92 req/s       | 11,167.89 req/s    |
+
+More about MacBook benchmarks [here](https://github.com/Ananto30/zero/blob/main/benchmarks/others/mac-results.md)
+
 
 ## Todo list 📃
 
