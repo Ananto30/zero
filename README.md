@@ -97,16 +97,16 @@ Or using async client -
 ```python
 import asyncio
 
-from zero import ZeroClient
+from zero import AsyncZeroClient
 
-zero_client = ZeroClient("localhost", 5559, use_async=True)
+zero_client = AsyncZeroClient("localhost", 5559)
 
 async def echo():
-    resp = await zero_client.call_async("echo", "Hi there!")
+    resp = await zero_client.call("echo", "Hi there!")
     print(resp)
 
 async def hello():
-    resp = await zero_client.call_async("hello_world", None)
+    resp = await zero_client.call("hello_world", None)
     print(resp)
 
 
@@ -135,7 +135,7 @@ from typing import List, Dict, Union, Optional, Tuple  # remove this if not need
 from zero import ZeroClient
 
 
-zero_client = ZeroClient("localhost", 5559, use_async=False)
+zero_client = ZeroClient("localhost", 5559)
 
 
 class RpcClient:
@@ -143,10 +143,10 @@ class RpcClient:
         self._zero_client = zero_client
 
     def echo(self, msg: str) -> str:
-        return self.zero_client.call("echo", msg)
+        return self._zero_client.call("echo", msg)
 
     def hello_world(self, msg: str) -> str:
-        return self.zero_client.call("hello_world", msg)
+        return self._zero_client.call("hello_world", msg)
 
 ```
 
