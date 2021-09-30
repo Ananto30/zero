@@ -5,7 +5,7 @@ from .client import ZeroClient
 
 
 def generate_client_code_and_save(host, port, directory, overwrite_dir=False):
-    zero_client = ZeroClient(host, port, use_async=False)
+    zero_client = ZeroClient(host, port)
     code = zero_client.call("get_rpc_contract", [host, port])
 
     if not code:

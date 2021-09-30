@@ -1,4 +1,4 @@
-from .client import ZeroClient
+from .client import ZeroClient, AsyncZeroClient
 from .publisher import ZeroPublisher
 from .server import ZeroServer
 from .subscriber import ZeroSubscriber

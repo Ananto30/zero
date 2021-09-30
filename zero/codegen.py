@@ -17,7 +17,7 @@ from typing import List, Dict, Union, Optional, Tuple  # remove this if not need
 from zero import ZeroClient
 
 
-zero_client = ZeroClient("{host}", {port}, use_async=False)
+zero_client = ZeroClient("{host}", {port})
 
 
 class RpcClient:
@@ -28,7 +28,7 @@ class RpcClient:
         for f in self._rpc_router:
             code += f"""
     def {f}(self, {self.get_function_str(f)}
-        return self.zero_client.call("{f}", {None if self._rpc_input_type_map[f] is None else "msg"})
+        return self._zero_client.call("{f}", {None if self._rpc_input_type_map[f] is None else "msg"})
         """
         # self.generate_data_classes()  TODO: next feature
         return code

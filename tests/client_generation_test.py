@@ -17,7 +17,7 @@ from typing import List, Dict, Union, Optional, Tuple  # remove this if not need
 from zero import ZeroClient
 
 
-zero_client = ZeroClient("localhost", 5559, use_async=False)
+zero_client = ZeroClient("localhost", 5559)
 
 
 class RpcClient:
