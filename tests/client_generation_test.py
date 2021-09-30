@@ -25,25 +25,25 @@ class RpcClient:
         self._zero_client = zero_client
         
     def echo(self, msg: str) -> str:
-        return self.zero_client.call("echo", msg)
+        return self._zero_client.call("echo", msg)
         
     def hello_world(self, ) -> str:
-        return self.zero_client.call("hello_world", None)
+        return self._zero_client.call("hello_world", None)
         
     def decode_jwt(self, msg: str) -> str:
-        return self.zero_client.call("decode_jwt", msg)
+        return self._zero_client.call("decode_jwt", msg)
         
     def sum_list(self, msg: typing.List[int]) -> int:
-        return self.zero_client.call("sum_list", msg)
+        return self._zero_client.call("sum_list", msg)
         
     def echo_dict(self, msg: typing.Dict[int, str]) -> typing.Dict[int, str]:
-        return self.zero_client.call("echo_dict", msg)
+        return self._zero_client.call("echo_dict", msg)
         
     def echo_tuple(self, msg: typing.Tuple[int, str]) -> typing.Tuple[int, str]:
-        return self.zero_client.call("echo_tuple", msg)
+        return self._zero_client.call("echo_tuple", msg)
         
     def echo_union(self, msg: typing.Union[int, str]) -> typing.Union[int, str]:
-        return self.zero_client.call("echo_union", msg)
+        return self._zero_client.call("echo_union", msg)
         """
         )
 
