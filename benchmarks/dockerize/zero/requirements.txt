@@ -1,4 +1,5 @@
-zeroapi
+# zeroapi
+pyzmq
 PyJWT
 aioredis
 uvloop
