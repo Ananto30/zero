@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+  gateway:
+    build: .
+    container_name: gateway
+    command: gunicorn gateway_aiohttp:app --bind 0.0.0.0:8000 --worker-class aiohttp.worker.GunicornWebWorker --workers 8 --log-level  warning
+    ports:
+      - "8000:8000"
+    depends_on:
+      - server
+      - redis
+  server:
+    build: .
+    container_name: server
+    command: python server.py
+    ports:
+      - "5559:5559"
+    cpus: '0.40'
+    mem_limit: 256m
+  redis:
+    image: eqalpha/keydb:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+  wrk-hello:
+    image: skandyla/wrk
+    command: -t 16 -c 400 -d 10s http://gateway:8000/async_hello
+    depends_on:
+      - gateway
+  wrk-order:
+    image: skandyla/wrk
+    command: -t 16 -c 400 -d 10s http://gateway:8000/async_order
+    depends_on:
+      - gateway

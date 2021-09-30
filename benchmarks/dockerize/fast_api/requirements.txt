@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+PyJWT
+aioredis
+uvloop
+msgpack
+aiohttp
+redis

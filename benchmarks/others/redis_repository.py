@@ -2,7 +2,7 @@ from datetime import datetime
 
 import redis
 
-from benchmarks.model import Order
+from model import Order
 
 
 class SingletonMeta(type):
@@ -17,7 +17,7 @@ class SingletonMeta(type):
 class RedisClient(metaclass=SingletonMeta):
     def __init__(self):
         self.host = "0.0.0.0"
-        self.client = redis.StrictRedis(host=self.host, port="6379", connection_pool=None)
+        self.client = redis.StrictRedis().from_url("redis://127.0.0.1/0")
 
     def set(self, key, val):
         self.client.set(key, val)

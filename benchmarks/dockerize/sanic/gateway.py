@@ -1,9 +1,9 @@
 import logging
 from typing import Optional
 
-import httpx
 from aiohttp import ClientSession
-from fastapi import FastAPI
+from sanic import Sanic
+from sanic.response import text, json
 
 logger = logging.getLogger(__name__)
 
@@ -17,29 +17,31 @@ except ImportError:
 
 session: Optional[ClientSession] = None
 
-app = FastAPI()
+app = Sanic("My Hello, world app")
 
 
-@app.get("/hello")
-async def root():
+@app.route("/hello")
+async def test(request):
     global session
     if session is None:
         session = ClientSession()
 
-    r = await session.get("http://localhost:8011/hello")
-    resp = await r.json()
-    return resp
+    r = await session.get("http://server:8011/hello")
+    return text(await r.text())
 
 
-@app.get("/order")
-async def root():
+@app.route("/order")
+async def test(request):
     global session
     if session is None:
         session = ClientSession()
 
     r = await session.post(
-        "http://localhost:8011/order",
+        "http://server:8011/order",
         json={"user_id": "1", "items": ["apple", "python"]},
     )
-    resp = await r.json()
-    return resp
+    return json(await r.json())
+
+
+if __name__ == "__main__":
+    app.run()

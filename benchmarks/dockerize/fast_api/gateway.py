@@ -1,10 +1,9 @@
 import logging
 from typing import Optional
 
-import httpx
 from aiohttp import ClientSession
-from sanic import Sanic
-from sanic.response import text, json
+from fastapi import FastAPI
+
 
 logger = logging.getLogger(__name__)
 
@@ -16,33 +15,32 @@ except ImportError:
     logger.warn("Cannot use uvloop")
     pass
 
+
+app = FastAPI()
+
 session: Optional[ClientSession] = None
 
-app = Sanic("My Hello, world app")
 
-
-@app.route("/hello")
-async def test(request):
+@app.get("/hello")
+async def root():
     global session
     if session is None:
         session = ClientSession()
 
-    r = await session.get("http://localhost:8011/hello")
-    return text(await r.text())
+    r = await session.get("http://server:8011/hello")
+    resp = await r.json()
+    return resp
 
 
-@app.route("/order")
-async def test(request):
+@app.get("/order")
+async def root():
     global session
     if session is None:
         session = ClientSession()
 
     r = await session.post(
-        "http://localhost:8011/order",
+        "http://server:8011/order",
         json={"user_id": "1", "items": ["apple", "python"]},
     )
-    return json(await r.json())
-
-
-if __name__ == "__main__":
-    app.run()
+    resp = await r.json()
+    return resp

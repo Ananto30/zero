@@ -6,8 +6,8 @@ from datetime import datetime
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from benchmarks.async_redis_repository import save_order as saveOrder
-from benchmarks.model import Order, OrderStatus, OrderResp
+from shared import Order, OrderResp, OrderStatus, async_save_order
+
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ async def hello():
 
 @app.post("/order")
 async def save_order(req: Request):
-    saved_order = await saveOrder(
+    saved_order = await async_save_order(
         Order(
             id=str(uuid.uuid4()),
             created_by=req.user_id,

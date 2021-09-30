@@ -1,0 +1,33 @@
+SHELL := /bin/bash
+benchmark-aiohttp:
+		cd aiohttp && ( \
+		docker-compose up -d gateway server redis; \
+		sleep 2; \
+		docker-compose up wrk-hello; \
+		docker-compose up wrk-order; \
+		docker-compose down; \
+		)
+benchmark-fastapi:
+		cd fast_api && ( \
+		docker-compose up -d gateway server redis; \
+		sleep 2; \
+		docker-compose up wrk-hello; \
+		docker-compose up wrk-order; \
+		docker-compose down; \
+		)
+benchmark-sanic:
+		cd sanic && ( \
+		docker-compose up -d gateway server redis; \
+		sleep 2; \
+		docker-compose up wrk-hello; \
+		docker-compose up wrk-order; \
+		docker-compose down; \
+		)
+benchmark-zero:
+		cd zero && ( \
+		docker-compose up -d gateway server redis; \
+		sleep 2; \
+		docker-compose up wrk-hello; \
+		docker-compose up wrk-order; \
+		docker-compose down; \
+		)

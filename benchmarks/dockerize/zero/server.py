@@ -3,9 +3,9 @@ import uuid
 from datetime import datetime
 
 import jwt
-from benchmarks.model import CreateOrderReq, Order, OrderResp, OrderStatus
-from benchmarks.redis_repository import save_order as saveOrder
 
+from shared import CreateOrderReq, Order, OrderResp, OrderStatus, async_save_order
+from shared import save_order as saveOrder
 from zero import ZeroServer
 
 

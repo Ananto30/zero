@@ -3,9 +3,7 @@ from datetime import datetime
 
 from sanic import Sanic
 from sanic.response import json, text
-
-from benchmarks.async_redis_repository import save_order
-from benchmarks.model import Order, OrderStatus, OrderResp
+from shared import Order, OrderResp, OrderStatus, async_save_order
 
 app = Sanic("My Hello, world app")
 
@@ -13,7 +11,7 @@ app = Sanic("My Hello, world app")
 @app.post("/order")
 async def root(request):
     body = request.json
-    saved_order = await save_order(
+    saved_order = await async_save_order(
         Order(
             id=str(uuid.uuid4()),
             created_by=body["user_id"],

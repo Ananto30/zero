@@ -1,13 +1,10 @@
-import uuid
 import logging
+import uuid
 from datetime import datetime
 
 from aiohttp import web
+from shared import Order, OrderResp, OrderStatus, async_save_order
 
-from benchmarks.async_redis_repository import save_order
-from benchmarks.model import Order, OrderStatus, OrderResp
-
-# from benchmarks.redis_repository import save_order
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +22,7 @@ async def hello(request):
 
 
 async def get_order(request):
-    saved_order = await save_order(
+    saved_order = await async_save_order(
         Order(
             id=str(uuid.uuid4()),
             created_by="1",
@@ -36,14 +33,12 @@ async def get_order(request):
     )
 
     resp = OrderResp(saved_order.id, saved_order.status, saved_order.items)
-    return web.json_response(
-        {"id": resp.order_id, "status": resp.status, "items": resp.items}
-    )
+    return web.json_response({"id": resp.order_id, "status": resp.status, "items": resp.items})
 
 
 async def order(request):
     body = await request.json()
-    saved_order = await save_order(
+    saved_order = await async_save_order(
         Order(
             id=str(uuid.uuid4()),
             created_by=body["user_id"],
@@ -54,14 +49,10 @@ async def order(request):
     )
 
     resp = OrderResp(saved_order.id, saved_order.status, saved_order.items)
-    return web.json_response(
-        {"id": resp.order_id, "status": resp.status, "items": resp.items}
-    )
+    return web.json_response({"id": resp.order_id, "status": resp.status, "items": resp.items})
 
 
-async def aiohttp_app():
-    app = web.Application()
-    app.router.add_get("/order", get_order)
-    app.router.add_post("/order", order)
-    app.router.add_get("/hello", hello)
-    return app
+app = web.Application()
+app.router.add_get("/order", get_order)
+app.router.add_post("/order", order)
+app.router.add_get("/hello", hello)

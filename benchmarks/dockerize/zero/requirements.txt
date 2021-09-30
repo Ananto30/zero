@@ -1,0 +1,9 @@
+zeroapi
+PyJWT
+aioredis
+uvloop
+msgpack
+aiohttp
+gunicorn
+redis
+sanic
