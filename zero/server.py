@@ -129,10 +129,11 @@ class ZeroServer:
             print(e)
 
     def _sig_handler(self, signum, frame):
-        print("Signal handler called with signal", signum)
+        print(f"{signal.Signals(signum).name} signal called")
         self._terminate_server()
 
     def _terminate_server(self):
+        print("Terminating server")
         self._pool.terminate()
         self._pool.close()
         self._pool.join()

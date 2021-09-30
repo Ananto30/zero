@@ -2,7 +2,7 @@ import logging
 
 from aiohttp import web
 
-from zero import ZeroClient, ZeroPublisher
+from zero import ZeroClient, AsyncZeroClient, ZeroPublisher
 
 # TODO: why we can't use uvloop?
 # try:
@@ -13,9 +13,9 @@ from zero import ZeroClient, ZeroPublisher
 #     logging.warn("Cannot use uvloop")
 #     pass
 
-zero_sync_client = ZeroClient("server", "5559", use_async=False)
-zero_publisher = ZeroPublisher("server", "5558", use_async=True)
-zero_async_client = ZeroClient("server", "5559", use_async=True)
+zero_sync_client = ZeroClient("server", "5559")
+zero_async_client = AsyncZeroClient("server", "5559")
+zero_publisher = ZeroPublisher("server", "5558")
 
 
 async def hello(request):
@@ -25,7 +25,7 @@ async def hello(request):
 
 
 async def async_hello(request):
-    resp = await zero_async_client.call_async("hello_world", None)
+    resp = await zero_async_client.call("hello_world", None)
     # print(resp)
     return web.Response(text=resp)
 
@@ -37,7 +37,7 @@ async def order(request):
 
 
 async def async_order(request):
-    resp = await zero_async_client.call_async("save_order", {"user_id": "1", "items": ["apple", "python"]})
+    resp = await zero_async_client.call("save_order", {"user_id": "1", "items": ["apple", "python"]})
     # print(resp)
     return web.json_response(resp)
 
@@ -48,16 +48,16 @@ async def pubs(request):
 
 
 async def enc_dec_jwt(request):
-    resp = await zero_async_client.call_async("decode_jwt", {"user_id": "a1b2c3"})
+    resp = await zero_async_client.call("decode_jwt", {"user_id": "a1b2c3"})
     # print(resp)
     # encoded_jwt = jwt.encode({'user_id': 'a1b2c3'}, 'secret', algorithm='HS256')
-    # resp = await zero_client.call_async("decode_jwt", encoded_jwt)
+    # resp = await zero_client.call("decode_jwt", encoded_jwt)
     return web.json_response(resp)
 
 
 async def echo(request):
     big_list = ["hello world" for i in range(100_000)]
-    resp = await zero_async_client.call_async("echo", big_list)
+    resp = await zero_async_client.call("echo", big_list)
     # print(resp)
     return web.Response(text=str(resp))
 
