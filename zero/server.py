@@ -9,12 +9,12 @@ import typing
 import uuid
 from functools import partial
 from multiprocessing.pool import Pool
-from zero.codegen import CodeGen
 
 import msgpack
 import zmq
 import zmq.asyncio
 
+from .codegen import CodeGen
 from .common import get_next_available_port
 from .type_util import (
     get_function_input_class,
@@ -24,6 +24,7 @@ from .type_util import (
     verify_function_input_type,
     verify_function_return,
 )
+from .zero_mq import ZeroMQ
 
 # import uvloop
 
@@ -47,11 +48,12 @@ class ZeroServer:
         `if __name__ == "__main__":`
         As the server runs on multiple processes.
 
-        @param host:
-        Host of the ZeroServer.
-
-        @param port:
-        Port of the ZeroServer.
+        Parameters
+        ----------
+        host: str
+            Host of the ZeroServer.
+        port: int
+            Port of the ZeroServer.
 
         """
         self._port = port
@@ -66,11 +68,13 @@ class ZeroServer:
     def register_rpc(self, func: typing.Callable):
         """
         Register the rpc methods available for clients.
-        Please make sure they return something.
-        If the methods don't return anything, use ZeroSubscriber.
+        Make sure they return something.
+        If the methods don't return anything, it will get timeout in client.
 
-        @param func:
-        RPC function.
+        Parameters
+        ----------
+        func: typing.Callable
+            RPC function.
         """
         if not isinstance(func, typing.Callable):
             raise Exception(f"register function; not {type(func)}")
@@ -144,31 +148,7 @@ class ZeroServer:
         sys.exit()
 
     def _start_queue_device(self):
-        try:
-            ctx = zmq.Context.instance()
-            gateway = ctx.socket(zmq.ROUTER)  # or XREP
-            gateway.bind(f"tcp://{self._host}:{self._port}")
-            logging.info(f"Starting server at {self._port}")
-            backend = ctx.socket(zmq.DEALER)  # or XREQ
-
-            if os.name == "posix":
-                backend.bind(f"ipc://{self._device_ipc}")
-            else:
-                backend.bind(f"tcp://127.0.0.1:{self._device_port}")
-
-            # This is the main magic, device works like a queue maintainer
-            # Device can be started separately, but we are using as our internal load balancer
-            # As python is single process, we are using multiprocessing library to make several process of the same app
-            # And to communicate with all the process we are using this device
-            zmq.device(zmq.QUEUE, gateway, backend)
-            # zmq.proxy(gateway, backend)
-
-            gateway.close()
-            backend.close()
-            ctx.term()
-        except Exception as e:
-            logging.exception(e)
-            logging.error("bringing down zmq device")
+        ZeroMQ.queue_device(self._host, self._port, self._device_ipc, self._device_port)
 
     async def _start_router(self):  # pragma: no cover
         ctx = zmq.asyncio.Context()
@@ -259,29 +239,16 @@ class _Worker:
             await process_message()
 
     def start_dealer_worker(self, worker_id):
-        ctx = zmq.Context()
-        socket = ctx.socket(zmq.DEALER)
-
-        if os.name == "posix":
-            socket.connect(f"ipc://{self._ipc}")
-        else:
-            socket.connect(f"tcp://127.0.0.1:{self._port}")
-
-        logging.info(f"Starting worker: {worker_id}")
-
-        def process_message():
+        def process_message(rpc, msg):
             try:
-                ident, rpc, msg = socket.recv_multipart()
                 rpc_method = rpc.decode()
                 msg = self._decode(msg)
                 response = self._handle_msg(rpc_method, msg)
-                response = self._encode(response)
-                socket.send_multipart([ident, response], zmq.DONTWAIT)
+                return self._encode(response)
             except Exception as e:
                 logging.exception(e)
 
-        while True:
-            process_message()
+        ZeroMQ.worker(self._ipc, self._port, worker_id, process_message)
 
     def _handle_msg(self, rpc, msg):
         if rpc == "get_rpc_contract":
