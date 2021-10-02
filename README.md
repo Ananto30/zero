@@ -45,10 +45,10 @@ pip install zeroapi
 ```python
 from zero import ZeroServer
 
-def echo(msg: str) -> msg:
+def echo(msg: str) -> str:
     return msg
 
-async def hello_world() -> msg:
+async def hello_world() -> str:
     return "hello world"
 
 
