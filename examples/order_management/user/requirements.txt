@@ -1,0 +1,4 @@
+zeroapi
+PyJWT
+SQLAlchemy==1.4.3
+aiosqlite

@@ -14,7 +14,7 @@ from zero import ZeroClient, AsyncZeroClient, ZeroPublisher
 #     pass
 
 zero_sync_client = ZeroClient("server", "5559")
-zero_async_client = AsyncZeroClient("server", "5559")
+zero_async_client = None
 zero_publisher = ZeroPublisher("server", "5558")
 
 
@@ -25,6 +25,10 @@ async def hello(request):
 
 
 async def async_hello(request):
+    global zero_async_client
+    if zero_async_client is None:
+        zero_async_client = AsyncZeroClient("server", "5559")
+
     resp = await zero_async_client.call("hello_world", None)
     # print(resp)
     return web.Response(text=resp)
@@ -37,6 +41,10 @@ async def order(request):
 
 
 async def async_order(request):
+    global zero_async_client
+    if zero_async_client is None:
+        zero_async_client = AsyncZeroClient("server", "5559")
+        
     resp = await zero_async_client.call("save_order", {"user_id": "1", "items": ["apple", "python"]})
     # print(resp)
     return web.json_response(resp)

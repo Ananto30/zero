@@ -1,0 +1,31 @@
+version: "3"
+
+services:
+  auth:
+    build: ./auth
+    container_name: auth
+    command: python main.py
+    ports:
+      - "8100:8100"
+  gateway:
+    build: ./gateway
+    container_name: gateway
+    command: gunicorn main:app --bind 0.0.0.0:8000 --worker-class aiohttp.worker.GunicornWebWorker --workers 8 --log-level  warning
+    ports:
+      - "8000:8000"
+    depends_on:
+      - auth
+      - order
+      - user
+  order:
+    build: ./order
+    container_name: order
+    command: python main.py
+    ports:
+      - "6002:6002"
+  user:
+    build: ./user
+    container_name: user
+    command: python main.py
+    ports:
+      - "8101:8101"
