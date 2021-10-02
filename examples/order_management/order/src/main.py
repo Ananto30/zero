@@ -3,7 +3,7 @@ from typing import List
 
 from zero import AsyncZeroClient, ZeroServer
 
-from store import create_order, get_order_by_id, get_orders_by_user_id
+from src.store import create_order, get_order_by_id, get_orders_by_user_id
 
 log = logging.getLogger("OrderService")
 
@@ -39,7 +39,7 @@ async def get_orders(user_id: int) -> List[dict]:
 
 
 if __name__ == "__main__":
-    app = ZeroServer(port=6001)
+    app = ZeroServer(port=6002)
     app.register_rpc(add_order)
     app.register_rpc(get_order)
     app.register_rpc(get_orders)

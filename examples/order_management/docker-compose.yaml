@@ -6,11 +6,10 @@ services:
     container_name: auth
     command: python main.py
     ports:
-      - "8100:8100"
+      - "6000:6000"
   gateway:
     build: ./gateway
     container_name: gateway
-    command: gunicorn main:app --bind 0.0.0.0:8000 --worker-class aiohttp.worker.GunicornWebWorker --workers 8 --log-level  warning
     ports:
       - "8000:8000"
     depends_on:
@@ -28,4 +27,4 @@ services:
     container_name: user
     command: python main.py
     ports:
-      - "8101:8101"
+      - "6001:6001"

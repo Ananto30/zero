@@ -1,6 +1,6 @@
 import asyncio
 
-from store import Base, create_user, engine
+from src.store import Base, create_user, engine
 
 
 
