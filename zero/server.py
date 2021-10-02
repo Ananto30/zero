@@ -131,6 +131,7 @@ class ZeroServer:
             self._terminate_server()
         except Exception as e:
             print(e)
+            self._terminate_server()
 
     def _sig_handler(self, signum, frame):
         print(f"{signal.Signals(signum).name} signal called")
@@ -200,7 +201,7 @@ class _Worker:
         self._ipc = ipc
         self._port = port
         self._serializer = serializer
-        self._loop = asyncio.get_event_loop()
+        self._loop = asyncio.new_event_loop()
         # self._loop = uvloop.new_event_loop()
         self._rpc_input_type_map = rpc_input_type_map
         self._rpc_return_type_map = rpc_return_type_map

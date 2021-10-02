@@ -1,5 +1,5 @@
 import logging
-from typing import Union
+from typing import Optional, Union
 
 import msgpack
 import zmq
@@ -20,6 +20,7 @@ class _BaseClient:
         self._default_timeout = default_timeout
         self._serializer = "msgpack"
         self._init_serializer()
+        self._socket: Optional[zmq.Socket] = None
 
     def _init_serializer(self):
         # msgpack is the default serializer
@@ -53,10 +54,9 @@ class ZeroClient(_BaseClient):
         Default timeout for each call. In milliseconds.
         """
         super().__init__(host, port, default_timeout)
-        self._init_socket()
 
     def _init_socket(self):
-        ctx = zmq.Context()
+        ctx = zmq.Context.instance()
         self._socket: zmq.Socket = ctx.socket(zmq.DEALER)
         self._set_socket_opt()
         self._socket.connect(f"tcp://{self._host}:{self._port}")
@@ -74,6 +74,8 @@ class ZeroClient(_BaseClient):
         @return:
         Returns the response of ZeroServer's rpc method.
         """
+        if self._socket is None:
+            self._init_socket()
         try:
             msg = "" if msg is None else msg
             self._socket.send_multipart([rpc_method_name.encode(), self._encode(msg)], zmq.DONTWAIT)
@@ -113,10 +115,9 @@ class AsyncZeroClient(_BaseClient):
         Default timeout for each call. In milliseconds.
         """
         super().__init__(host, port, default_timeout)
-        self._init_async_socket()
 
     def _init_async_socket(self):
-        ctx = zmq.asyncio.Context()
+        ctx = zmq.asyncio.Context.instance()
         self._socket: zmq.Socket = ctx.socket(zmq.DEALER)
         self._set_socket_opt()
         self._socket.connect(f"tcp://{self._host}:{self._port}")
@@ -134,6 +135,8 @@ class AsyncZeroClient(_BaseClient):
         @return:
         Returns the response of ZeroServer's rpc method.
         """
+        if self._socket is None:
+            self._init_async_socket()
         try:
             msg = "" if msg is None else msg
             await self._socket.send_multipart([rpc_method_name.encode(), self._encode(msg)], zmq.DONTWAIT)
