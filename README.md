@@ -219,3 +219,5 @@ More about MacBook benchmarks [here](https://github.com/Ananto30/zero/blob/main/
 Contributors are welcomed 🙏
 
 **Please leave a star ⭐ if you like Zero!**
+
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/ananto30)
