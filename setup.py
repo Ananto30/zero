@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="zeroapi",
-    version="0.3.1",
+    version="0.3.2",
     author="Azizul Haque Ananto",
     author_email="azizulhaq.ananto@gmail.com",
     license="MIT",
@@ -19,7 +19,7 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.9',
+    python_requires='>=3.6',
     package_dir={'':'.'},
     install_requires=['pyzmq', 'msgpack']
 )

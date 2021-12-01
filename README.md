@@ -34,7 +34,7 @@ Let's get started!
 
 ## Getting started 🚀
 
-_Ensure Python 3.8+_
+_Ensure Python 3.6+_
 
 ```
 pip install zeroapi
