@@ -1,40 +1,52 @@
+from typing import Optional
+
 import msgpack
 import zmq
 import zmq.asyncio
 
-from zero.type_util import verify_allowed_type
+from zero.type_util import verify_allowed_type, verify_topic
 
 
-class ZeroPublisher:
-    def __init__(self, host: str, port: int, use_async: bool = True):
-        self.__host = host
-        self.__port = port
-        self.__socket = None
-        if use_async:
-            self._init_async_socket()
-        else:
-            self._init_sync_socket()
+class _BasePublisher:
+    def __init__(self, host: str, port: int):
+        self._host = host
+        self._port = port
+        self._socket: Optional[zmq.Socket] = None
+
+    def _set_socket_opt(self):
+        # self._socket.setsockopt(zmq.RCVTIMEO, 2000)
+        self._socket.setsockopt(zmq.LINGER, 0)
+
+
+class ZeroPublisher(_BasePublisher):
+    def __init__(self, host: str, port: int):
+        super().__init__(host, port)
+        self._init_sync_socket()
 
     def _init_sync_socket(self):
         ctx = zmq.Context()
-        self.__socket: zmq.Socket = ctx.socket(zmq.PUB)
+        self._socket = ctx.socket(zmq.PUB)
         self._set_socket_opt()
-        self.__socket.connect(f"tcp://{self.__host}:{self.__port}")
+        self._socket.bind(f"tcp://*:{self._port}")
+
+    def publish(self, topic, msg):
+        verify_topic(topic)
+        verify_allowed_type(msg)
+        self._socket.send_multipart([topic.encode(), msgpack.packb(msg)])
+
+
+class AsyncZeroPublisher(_BasePublisher):
+    def __init__(self, host: str, port: int):
+        super().__init__(host, port)
+        self._init_async_socket()
 
     def _init_async_socket(self):
         ctx = zmq.asyncio.Context()
-        self.__socket: zmq.Socket = ctx.socket(zmq.PUB)
+        self._socket = ctx.socket(zmq.PUB)
         self._set_socket_opt()
-        self.__socket.connect(f"tcp://{self.__host}:{self.__port}")
+        self._socket.bind(f"tcp://{self._host}:{self._port}")
 
-    def _set_socket_opt(self):
-        # self.__socket.setsockopt(zmq.RCVTIMEO, 2000)
-        self.__socket.setsockopt(zmq.LINGER, 0)
-
-    def publish(self, topic, msg):
+    async def publish(self, topic: str, msg):
+        verify_topic(topic)
         verify_allowed_type(msg)
-        self.__socket.send_multipart([topic.encode(), msgpack.packb(msg)])
-
-    async def publish_async(self, topic, msg):
-        verify_allowed_type(msg)
-        await self.__socket.send_multipart([topic.encode(), msgpack.packb(msg)])
+        await self._socket.send_multipart([topic.encode(), msgpack.packb(msg)])

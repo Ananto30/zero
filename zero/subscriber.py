@@ -16,7 +16,7 @@ logging.basicConfig(
 )
 
 
-class ZeroSubscriber:
+class _ZeroSubscriber:
     def __init__(self, host: str = "127.0.0.1", port: int = 5558):
         self.__topic_map = {}
         self.__host = host
@@ -108,3 +108,32 @@ class Listener:
             return await self.__func(msg)
         except Exception as e:
             logging.exception(e)
+
+
+class ZeroSubscriber:
+    def __init__(self, host: str, port: int):
+        self._host = host
+        self._port = port
+
+    def register_listener(self, topic: str, func: typing.Callable):
+        ctx = zmq.Context()
+        socket = ctx.socket(zmq.SUB)
+        
+        socket.setsockopt(zmq.TCP_KEEPALIVE, True)
+        socket.setsockopt(zmq.TCP_KEEPALIVE_IDLE, 5)
+        socket.setsockopt(zmq.TCP_KEEPALIVE_INTVL, 5)
+
+        socket.connect(f"tcp://{self._host}:{self._port}")
+        socket.setsockopt_string(zmq.SUBSCRIBE, topic)
+
+        poller = zmq.Poller()
+        poller.register(socket, zmq.POLLIN)
+
+        while True:
+            socks = dict(poller.poll(timeout=100))
+            if socket in socks:
+                topic, msg = socket.recv_multipart()
+                try:
+                    func(msgpack.unpackb(msg))
+                except Exception as e:
+                    logging.exception(e)

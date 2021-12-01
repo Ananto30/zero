@@ -112,3 +112,8 @@ def is_pydantic(cls):  # pragma: no cover
             if not typing.get_origin(cls) in special_types:
                 if issubclass(cls, tuple(pydantic_types)):
                     return True
+
+
+def verify_topic(topic):
+    if not isinstance(topic, str):
+        raise TypeError("topic must be string")
