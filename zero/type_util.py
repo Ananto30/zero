@@ -101,7 +101,8 @@ def verify_incoming_rpc_call_input_type(msg, rpc_method: str, rpc_input_type_map
         if it != type(msg):
             raise TypeError(f"{msg} is not allowed for method `{rpc_method}`; allowed type: {it}")
 
-    if (origin_type := typing.get_origin(it)) in basic_types:
+    origin_type = typing.get_origin(it)
+    if origin_type in basic_types:
         if origin_type != type(msg):
             raise TypeError(f"{msg} is not allowed for method `{rpc_method}`; allowed type: {it}")
 
