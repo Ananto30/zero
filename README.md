@@ -2,7 +2,7 @@
     <img height="300px" src="https://ananto30.github.io/i/1200xCL_TP.png" /> 
 </p>
 <p align="center">
-    <em>Zero is a simple RPC like framework to build fast and high performance Python microservices</em>
+    <em>Zero is a simple RPC like framework to build fast and high performance Python microservices or distributed servers</em>
 </p>
 <p align="center">
     <a href="https://codecov.io/gh/Ananto30/zero" target="_blank">
@@ -13,8 +13,6 @@
     </a>
 </p>
 <hr>
-
-Zero is actually a RPC like framework that passes message between client server like architecture. Also supports Pub-Sub.
 
 **Features**:
 
