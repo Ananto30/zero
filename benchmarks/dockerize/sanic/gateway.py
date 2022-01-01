@@ -17,7 +17,7 @@ except ImportError:
 
 session: Optional[ClientSession] = None
 
-app = Sanic("My Hello, world app")
+app = Sanic("gateway")
 
 
 @app.route("/hello")

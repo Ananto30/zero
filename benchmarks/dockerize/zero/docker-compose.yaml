@@ -16,8 +16,8 @@ services:
     command: python server.py
     ports:
       - "5559:5559"
-    cpus: '0.40'
-    mem_limit: 256m
+    # cpus: '0.50'
+    # mem_limit: 256m
   redis:
     image: eqalpha/keydb:latest
     container_name: redis
@@ -25,11 +25,11 @@ services:
       - "6379:6379"
   wrk-hello:
     image: skandyla/wrk
-    command: -t 16 -c 400 -d 10s http://gateway:8000/async_hello
+    command: -t 8 -c 64 -d 15s --latency http://gateway:8000/async_hello
     depends_on:
       - gateway
   wrk-order:
     image: skandyla/wrk
-    command: -t 16 -c 400 -d 10s http://gateway:8000/async_order
+    command: -t 8 -c 64 -d 15s --latency http://gateway:8000/async_order
     depends_on:
       - gateway

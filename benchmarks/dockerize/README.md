@@ -40,7 +40,24 @@ I have used 2x cpu threads so `-t 16` and 16x25 = 400 connections.
 
 ## Latest benchmark results
 
-On my pc, core i3, 16GB ram with docker limits, cpu 40% and memory 256m, I got the following results -
+11th Gen Intel(R) Core(TM) i7-1165G7 @ 2.80GHz, 4 cores, 8 threads, 12GB RAM
+
+*(Sorted alphabetically)*
+
+| Framework | "hello world" (req/s) | 99% latency (ms) | redis save (req/s) | 99% latency (ms) |
+| --------- | --------------------- | ---------------- | ------------------ | ---------------- |
+| aiohttp   | 9553.16               | 25.48            | 5497.03            | 27.90            |
+| aiozmq    | 13241.74              | 12.12            | 5087.68            | 21.59            |
+| fastApi   | 6036.61               | 31.28            | 3648.11            | 50.76            |
+| sanic     | 13195.99              | 20.04            | 7226.72            | 25.24            |
+| zero      | 18867.00              | 11.48            | 12293.81           | 11.68            |
+
+
+## Old benchmark results
+
+Intel Core i3 10100, 4 cores, 8 threads, 16GB RAM, with docker limits **cpu 40% and memory 256m**
+
+*(Sorted alphabetically)*
 
 | Framework | "hello world" example | redis save example |
 | --------- | --------------------- | ------------------ |
@@ -49,6 +66,21 @@ On my pc, core i3, 16GB ram with docker limits, cpu 40% and memory 256m, I got t
 | fastApi   | 980.42 req/s          | 252.08 req/s       |
 | sanic     | 3,085.80 req/s        | 547.02 req/s       |
 | zero      | 5,000.77 req/s        | 784.51 req/s       |
+
+
+MacBook Pro (13-inch, M1, 2020), Apple M1, 8 cores (4 performance and 4 efficiency), 8 GB RAM
+
+*(Sorted alphabetically)*
+
+| Framework | "hello world" example | redis save example |
+| --------- | --------------------- | ------------------ |
+| aiohttp   | 12,409.50 req/s       | 6,161.43 req/s     |
+| fastApi   | 8,653.16 req/s        | 5,727.53 req/s     |
+| sanic     | 22,644.41 req/s       | 7,750.49 req/s     |
+| zero      | 15,853.92 req/s       | 11,167.89 req/s    |
+
+More about MacBook benchmarks [here](https://github.com/Ananto30/zero/blob/main/benchmarks/others/mac-results.md)
+
 
 ### Note!
 

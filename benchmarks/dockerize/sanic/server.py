@@ -5,7 +5,7 @@ from sanic import Sanic
 from sanic.response import json, text
 from shared import Order, OrderResp, OrderStatus, async_save_order
 
-app = Sanic("My Hello, world app")
+app = Sanic("hello_world")
 
 
 @app.post("/order")
