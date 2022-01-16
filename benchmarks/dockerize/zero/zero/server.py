@@ -393,7 +393,6 @@ class AsyncZeroServer:
         sys.exit()
 
     def _start_queue_device(self):
-        asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
         loop = asyncio.new_event_loop()
         loop.run_until_complete(AsyncZeroMQ.queue_device(self._host, self._port, self._device_ipc, self._device_port))
 

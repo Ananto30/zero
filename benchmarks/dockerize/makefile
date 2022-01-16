@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 benchmark-aiohttp:
 		cd aiohttp && ( \
-		docker-compose up -d gateway server redis; \
+		docker-compose up -d --build gateway server redis; \
 		sleep 2; \
 		docker-compose up wrk-hello; \
 		docker-compose up wrk-order; \
@@ -9,7 +9,7 @@ benchmark-aiohttp:
 		)
 benchmark-aiozmq:
 		cd aiozmq && ( \
-		docker-compose up -d gateway server redis; \
+		docker-compose up -d --build gateway server redis; \
 		sleep 2; \
 		docker-compose up wrk-hello; \
 		docker-compose up wrk-order; \
@@ -17,7 +17,7 @@ benchmark-aiozmq:
 		)
 benchmark-fastapi:
 		cd fast_api && ( \
-		docker-compose up -d gateway server redis; \
+		docker-compose up -d --build gateway server redis; \
 		sleep 2; \
 		docker-compose up wrk-hello; \
 		docker-compose up wrk-order; \
@@ -25,7 +25,7 @@ benchmark-fastapi:
 		)
 benchmark-sanic:
 		cd sanic && ( \
-		docker-compose up -d gateway server redis; \
+		docker-compose up -d --build gateway server redis; \
 		sleep 2; \
 		docker-compose up wrk-hello; \
 		docker-compose up wrk-order; \
@@ -33,7 +33,7 @@ benchmark-sanic:
 		)
 benchmark-zero:
 		cd zero && ( \
-		docker-compose up -d gateway server redis; \
+		docker-compose up -d --build gateway server redis; \
 		sleep 2; \
 		docker-compose up wrk-hello; \
 		docker-compose up wrk-order; \
