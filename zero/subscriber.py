@@ -16,7 +16,7 @@ logging.basicConfig(
 )
 
 
-class ZeroSubscriber:
+class ZeroSubscriber:  # pragma: no cover
     def __init__(self, host: str = "127.0.0.1", port: int = 5558):
         self.__topic_map = {}
         self.__host = host
@@ -74,7 +74,7 @@ class ZeroSubscriber:
             ctx.term()
 
 
-class Listener:
+class Listener:  # pragma: no cover
     @classmethod
     def spawn_listener_worker(cls, topic, func):
         worker = Listener(topic, func)

@@ -5,7 +5,7 @@ import zmq.asyncio
 from zero.type_util import verify_allowed_type
 
 
-class ZeroPublisher:
+class ZeroPublisher:  # pragma: no cover
     def __init__(self, host: str, port: int, use_async: bool = True):
         self.__host = host
         self.__port = port

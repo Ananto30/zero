@@ -48,3 +48,28 @@ class RpcClient:
         )
 
     os.remove("rpc_client.py")
+
+
+def test_connection_fail_in_code_generation():
+    generate_client_code_and_save("localhost", 5558, ".", overwrite_dir=True)
+    assert os.path.isfile("rpc_client.py") is False
+
+
+def test_generate_code_in_different_directory():
+    generate_client_code_and_save("localhost", 5559, "./test_codegen", overwrite_dir=True)
+    assert os.path.isfile("./test_codegen/rpc_client.py")
+
+    os.remove("./test_codegen/rpc_client.py")
+    os.rmdir("./test_codegen")
+
+
+def test_overwrite_dir_false(monkeypatch):
+    generate_client_code_and_save("localhost", 5559, "./test_codegen", overwrite_dir=True)
+    file_hash = hash(open("./test_codegen/rpc_client.py").read())
+
+    monkeypatch.setattr("builtins.input", lambda _: "N")
+    generate_client_code_and_save("localhost", 5559, "./test_codegen", overwrite_dir=False)
+    assert file_hash == hash(open("./test_codegen/rpc_client.py").read())
+
+    os.remove("./test_codegen/rpc_client.py")
+    os.rmdir("./test_codegen")

@@ -13,3 +13,6 @@ zeroapi.egg-info
 .coverage
 .coverage.*
 coverage.*
+
+# code generation test directory
+test_codegen
