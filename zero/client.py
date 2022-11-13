@@ -1,7 +1,9 @@
 import logging
 from typing import Optional, Union
 
+import asyncio
 import msgpack
+import os
 import zmq
 import zmq.asyncio
 
@@ -117,6 +119,10 @@ class AsyncZeroClient(_BaseClient):
         super().__init__(host, port, default_timeout)
 
     def _init_async_socket(self):
+        if os.name == "nt":
+            # windows need special event loop policy to work with zmq
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
         ctx = zmq.asyncio.Context.instance()
         self._socket: zmq.Socket = ctx.socket(zmq.DEALER)
         self._set_socket_opt()

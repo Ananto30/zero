@@ -102,7 +102,7 @@ class ZeroServer:
             # device port is used for non-posix env
             self._device_port = get_next_available_port(6666)
 
-            if os.name != "posix":
+            if os.name == "nt":
                 # windows need special event loop policy to work with zmq
                 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
