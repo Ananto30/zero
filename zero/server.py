@@ -96,11 +96,15 @@ class ZeroServer:
             # utilize all the cores
             cores = os.cpu_count()
 
+            # ipc is used for posix env
+            self._device_ipc = uuid.uuid4().hex[18:] + ".ipc"
+
             # device port is used for non-posix env
             self._device_port = get_next_available_port(6666)
 
-            # ipc is used for posix env
-            self._device_ipc = uuid.uuid4().hex[18:] + ".ipc"
+            if os.name != "posix":
+                # windows need special event loop policy to work with zmq
+                asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
             # this is important to catch KeyboardInterrupt
             original_sigint_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
