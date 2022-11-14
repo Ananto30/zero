@@ -1,9 +1,11 @@
 import os.path
+import time
 
 from zero.generate_client import generate_client_code_and_save
 
 
 def test_codegeneration():
+    time.sleep(1) # wait for server to start
     generate_client_code_and_save("localhost", 5559, ".", overwrite_dir=True)
     assert os.path.isfile("rpc_client.py")
     with open("rpc_client.py") as f:

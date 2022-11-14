@@ -10,7 +10,7 @@ def hello() -> str:
 
 
 def run():
-    app = ZeroServer(port=7777)
+    app = ZeroServer(port=7898)
     app.register_rpc(echo)
     app.register_rpc(hello)
     app.run()

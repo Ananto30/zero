@@ -25,25 +25,25 @@ async def test_multiple_clients():
 
     time.sleep(2)
 
-    client1 = ZeroClient("localhost", 7778)
+    client1 = ZeroClient("localhost", 7899)
     assert client1.call("echo", "Hello") == "Server1: Hello"
     assert client1.call("hello", None) == "Hello from server1"
     assert client1.call("async_echo", "Hello") == "Server1: Hello"
     assert client1.call("async_hello", None) == "Hello from server1"
 
-    client2 = ZeroClient("localhost", 7778)
+    client2 = ZeroClient("localhost", 7899)
     assert client2.call("echo", "Hello") == "Server1: Hello"
     assert client2.call("hello", None) == "Hello from server1"
     assert client2.call("async_echo", "Hello") == "Server1: Hello"
     assert client2.call("async_hello", None) == "Hello from server1"
 
-    client3 = ZeroClient("localhost", 7778)
+    client3 = ZeroClient("localhost", 7899)
     assert client3.call("echo", "Hello") == "Server1: Hello"
     assert client3.call("hello", None) == "Hello from server1"
     assert client3.call("async_echo", "Hello") == "Server1: Hello"
     assert client3.call("async_hello", None) == "Hello from server1"
 
-    client4 = ZeroClient("localhost", 7778)
+    client4 = ZeroClient("localhost", 7899)
     assert client4.call("echo", "Hello") == "Server1: Hello"
     assert client4.call("hello", None) == "Hello from server1"
     assert client4.call("async_echo", "Hello") == "Server1: Hello"
@@ -54,19 +54,19 @@ async def test_multiple_clients():
     assert client4.call("async_hello", None) == "Hello from server1"
     assert client4.call("hello", None) == "Hello from server1"
 
-    async_client1 = AsyncZeroClient("localhost", 7778)
+    async_client1 = AsyncZeroClient("localhost", 7899)
     assert await async_client1.call("echo", "Hello") == "Server1: Hello"
     assert await async_client1.call("hello", None) == "Hello from server1"
     assert await async_client1.call("async_echo", "Hello") == "Server1: Hello"
     assert await async_client1.call("async_hello", None) == "Hello from server1"
 
-    async_client2 = AsyncZeroClient("localhost", 7778)
+    async_client2 = AsyncZeroClient("localhost", 7899)
     assert await async_client2.call("echo", "Hello") == "Server1: Hello"
     assert await async_client2.call("hello", None) == "Hello from server1"
     assert await async_client2.call("async_echo", "Hello") == "Server1: Hello"
     assert await async_client2.call("async_hello", None) == "Hello from server1"
 
-    async_client3 = AsyncZeroClient("localhost", 7778)
+    async_client3 = AsyncZeroClient("localhost", 7899)
     assert await async_client3.call("echo", "Hello") == "Server1: Hello"
     assert await async_client3.call("hello", None) == "Hello from server1"
     assert await async_client3.call("async_echo", "Hello") == "Server1: Hello"

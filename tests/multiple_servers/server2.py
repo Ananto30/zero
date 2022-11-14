@@ -1,8 +1,8 @@
 from zero import ZeroServer, ZeroClient, AsyncZeroClient
 
 
-client = ZeroClient("localhost", 7777)
-async_client = AsyncZeroClient("localhost", 7777)
+client = ZeroClient("localhost", 7898)
+async_client = AsyncZeroClient("localhost", 7898)
 
 
 def echo(msg: str) -> str:
@@ -22,7 +22,7 @@ async def async_hello() -> str:
 
 
 def run():
-    app = ZeroServer(port=7778)
+    app = ZeroServer(port=7899)
     app.register_rpc(echo)
     app.register_rpc(hello)
     app.register_rpc(async_echo)

@@ -25,13 +25,13 @@ async def test_client_inside_server():
 
     time.sleep(2)
 
-    client = ZeroClient("localhost", 7778)
+    client = ZeroClient("localhost", 7899)
     assert client.call("echo", "Hello") == "Server1: Hello"
     assert client.call("hello", None) == "Hello from server1"
     assert client.call("async_echo", "Hello") == "Server1: Hello"
     assert client.call("async_hello", None) == "Hello from server1"
 
-    async_client = AsyncZeroClient("localhost", 7778)
+    async_client = AsyncZeroClient("localhost", 7899)
     assert await async_client.call("echo", "Hello") == "Server1: Hello"
     assert await async_client.call("hello", None) == "Hello from server1"
     assert await async_client.call("async_echo", "Hello") == "Server1: Hello"
