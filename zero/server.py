@@ -8,6 +8,7 @@ import typing
 import uuid
 import atexit
 from functools import partial
+from multiprocessing.pool import ThreadPool
 from multiprocessing.pool import Pool
 
 import msgpack
@@ -37,7 +38,7 @@ logging.basicConfig(
 
 
 class ZeroServer:
-    def __init__(self, host: str = "0.0.0.0", port: int = 5559):
+    def __init__(self, host: str = "0.0.0.0", port: int = 5559, use_threads: bool=False):
         """
         ZeroServer registers rpc methods that are called from a ZeroClient.
 
@@ -58,6 +59,7 @@ class ZeroServer:
         """
         self._port = port
         self._host = host
+        self._use_threads=use_threads
         self._serializer = "msgpack"
         self._rpc_router = {}
 
@@ -102,9 +104,13 @@ class ZeroServer:
             # ipc is used for posix env
             self._device_ipc = uuid.uuid4().hex[18:] + ".ipc"
 
-            self._pool = Pool(cores)
-            atexit.register(self._atexit_handler)# for process termination
+            if self._use_threads:
+                self._pool = ThreadPool(cores)
+            else:
+                self._pool = Pool(cores)
 
+            atexit.register(self._atexit_handler) # for process termination
+            
             spawn_worker = partial(
                 _Worker.spawn_worker,
                 self._rpc_router,
