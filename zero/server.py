@@ -2,11 +2,11 @@ import asyncio
 import inspect
 import logging
 import os
-import signal
 import sys
 import time
 import typing
 import uuid
+import atexit
 from functools import partial
 from multiprocessing.pool import Pool
 
@@ -102,13 +102,8 @@ class ZeroServer:
             # ipc is used for posix env
             self._device_ipc = uuid.uuid4().hex[18:] + ".ipc"
 
-            # this is important to catch KeyboardInterrupt
-            original_sigint_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
-
             self._pool = Pool(cores)
-
-            signal.signal(signal.SIGINT, original_sigint_handler)  # for KeyboardInterrupt
-            signal.signal(signal.SIGTERM, self._sig_handler)  # for process termination
+            atexit.register(self._atexit_handler)# for process termination
 
             spawn_worker = partial(
                 _Worker.spawn_worker,
@@ -133,8 +128,8 @@ class ZeroServer:
             print(e)
             self._terminate_server()
 
-    def _sig_handler(self, signum, frame):
-        print(f"{signal.Signals(signum).name} signal called")
+    def _atexit_handler(self):
+        print(f"atexit called")
         self._terminate_server()
 
     def _terminate_server(self):
