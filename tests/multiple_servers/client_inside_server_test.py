@@ -10,12 +10,6 @@ from server2 import run as run2
 
 @pytest.mark.asyncio
 async def test_client_inside_server():
-    try:
-        from pytest_cov.embed import cleanup_on_sigterm
-    except ImportError:
-        pass
-    else:
-        cleanup_on_sigterm()
 
     p = Process(target=run1)
     p.start()

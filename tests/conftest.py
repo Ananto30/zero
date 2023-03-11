@@ -51,12 +51,6 @@ def server():
 
 @pytest.fixture(autouse=True, scope="session")
 def start_server():
-    try:
-        from pytest_cov.embed import cleanup_on_sigterm
-    except ImportError:
-        pass
-    else:
-        cleanup_on_sigterm()
 
     p = Process(target=server)
     p.start()
@@ -64,3 +58,7 @@ def start_server():
     yield
     # p.kill()
     p.terminate()
+    # after session is finished clean up
+    from pytest_cov.embed import cleanup
+    cleanup()
+
