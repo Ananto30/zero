@@ -128,10 +128,10 @@ class ZeroServer:
             # asyncio.run(self._start_router())
 
         except KeyboardInterrupt:
-            print("Caught KeyboardInterrupt, terminating workers")
+            logging.info(f"Caught KeyboardInterrupt, terminating workers")
             self._terminate_server()
         except Exception as e:
-            print(e)
+            logging.error(e)
             self._terminate_server()
 
     def _atexit_handler(self):
@@ -139,7 +139,7 @@ class ZeroServer:
         self._terminate_server()
 
     def _terminate_server(self):
-        print("Terminating server")
+        logging.info(f"Terminating server")
         self._pool.terminate()
         self._pool.close()
         self._pool.join()
@@ -190,12 +190,15 @@ class _Worker:
         rpc_return_type_map: dict,
         worker_id: int,
     ):
-        time.sleep(0.2)
-        worker = _Worker(rpc_router, ipc, port, serializer, rpc_input_type_map, rpc_return_type_map)
-        # loop = asyncio.get_event_loop()
-        # loop.run_until_complete(worker.create_worker(worker_id))
-        # asyncio.run(worker.start_async_dealer_worker(worker_id))
-        worker.start_dealer_worker(worker_id)
+        try:
+            time.sleep(0.2)
+            worker = _Worker(rpc_router, ipc, port, serializer, rpc_input_type_map, rpc_return_type_map)
+            # loop = asyncio.get_event_loop()
+            # loop.run_until_complete(worker.create_worker(worker_id))
+            # asyncio.run(worker.start_async_dealer_worker(worker_id))
+            worker.start_dealer_worker(worker_id)
+        except KeyboardInterrupt as e:
+            pass
 
     def __init__(self, rpc_router, ipc, port, serializer, rpc_input_type_map, rpc_return_type_map):
         self._rpc_router = rpc_router
