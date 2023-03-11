@@ -6,6 +6,9 @@ import jwt
 import pytest
 from zero import ZeroServer
 
+import os
+import signal
+import sys
 
 async def echo(msg: str) -> str:
     return msg
@@ -51,13 +54,16 @@ def server():
 
 @pytest.fixture(autouse=True, scope="session")
 def start_server():
+    try:
+        p = Process(target=server)
+        p.start()
+        time.sleep(2)
+        yield
+    finally:
+        # p.kill()
+        os.kill(p.pid,signal.CTRL_C_EVENT if sys.platform == 'win32' else signal.SIGINT)
+        os.waitpid(p.pid ,0)
 
-    p = Process(target=server)
-    p.start()
-    time.sleep(1)
-    yield
-    # p.kill()
-    p.terminate()
     # after session is finished clean up
     from pytest_cov.embed import cleanup
     cleanup()
