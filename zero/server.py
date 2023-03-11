@@ -2,12 +2,13 @@ import asyncio
 import inspect
 import logging
 import os
-import signal
 import sys
 import time
 import typing
 import uuid
+import atexit
 from functools import partial
+from multiprocessing.pool import ThreadPool
 from multiprocessing.pool import Pool
 
 import msgpack
@@ -37,7 +38,7 @@ logging.basicConfig(
 
 
 class ZeroServer:
-    def __init__(self, host: str = "0.0.0.0", port: int = 5559):
+    def __init__(self, host: str = "0.0.0.0", port: int = 5559, use_threads: bool=False):
         """
         ZeroServer registers rpc methods that are called from a ZeroClient.
 
@@ -58,6 +59,7 @@ class ZeroServer:
         """
         self._port = port
         self._host = host
+        self._use_threads=use_threads
         self._serializer = "msgpack"
         self._rpc_router = {}
 
@@ -102,14 +104,13 @@ class ZeroServer:
             # ipc is used for posix env
             self._device_ipc = uuid.uuid4().hex[18:] + ".ipc"
 
-            # this is important to catch KeyboardInterrupt
-            original_sigint_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
+            if self._use_threads:
+                self._pool = ThreadPool(cores)
+            else:
+                self._pool = Pool(cores)
 
-            self._pool = Pool(cores)
-
-            signal.signal(signal.SIGINT, original_sigint_handler)  # for KeyboardInterrupt
-            signal.signal(signal.SIGTERM, self._sig_handler)  # for process termination
-
+            # atexit.register(self._atexit_handler) # for process termination
+            
             spawn_worker = partial(
                 _Worker.spawn_worker,
                 self._rpc_router,
@@ -127,18 +128,18 @@ class ZeroServer:
             # asyncio.run(self._start_router())
 
         except KeyboardInterrupt:
-            print("Caught KeyboardInterrupt, terminating workers")
+            logging.info(f"Caught KeyboardInterrupt, terminating workers")
             self._terminate_server()
         except Exception as e:
-            print(e)
+            logging.error(e)
             self._terminate_server()
 
-    def _sig_handler(self, signum, frame):
-        print(f"{signal.Signals(signum).name} signal called")
-        self._terminate_server()
+    # def _atexit_handler(self):
+    #     print(f"atexit called")
+    #     self._terminate_server()
 
     def _terminate_server(self):
-        print("Terminating server")
+        logging.info(f"Terminating server")
         self._pool.terminate()
         self._pool.close()
         self._pool.join()
@@ -146,7 +147,7 @@ class ZeroServer:
             os.remove(self._device_ipc)
         except:
             pass
-        sys.exit()
+        # sys.exit()
 
     def _start_queue_device(self):
         ZeroMQ.queue_device(self._host, self._port, self._device_ipc, self._device_port)
@@ -189,12 +190,15 @@ class _Worker:
         rpc_return_type_map: dict,
         worker_id: int,
     ):
-        time.sleep(0.2)
-        worker = _Worker(rpc_router, ipc, port, serializer, rpc_input_type_map, rpc_return_type_map)
-        # loop = asyncio.get_event_loop()
-        # loop.run_until_complete(worker.create_worker(worker_id))
-        # asyncio.run(worker.start_async_dealer_worker(worker_id))
-        worker.start_dealer_worker(worker_id)
+        try:
+            time.sleep(0.2)
+            worker = _Worker(rpc_router, ipc, port, serializer, rpc_input_type_map, rpc_return_type_map)
+            # loop = asyncio.get_event_loop()
+            # loop.run_until_complete(worker.create_worker(worker_id))
+            # asyncio.run(worker.start_async_dealer_worker(worker_id))
+            worker.start_dealer_worker(worker_id)
+        except KeyboardInterrupt as e:
+            pass
 
     def __init__(self, rpc_router, ipc, port, serializer, rpc_input_type_map, rpc_return_type_map):
         self._rpc_router = rpc_router
