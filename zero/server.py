@@ -109,7 +109,7 @@ class ZeroServer:
             else:
                 self._pool = Pool(cores)
 
-            atexit.register(self._atexit_handler) # for process termination
+            # atexit.register(self._atexit_handler) # for process termination
             
             spawn_worker = partial(
                 _Worker.spawn_worker,
@@ -134,9 +134,9 @@ class ZeroServer:
             logging.error(e)
             self._terminate_server()
 
-    def _atexit_handler(self):
-        print(f"atexit called")
-        self._terminate_server()
+    # def _atexit_handler(self):
+    #     print(f"atexit called")
+    #     self._terminate_server()
 
     def _terminate_server(self):
         logging.info(f"Terminating server")
@@ -147,7 +147,7 @@ class ZeroServer:
             os.remove(self._device_ipc)
         except:
             pass
-        sys.exit()
+        # sys.exit()
 
     def _start_queue_device(self):
         ZeroMQ.queue_device(self._host, self._port, self._device_ipc, self._device_port)
