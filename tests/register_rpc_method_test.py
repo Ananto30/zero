@@ -37,4 +37,9 @@ def test_methods():
 def test_methods_no_args():
     app = ZeroServer()
     service = DummyService()
-    app.register_rpc(service.hello)
+    with pytest.raises(ZeroException) as e:
+        app.register_rpc(service.hello)
+    assert (
+        str(e.value)
+        == "`hello` has no return type hinting; RPC functions must have type hints"
+    )

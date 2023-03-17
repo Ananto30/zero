@@ -66,10 +66,14 @@ def verify_function_return(func: typing.Callable):
 
 def get_function_input_class(func: typing.Callable):
     arg_count = func.__code__.co_argcount
-    if arg_count == 0:
+    if inspect.ismethod(func):
+        max_argcount = 2
+    else:
+        max_argcount = 1
+    if arg_count == max_argcount - 1:
         return None
-    if arg_count == 1:
-        arg_name = func.__code__.co_varnames[0]
+    if arg_count == max_argcount:
+        arg_name = func.__code__.co_varnames[max_argcount - 1]
         func_arg_type = typing.get_type_hints(func)
         return func_arg_type[arg_name]
 
