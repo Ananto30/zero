@@ -1,4 +1,5 @@
 import typing
+import inspect
 from zero.errors import ZeroException
 
 # from pydantic import BaseModel
@@ -32,22 +33,35 @@ allowed_types = basic_types + typing_types + special_types + pydantic_types
 
 def verify_function_args(func: typing.Callable):
     arg_count = func.__code__.co_argcount
-    if arg_count > 1:
+
+    if inspect.ismethod(func):
+        max_argcount = 2
+    else:
+        max_argcount = 1
+
+    if arg_count > max_argcount:
         raise ZeroException(
-            f"`{func.__name__}` has more than 1 args; RPC functions can have only one arg - msg, or no arg"
+            f"`{func.__name__}` has more than 1 args; "
+            "RPC functions can have only one arg - msg, or no arg"
         )
 
-    if arg_count == 1:
-        arg_name = func.__code__.co_varnames[0]
+    if arg_count == max_argcount:
+        arg_name = func.__code__.co_varnames[max_argcount - 1]
         func_arg_type = typing.get_type_hints(func)
         if arg_name not in func_arg_type:
-            raise ZeroException(f"`{func.__name__}` has no type hinting; RPC functions must have type hints")
+            raise ZeroException(
+                f"`{func.__name__}` has no type hinting; "
+                "RPC functions must have type hints"
+            )
 
 
 def verify_function_return(func: typing.Callable):
     types = typing.get_type_hints(func)
     if not types.get("return"):
-        raise ZeroException(f"`{func.__name__}` has no return type hinting; RPC functions must have type hints")
+        raise ZeroException(
+            f"`{func.__name__}` has no return type hinting; "
+            "RPC functions must have type hints"
+        )
 
 
 def get_function_input_class(func: typing.Callable):
