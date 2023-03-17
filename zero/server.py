@@ -16,14 +16,7 @@ import zmq.asyncio
 
 from .codegen import CodeGen
 from .common import get_next_available_port
-from .type_util import (
-    get_function_input_class,
-    get_function_return_class,
-    verify_allowed_type,
-    verify_function_args,
-    verify_function_input_type,
-    verify_function_return,
-)
+from .type_util import verify_function_typing
 from .zero_mq import ZeroMQ
 
 # import uvloop
@@ -83,13 +76,16 @@ class ZeroServer:
         if func.__name__ == "get_rpc_contract":
             raise Exception("get_rpc_contract is a reserved function; cannot have `get_rpc_contract` as a RPC function")
 
-        verify_function_args(func)
-        verify_function_input_type(func)
-        verify_function_return(func)
+
+        signature = verify_function_typing(func)
+        if signature.parameters:
+            input_type = tuple(signature.parameters.values())[0].annotation
+        else:
+            input_type = None
 
         self._rpc_router[func.__name__] = func
-        self._rpc_input_type_map[func.__name__] = get_function_input_class(func)
-        self._rpc_return_type_map[func.__name__] = get_function_return_class(func)
+        self._rpc_input_type_map[func.__name__] = input_type
+        self._rpc_return_type_map[func.__name__] = signature.return_annotation
 
     def run(self):
         try:

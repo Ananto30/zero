@@ -31,37 +31,37 @@ pydantic_types = [
 allowed_types = basic_types + typing_types + special_types + pydantic_types
 
 
-def verify_function_args(func: typing.Callable):
-    arg_count = func.__code__.co_argcount
+def verify_function_typing(func: typing.Callable):
+    signature = inspect.signature(func)
+    arg_count = len(signature.parameters)
 
-    if inspect.ismethod(func):
-        max_argcount = 2
-    else:
-        max_argcount = 1
-
-    if arg_count > max_argcount:
+    if arg_count > 1:
         raise ZeroException(
             f"`{func.__name__}` has more than 1 args; "
             "RPC functions can have only one arg - msg, or no arg"
         )
 
-    if arg_count == max_argcount:
-        arg_name = func.__code__.co_varnames[max_argcount - 1]
-        func_arg_type = typing.get_type_hints(func)
-        if arg_name not in func_arg_type:
+    for name, param in signature.parameters.items():
+        if param.annotation is inspect._empty:
             raise ZeroException(
-                f"`{func.__name__}` has no type hinting; "
-                "RPC functions must have type hints"
+                f"`{func.__name__}` argument `{name}` is not typed."
+            )
+        if not param.annotation in allowed_types:
+            raise ZeroException(
+                f"`{func.__name__}` argument `{name}` type is not supported."
             )
 
-
-def verify_function_return(func: typing.Callable):
-    types = typing.get_type_hints(func)
-    if not types.get("return"):
+    if signature.return_annotation is inspect._empty:
         raise ZeroException(
             f"`{func.__name__}` has no return type hinting; "
             "RPC functions must have type hints"
         )
+    elif not signature.return_annotation in allowed_types:
+        raise ZeroException(
+                f"`{func.__name__}` return type is not supported."
+            )
+
+    return signature
 
 
 def get_function_input_class(func: typing.Callable):

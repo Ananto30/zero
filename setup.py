@@ -25,6 +25,7 @@ setuptools.setup(
     extras_require={
         'test': [
             'pytest',
+            'pytest-asyncio',
             'pyjwt'
         ]
     }
