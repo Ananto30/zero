@@ -72,7 +72,7 @@ def test_function_with_1_arg_no_typing():
         app.register_rpc(function_with_1_arg_no_typing)
     assert (
         str(e.value)
-        == "`function_with_1_arg_no_typing` has no type hinting; RPC functions must have type hints"
+        == "`function_with_1_arg_no_typing` argument `a` is not typed."
     )
 
 

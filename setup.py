@@ -21,5 +21,12 @@ setuptools.setup(
     ],
     python_requires='>=3.8',
     package_dir={'':'.'},
-    install_requires=['pyzmq', 'msgpack']
+    install_requires=['pyzmq', 'msgpack'],
+    extras_require={
+        'test': [
+            'pytest',
+            'pytest-asyncio',
+            'pyjwt'
+        ]
+    }
 )
