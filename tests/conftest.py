@@ -5,9 +5,8 @@ from multiprocessing import Process
 import jwt
 import pytest
 
-from zero import ZeroServer
-
 from tests.utils import ping_until_success
+from zero import ZeroServer
 
 DEFAULT_PORT = 5559
 
@@ -65,7 +64,7 @@ def start_server():
 
     p = Process(target=server)
     p.start()
-    ping_until_success(DEFAULT_PORT, timeout=5)
+    ping_until_success(DEFAULT_PORT)
     yield
     # p.kill()
     p.terminate()

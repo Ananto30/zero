@@ -1,4 +1,4 @@
-import os.path
+import os
 
 from zero.generate_client import generate_client_code_and_save
 

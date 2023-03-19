@@ -1,7 +1,8 @@
+from tests.multiple_servers.config import Config
 from zero import AsyncZeroClient, ZeroClient, ZeroServer
 
-client = ZeroClient("localhost", 7777)
-async_client = AsyncZeroClient("localhost", 7777)
+client = ZeroClient("localhost", Config.SERVER1_PORT)
+async_client = AsyncZeroClient("localhost", Config.SERVER1_PORT)
 
 
 def echo(msg: str) -> str:

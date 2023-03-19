@@ -5,6 +5,8 @@ import pytest
 from server1 import run as run1
 from server2 import run as run2
 
+from tests.multiple_servers.config import Config
+from tests.utils import ping_until_success
 from zero import AsyncZeroClient, ZeroClient
 
 
@@ -16,9 +18,9 @@ async def test_client_inside_server():
         pass
     else:
         cleanup_on_sigterm()
-    
-    server1_port = 8800
-    server2_port = 8801
+
+    server1_port = Config.SERVER1_PORT
+    server2_port = Config.SERVER2_PORT
 
     p = Process(target=run1, args=(server1_port,))
     p.start()
@@ -26,7 +28,8 @@ async def test_client_inside_server():
     p2 = Process(target=run2, args=(server2_port,))
     p2.start()
 
-    time.sleep(5)
+    ping_until_success(server1_port)
+    ping_until_success(server2_port)
 
     client = ZeroClient("localhost", server2_port)
     assert client.call("echo", "Hello") == "Server1: Hello"

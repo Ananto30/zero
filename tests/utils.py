@@ -11,12 +11,13 @@ def ping(port: int) -> bool:
         s.close()
 
 
-def ping_until_success(port: int, timeout: int = 5) -> bool:
+def ping_until_success(port: int, timeout: int = 5):
     import time
 
     start = time.time()
     while time.time() - start < timeout:
         if ping(port):
-            return True
+            return
         time.sleep(0.1)
-    return False
+
+    raise Exception("Server did not start in time")
