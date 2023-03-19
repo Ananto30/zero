@@ -1,4 +1,5 @@
 import jwt
+
 from zero import ZeroServer
 
 SECRET = "secret"

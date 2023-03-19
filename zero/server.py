@@ -81,7 +81,9 @@ class ZeroServer:
         if func.__name__ in self._rpc_router:
             raise Exception(f"Cannot have two RPC function same name: `{func.__name__}`")
         if func.__name__ == "get_rpc_contract":
-            raise Exception("get_rpc_contract is a reserved function; cannot have `get_rpc_contract` as a RPC function")
+            raise Exception(
+                "get_rpc_contract is a reserved function; cannot have `get_rpc_contract` as a RPC function"
+            )
 
         verify_function_args(func)
         verify_function_input_type(func)
@@ -94,7 +96,7 @@ class ZeroServer:
     def run(self):
         try:
             # utilize all the cores
-            cores = os.cpu_count()
+            cores = os.cpu_count() or 1
 
             # device port is used for non-posix env
             self._device_port = get_next_available_port(6666)

@@ -1,4 +1,5 @@
 import pytest
+
 from zero import ZeroServer
 from zero.errors import ZeroException
 

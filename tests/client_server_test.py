@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 
 import pytest
-from zero import ZeroClient, AsyncZeroClient
+
+from zero import AsyncZeroClient, ZeroClient
 from zero.errors import MethodNotFoundException
 
 

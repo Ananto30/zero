@@ -1,7 +1,7 @@
 import logging
 
-from aiohttp import web
 import aiozmq.rpc
+from aiohttp import web
 
 try:
     import uvloop

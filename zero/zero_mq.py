@@ -1,7 +1,8 @@
-from typing import Callable
-import zmq
 import logging
 import os
+from typing import Callable
+
+import zmq
 
 """
 If we want to replace the client-server patter with other implementation like Simple Pirate pattern,

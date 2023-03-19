@@ -1,4 +1,5 @@
 import inspect
+
 # from pydantic import BaseModel
 from .type_util import is_pydantic
 

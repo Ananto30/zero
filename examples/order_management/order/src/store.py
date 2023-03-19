@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import IntEnum
 from typing import List, Optional
 
@@ -5,7 +6,6 @@ from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.future import select
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
-from datetime import datetime
 
 DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 

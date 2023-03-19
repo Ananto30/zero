@@ -2,7 +2,7 @@ import logging
 
 from aiohttp import web
 
-from zero import ZeroClient, AsyncZeroClient, ZeroPublisher
+from zero import AsyncZeroClient, ZeroClient, ZeroPublisher
 
 # TODO: why we can't use uvloop?
 # try:

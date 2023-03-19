@@ -1,16 +1,16 @@
 import logging
 from typing import Tuple
 
-from zero import AsyncZeroClient, ZeroServer
-
 from src.store import get_user_by_username, get_user_by_username_and_password
+
+from zero import AsyncZeroClient, ZeroServer
 
 log = logging.getLogger("UserService")
 
 auth_rpc = AsyncZeroClient("auth", 6000)
 
 
-async def login(msg: Tuple[str, str]) -> str:
+async def login(msg: Tuple[str, str]) -> dict:
     username, password = msg
     user = await get_user_by_username_and_password(username, password)
     if user:

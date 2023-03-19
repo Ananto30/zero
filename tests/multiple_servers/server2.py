@@ -1,5 +1,4 @@
-from zero import ZeroServer, ZeroClient, AsyncZeroClient
-
+from zero import AsyncZeroClient, ZeroClient, ZeroServer
 
 client = ZeroClient("localhost", 7777)
 async_client = AsyncZeroClient("localhost", 7777)

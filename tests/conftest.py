@@ -4,7 +4,12 @@ from multiprocessing import Process
 
 import jwt
 import pytest
+
 from zero import ZeroServer
+
+from tests.utils import ping_until_success
+
+DEFAULT_PORT = 5559
 
 
 async def echo(msg: str) -> str:
@@ -38,7 +43,7 @@ def echo_union(msg: typing.Union[int, str]) -> typing.Union[int, str]:
 
 
 def server():
-    app = ZeroServer()
+    app = ZeroServer(port=DEFAULT_PORT)
     app.register_rpc(echo)
     app.register_rpc(hello_world)
     app.register_rpc(decode_jwt)
@@ -60,7 +65,7 @@ def start_server():
 
     p = Process(target=server)
     p.start()
-    time.sleep(1)
+    ping_until_success(DEFAULT_PORT, timeout=5)
     yield
     # p.kill()
     p.terminate()

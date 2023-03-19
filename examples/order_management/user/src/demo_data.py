@@ -3,7 +3,6 @@ import asyncio
 from src.store import Base, create_user, engine
 
 
-
 async def create_demo_data():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)

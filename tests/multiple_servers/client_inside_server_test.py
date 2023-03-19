@@ -2,10 +2,10 @@ import time
 from multiprocessing.context import Process
 
 import pytest
-from zero import AsyncZeroClient, ZeroClient
-
 from server1 import run as run1
 from server2 import run as run2
+
+from zero import AsyncZeroClient, ZeroClient
 
 
 @pytest.mark.asyncio
