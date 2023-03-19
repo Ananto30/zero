@@ -8,7 +8,6 @@ def test_codegeneration():
     assert os.path.isfile("rpc_client.py")
     with open("rpc_client.py") as f:
         code = f.read()
-        print(code)
         assert (
             code
             == """

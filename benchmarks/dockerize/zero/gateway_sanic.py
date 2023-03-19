@@ -44,23 +44,18 @@ async def async_hello(request):
 @app.route("/order")
 async def order(request):
     resp = zero_sync_client.call("save_order", {"user_id": "1", "items": ["apple", "python"]})
-    # print(resp)
     return json(await resp.json())
 
 
 @app.route("/async_order")
 async def async_order(request):
     resp = await zero_async_client.call_async("save_order", {"user_id": "1", "items": ["apple", "python"]})
-    # print(resp)
     return json(await resp.json())
 
 
 @app.route("/jwt")
 async def enc_dec_jwt(request):
     resp = await zero_async_client.call_async("decode_jwt", {"user_id": "a1b2c3"})
-    # print(resp)
-    # encoded_jwt = jwt.encode({'user_id': 'a1b2c3'}, 'secret', algorithm='HS256')
-    # resp = await zero_client.call_async("decode_jwt", encoded_jwt)
     return json(await resp.json())
 
 
@@ -68,5 +63,4 @@ async def enc_dec_jwt(request):
 async def echo(request):
     big_list = ["hello world" for i in range(100_000)]
     resp = await zero_async_client.call_async("echo", big_list)
-    # print(resp)
     return text(await resp.text())

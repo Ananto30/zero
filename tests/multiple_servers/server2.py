@@ -20,8 +20,9 @@ async def async_hello() -> str:
     return await async_client.call("hello", None)
 
 
-def run():
-    app = ZeroServer(port=7778)
+def run(port):
+    print("Starting server2 on port", port)
+    app = ZeroServer(port=port)
     app.register_rpc(echo)
     app.register_rpc(hello)
     app.register_rpc(async_echo)
