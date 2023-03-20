@@ -43,6 +43,9 @@ class RpcClient:
         
     def echo_union(self, msg: typing.Union[int, str]) -> typing.Union[int, str]:
         return self._zero_client.call("echo_union", msg)
+        
+    def divide(self, msg: typing.Tuple[int, int]) -> int:
+        return self._zero_client.call("divide", msg)
         """
         )
 

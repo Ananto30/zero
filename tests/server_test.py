@@ -26,13 +26,6 @@ def server2():
 
 
 def test_two_servers_can_be_run():
-    try:
-        from pytest_cov.embed import cleanup_on_sigterm
-    except ImportError:
-        pass
-    else:
-        cleanup_on_sigterm()
-
     p = Process(target=server1)
     p.start()
     ping_until_success(SERVER1_PORT)
@@ -48,13 +41,6 @@ def test_two_servers_can_be_run():
 
 
 def test_server_run():
-    try:
-        from pytest_cov.embed import cleanup_on_sigterm
-    except ImportError:
-        pass
-    else:
-        cleanup_on_sigterm()
-
     p = Process(target=server1)
     p.start()
     ping_until_success(SERVER1_PORT)

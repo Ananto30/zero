@@ -41,6 +41,10 @@ def echo_union(msg: typing.Union[int, str]) -> typing.Union[int, str]:
     return msg
 
 
+def divide(msg: typing.Tuple[int, int]) -> int:
+    return int(msg[0] / msg[1])
+
+
 def server():
     app = ZeroServer(port=DEFAULT_PORT)
     app.register_rpc(echo)
@@ -50,21 +54,24 @@ def server():
     app.register_rpc(echo_dict)
     app.register_rpc(echo_tuple)
     app.register_rpc(echo_union)
+    app.register_rpc(divide)
     app.run()
 
 
 @pytest.fixture(autouse=True, scope="session")
 def start_server():
+    p = Process(target=server)
+    p.start()
+    ping_until_success(DEFAULT_PORT)
+    yield
+    p.terminate()
+
+
+@pytest.fixture(autouse=True, scope="session")
+def clean_up():
     try:
         from pytest_cov.embed import cleanup_on_sigterm
     except ImportError:
         pass
     else:
         cleanup_on_sigterm()
-
-    p = Process(target=server)
-    p.start()
-    ping_until_success(DEFAULT_PORT)
-    yield
-    # p.kill()
-    p.terminate()
