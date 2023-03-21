@@ -1,7 +1,7 @@
 import time
 from multiprocessing import Process
 
-from tests.utils import ping_until_success
+from tests.utils import kill_process, ping_until_success
 from zero import ZeroServer
 from zero.common import get_next_available_port
 
@@ -36,12 +36,12 @@ def test_two_servers_can_be_run():
     p2.start()
     ping_until_success(SERVER2_PORT)
 
-    p.terminate()
-    p2.terminate()
+    kill_process(p)
+    kill_process(p2)
 
 
 def test_server_run():
     p = Process(target=server1)
     p.start()
     ping_until_success(SERVER1_PORT)
-    p.terminate()
+    kill_process(p)

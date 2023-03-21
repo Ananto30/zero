@@ -4,3 +4,4 @@ pytest
 pytest-cov
 PyJWT
 pytest-asyncio
+pytest-timeout

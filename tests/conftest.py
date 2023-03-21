@@ -5,10 +5,17 @@ from multiprocessing import Process
 import jwt
 import pytest
 
-from tests.utils import ping_until_success
+from tests.utils import kill_process, ping_until_success
 from zero import ZeroServer
 
 DEFAULT_PORT = 5559
+
+try:
+    from pytest_cov.embed import cleanup_on_sigterm
+except ImportError:
+    pass
+else:
+    cleanup_on_sigterm()
 
 
 async def echo(msg: str) -> str:
@@ -64,14 +71,4 @@ def start_server():
     p.start()
     ping_until_success(DEFAULT_PORT)
     yield
-    p.terminate()
-
-
-@pytest.fixture(autouse=True, scope="session")
-def clean_up():
-    try:
-        from pytest_cov.embed import cleanup_on_sigterm
-    except ImportError:
-        pass
-    else:
-        cleanup_on_sigterm()
+    kill_process(p)

@@ -1,3 +1,10 @@
+import os
+import signal
+import sys
+import typing
+from multiprocessing import Process
+
+
 def ping(port: int) -> bool:
     import socket
 
@@ -21,3 +28,15 @@ def ping_until_success(port: int, timeout: int = 5):
         time.sleep(0.1)
 
     raise Exception("Server did not start in time")
+
+
+def start_server(port: int, runner: typing.Callable) -> Process:
+    p = Process(target=runner, args=(port,))
+    p.start()
+    ping_until_success(port)
+    return p
+
+
+def kill_process(process: Process):
+    process.terminate()
+    process.join()
