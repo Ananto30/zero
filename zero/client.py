@@ -1,4 +1,6 @@
+import asyncio
 import logging
+import os
 from typing import Optional, Union
 
 import msgpack
@@ -31,6 +33,10 @@ class _BaseClient:
     def _set_socket_opt(self):
         if self._socket is None:
             raise ZeroException("Socket is not initialized")
+
+        if os.name == "nt":
+            # windows need special event loop policy to work with zmq
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
         self._socket.setsockopt(zmq.RCVTIMEO, self._default_timeout)
         self._socket.setsockopt(zmq.SNDTIMEO, self._default_timeout)

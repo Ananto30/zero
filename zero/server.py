@@ -104,6 +104,10 @@ class ZeroServer:
             # ipc is used for posix env
             self._device_ipc = uuid.uuid4().hex[18:] + ".ipc"
 
+            if os.name == "nt":
+                # windows need special event loop policy to work with zmq
+                asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
             self._pool = Pool(cores)
 
             # process termination
