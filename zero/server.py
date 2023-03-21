@@ -104,13 +104,14 @@ class ZeroServer:
             # ipc is used for posix env
             self._device_ipc = uuid.uuid4().hex[18:] + ".ipc"
 
-            # this is important to catch KeyboardInterrupt
-            original_sigint_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
-
             self._pool = Pool(cores)
 
-            signal.signal(signal.SIGINT, original_sigint_handler)  # for KeyboardInterrupt
-            signal.signal(signal.SIGTERM, self._sig_handler)  # for process termination
+            # process termination
+            # this is important to catch KeyboardInterrupt
+            original_sigint_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
+            signal.signal(signal.SIGTERM, self._sig_handler)
+            signal.signal(signal.SIGQUIT, self._sig_handler)
+            signal.signal(signal.SIGINT, original_sigint_handler)
 
             spawn_worker = partial(
                 _Worker.spawn_worker,
@@ -142,8 +143,8 @@ class ZeroServer:
     def _terminate_server(self):
         print("Terminating server")
         self._pool.terminate()
-        self._pool.close()
         self._pool.join()
+        self._pool.close()
         try:
             os.remove(self._device_ipc)
         except:
