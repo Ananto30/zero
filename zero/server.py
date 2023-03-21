@@ -134,18 +134,18 @@ class ZeroServer:
             # asyncio.run(self._start_router())
 
         except KeyboardInterrupt:
-            print("Caught KeyboardInterrupt, terminating workers")
+            logging.error("Caught KeyboardInterrupt, terminating workers")
             self._terminate_server()
         except Exception as e:
-            print(e)
+            logging.exception(e)
             self._terminate_server()
 
     def _sig_handler(self, signum, frame):
-        print(f"{signal.Signals(signum).name} signal called")
+        logging.warn(f"{signal.Signals(signum).name} signal called")
         self._terminate_server()
 
     def _terminate_server(self):
-        print("Terminating server")
+        logging.warn("Terminating server")
         self._pool.terminate()
         self._pool.join()
         self._pool.close()
