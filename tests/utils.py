@@ -38,5 +38,8 @@ def start_server(port: int, runner: typing.Callable) -> Process:
 
 
 def kill_process(process: Process):
-    process.terminate()
+    # process.terminate()
+    # process.join()
+    os.kill(process.pid, signal.SIGINT)
+    os.waitpid(process.pid, 0)
     process.join()
