@@ -8,7 +8,6 @@ import msgpack
 import zmq
 import zmq.asyncio
 
-
 logging.basicConfig(
     format="%(asctime)s | %(threadName)s | %(process)d | %(module)s : %(message)s",
     datefmt="%d-%b-%y %H:%M:%S",

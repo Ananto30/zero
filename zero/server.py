@@ -94,7 +94,7 @@ class ZeroServer:
     def run(self):
         try:
             # utilize all the cores
-            cores = os.cpu_count()
+            cores = os.cpu_count() or 1
 
             # device port is used for non-posix env
             self._device_port = get_next_available_port(6666)
@@ -102,13 +102,17 @@ class ZeroServer:
             # ipc is used for posix env
             self._device_ipc = uuid.uuid4().hex[18:] + ".ipc"
 
-            # this is important to catch KeyboardInterrupt
-            original_sigint_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
+            if os.name == "nt":
+                # windows need special event loop policy to work with zmq
+                asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
             self._pool = Pool(cores)
 
-            signal.signal(signal.SIGINT, original_sigint_handler)  # for KeyboardInterrupt
-            signal.signal(signal.SIGTERM, self._sig_handler)  # for process termination
+            # process termination
+            # this is important to catch KeyboardInterrupt
+            original_sigint_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
+            signal.signal(signal.SIGTERM, self._sig_handler)
+            signal.signal(signal.SIGINT, original_sigint_handler)
 
             spawn_worker = partial(
                 _Worker.spawn_worker,
@@ -127,21 +131,21 @@ class ZeroServer:
             # asyncio.run(self._start_router())
 
         except KeyboardInterrupt:
-            print("Caught KeyboardInterrupt, terminating workers")
-            self._terminate_server()
+            logging.error("Caught KeyboardInterrupt, terminating workers")
         except Exception as e:
-            print(e)
+            logging.exception(e)
+        finally:
             self._terminate_server()
 
     def _sig_handler(self, signum, frame):
-        print(f"{signal.Signals(signum).name} signal called")
+        logging.warn(f"{signal.Signals(signum).name} signal called")
         self._terminate_server()
 
     def _terminate_server(self):
-        print("Terminating server")
+        logging.warn(f"Terminating server at {self._port}")
         self._pool.terminate()
-        self._pool.close()
         self._pool.join()
+        self._pool.close()
         try:
             os.remove(self._device_ipc)
         except:

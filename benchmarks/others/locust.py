@@ -1,6 +1,7 @@
 import time
 
 from locust import User, events, task
+
 from zero import ZeroClient
 
 

@@ -1,4 +1,5 @@
 import typing
+
 from zero.errors import ZeroException
 
 # from pydantic import BaseModel
@@ -84,7 +85,7 @@ def verify_function_input_type(func: typing.Callable):
     )
 
 
-def verify_allowed_type(msg, rpc_method: str = None):
+def verify_allowed_type(msg, rpc_method: typing.Optional[str] = None):
     if not isinstance(msg, tuple(allowed_types)):
         method_name = f"for method `{rpc_method}`" if rpc_method else ""
         raise TypeError(

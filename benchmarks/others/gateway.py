@@ -20,19 +20,16 @@ zero_async_client = ZeroClient("worker", "5559", use_async=True)
 
 async def hello(request):
     resp = await zero_async_client.call_async("hello_world", None)
-    # print(resp)
     return web.Response(text=resp)
 
 
 async def order(request):
     resp = zero_sync_client.call("save_order", {"user_id": "1", "items": ["apple", "python"]})
-    # print(resp)
     return web.json_response(resp)
 
 
 async def async_order(request):
     resp = await zero_async_client.call_async("save_order", {"user_id": "1", "items": ["apple", "python"]})
-    # print(resp)
     return web.json_response(resp)
 
 
@@ -43,16 +40,12 @@ async def pubs(request):
 
 async def enc_dec_jwt(request):
     resp = await zero_async_client.call_async("decode_jwt", {"user_id": "a1b2c3"})
-    # print(resp)
-    # encoded_jwt = jwt.encode({'user_id': 'a1b2c3'}, 'secret', algorithm='HS256')
-    # resp = await zero_client.call_async("decode_jwt", encoded_jwt)
     return web.json_response(resp)
 
 
 async def echo(request):
     big_list = ["hello world" for i in range(100_000)]
     resp = await zero_async_client.call_async("echo", big_list)
-    # print(resp)
     return web.Response(text=str(resp))
 
 

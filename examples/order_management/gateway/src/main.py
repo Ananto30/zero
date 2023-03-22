@@ -2,6 +2,7 @@ import logging
 from typing import Optional
 
 from aiohttp import ClientSession, web
+
 from zero import AsyncZeroClient
 
 log = logging.getLogger(__name__)

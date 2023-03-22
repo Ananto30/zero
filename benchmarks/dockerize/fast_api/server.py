@@ -5,9 +5,7 @@ from datetime import datetime
 
 from fastapi import FastAPI
 from pydantic import BaseModel
-
 from shared import Order, OrderResp, OrderStatus, async_save_order
-
 
 logger = logging.getLogger(__name__)
 

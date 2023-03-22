@@ -4,7 +4,6 @@ from typing import Optional
 from aiohttp import ClientSession
 from fastapi import FastAPI
 
-
 logger = logging.getLogger(__name__)
 
 try:

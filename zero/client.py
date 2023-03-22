@@ -1,4 +1,6 @@
+import asyncio
 import logging
+import os
 from typing import Optional, Union
 
 import msgpack
@@ -29,6 +31,13 @@ class _BaseClient:
             self._decode = msgpack.unpackb
 
     def _set_socket_opt(self):
+        if self._socket is None:
+            raise ZeroException("Socket is not initialized")
+
+        if os.name == "nt":
+            # windows need special event loop policy to work with zmq
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
         self._socket.setsockopt(zmq.RCVTIMEO, self._default_timeout)
         self._socket.setsockopt(zmq.SNDTIMEO, self._default_timeout)
         self._socket.setsockopt(zmq.LINGER, 0)  # dont buffer messages
@@ -76,17 +85,22 @@ class ZeroClient(_BaseClient):
         """
         if self._socket is None:
             self._init_socket()
+
         try:
             msg = "" if msg is None else msg
             self._socket.send_multipart([rpc_method_name.encode(), self._encode(msg)], zmq.DONTWAIT)
             resp = self._socket.recv()
             decoded_resp = self._decode(resp)
+
             if isinstance(decoded_resp, dict):
                 if "__zerror__method_not_found" in decoded_resp:
                     raise MethodNotFoundException(decoded_resp.get("__zerror__method_not_found"))
+
             return decoded_resp
+
         except ZeroException as ze:
             raise ze
+
         except Exception as e:
             self._socket.close()
             self._init_socket()
@@ -118,7 +132,7 @@ class AsyncZeroClient(_BaseClient):
 
     def _init_async_socket(self):
         ctx = zmq.asyncio.Context.instance()
-        self._socket: zmq.Socket = ctx.socket(zmq.DEALER)
+        self._socket: zmq.asyncio.Socket = ctx.socket(zmq.DEALER)
         self._set_socket_opt()
         self._socket.connect(f"tcp://{self._host}:{self._port}")
 
@@ -137,17 +151,22 @@ class AsyncZeroClient(_BaseClient):
         """
         if self._socket is None:
             self._init_async_socket()
+
         try:
             msg = "" if msg is None else msg
             await self._socket.send_multipart([rpc_method_name.encode(), self._encode(msg)], zmq.DONTWAIT)
             resp = await self._socket.recv()
             decoded_resp = self._decode(resp)
+
             if isinstance(decoded_resp, dict):
                 if "__zerror__method_not_found" in decoded_resp:
                     raise MethodNotFoundException(decoded_resp.get("__zerror__method_not_found"))
+
             return decoded_resp
+
         except ZeroException as ze:
             raise ze
+
         except Exception as e:
             self._socket.close()
             self._init_async_socket()
