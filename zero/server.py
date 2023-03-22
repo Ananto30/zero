@@ -114,7 +114,6 @@ class ZeroServer:
             # this is important to catch KeyboardInterrupt
             original_sigint_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
             signal.signal(signal.SIGTERM, self._sig_handler)
-            signal.signal(signal.SIGQUIT, self._sig_handler)
             signal.signal(signal.SIGINT, original_sigint_handler)
 
             spawn_worker = partial(
