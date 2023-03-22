@@ -1,6 +1,3 @@
-import os
-import signal
-import sys
 import typing
 from multiprocessing import Process
 
@@ -38,8 +35,5 @@ def start_server(port: int, runner: typing.Callable) -> Process:
 
 
 def kill_process(process: Process):
-    # process.terminate()
-    # process.join()
-    os.kill(process.pid, signal.SIGINT)
-    os.waitpid(process.pid, 0)
+    process.terminate()
     process.join()

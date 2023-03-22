@@ -1,21 +1,11 @@
-import time
 import typing
-from multiprocessing import Process
 
 import jwt
-import pytest
 
-from tests.utils import kill_process, ping_until_success
 from zero import ZeroServer
 
-DEFAULT_PORT = 5559
-
-try:
-    from pytest_cov.embed import cleanup_on_sigterm
-except ImportError:
-    pass
-else:
-    cleanup_on_sigterm()
+PORT = 5559
+HOST = "localhost"
 
 
 async def echo(msg: str) -> str:
@@ -27,9 +17,9 @@ async def hello_world() -> str:
 
 
 async def decode_jwt(msg: str) -> str:
-    encoded_jwt = jwt.encode(msg, "secret", algorithm="HS256")
+    encoded_jwt = jwt.encode(msg, "secret", algorithm="HS256")  # type: ignore
     decoded_jwt = jwt.decode(encoded_jwt, "secret", algorithms=["HS256"])
-    return decoded_jwt
+    return decoded_jwt  # type: ignore
 
 
 def sum_list(msg: typing.List[int]) -> int:
@@ -52,8 +42,9 @@ def divide(msg: typing.Tuple[int, int]) -> int:
     return int(msg[0] / msg[1])
 
 
-def server():
-    app = ZeroServer(port=DEFAULT_PORT)
+def run(port):
+    print("Starting server on port", port)
+    app = ZeroServer(port=port)
     app.register_rpc(echo)
     app.register_rpc(hello_world)
     app.register_rpc(decode_jwt)
@@ -63,12 +54,3 @@ def server():
     app.register_rpc(echo_union)
     app.register_rpc(divide)
     app.run()
-
-
-@pytest.fixture(autouse=True, scope="session")
-def start_server():
-    p = Process(target=server)
-    p.start()
-    ping_until_success(DEFAULT_PORT)
-    yield
-    kill_process(p)

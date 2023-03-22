@@ -1,12 +1,13 @@
 import pytest
 
+from tests.single_server import server
 from zero import AsyncZeroClient
-
-async_client = AsyncZeroClient("localhost", 5559)
 
 
 @pytest.mark.asyncio
 async def test_concurrent_divide():
+    async_client = AsyncZeroClient(server.HOST, server.PORT)
+
     req_resp = {
         (10, 2): 5,
         (10, 3): 3,
