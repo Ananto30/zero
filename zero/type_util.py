@@ -48,9 +48,7 @@ def verify_function_args(func: typing.Callable):
 def verify_function_return(func: typing.Callable):
     types = typing.get_type_hints(func)
     if not types.get("return"):
-        raise ZeroException(
-            f"`{func.__name__}` has no return type hinting; RPC functions must have type hints"
-        )
+        raise ZeroException(f"`{func.__name__}` has no return type hinting; RPC functions must have type hints")
 
 
 def get_function_input_class(func: typing.Callable):
@@ -91,8 +89,7 @@ def verify_allowed_type(msg, rpc_method: typing.Optional[str] = None):
     if not isinstance(msg, tuple(allowed_types)):
         method_name = f"for method `{rpc_method}`" if rpc_method else ""
         raise TypeError(
-            f"{msg} is not allowed {method_name}; allowed types are: \n"
-            + "\n".join([str(t) for t in allowed_types])
+            f"{msg} is not allowed {method_name}; allowed types are: \n" + "\n".join([str(t) for t in allowed_types])
         )
 
 

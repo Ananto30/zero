@@ -12,5 +12,5 @@ test:
 	python3 -m pytest tests --cov=zero --cov-report=term-missing -o log_cli=true 
 
 format:
-	python3 -m black . --line-length 110
-	python3 -m isort . --profile black
+	python3 -m black . --line-length 120
+	python3 -m isort . --profile black --line-length 120
