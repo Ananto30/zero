@@ -134,9 +134,9 @@ class ZeroServer:
 
         except KeyboardInterrupt:
             logging.error("Caught KeyboardInterrupt, terminating workers")
-            self._terminate_server()
         except Exception as e:
             logging.exception(e)
+        finally:
             self._terminate_server()
 
     def _sig_handler(self, signum, frame):
