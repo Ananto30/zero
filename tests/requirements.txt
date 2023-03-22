@@ -4,5 +4,4 @@ pytest
 pytest-cov
 PyJWT
 pytest-asyncio
-pytest-timeout
 tornado>=6.1

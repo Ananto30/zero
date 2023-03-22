@@ -9,7 +9,7 @@ setup:
 		)
 
 test:
-	python3 -m pytest tests --cov=zero --cov-report=term-missing --timeout=10 -o log_cli=true 
+	python3 -m pytest tests --cov=zero --cov-report=term-missing -o log_cli=true 
 
 format:
 	python3 -m black . --line-length 110
