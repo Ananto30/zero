@@ -144,7 +144,7 @@ class ZeroServer:
         self._terminate_server()
 
     def _terminate_server(self):
-        logging.warn("Terminating server")
+        logging.warn(f"Terminating server at {self._port}")
         self._pool.terminate()
         self._pool.join()
         self._pool.close()
