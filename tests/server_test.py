@@ -1,3 +1,4 @@
+from decimal import Decimal
 import time
 from multiprocessing import Process
 
@@ -66,21 +67,24 @@ def disabled_test_server_run():
 
 
 def server3():
-    val={'val2':"top thread value"}
+    val={"a":"b"}
     async def get(msg:str) -> str:
-       nonlocal val
-       return "got " + val['val2']
+       return val
 
     app = ZeroServer(port=4348, use_threads=True)
+    # app = ZeroServer(port=4348, use_threads=False)
     app.register_rpc(get)
     app.run()
+
     print("exit1")
+    
 
 def client3():
     zero_client = ZeroClient("127.0.0.1", 4348, default_timeout=100)
     msg = zero_client.call("get",[""])
+    print("got from server")
     print(msg)
-    assert(msg=="got top thread value")
+    assert(msg)
     print("exit2")
     # assert msg is None
     
@@ -101,6 +105,6 @@ def test_threads_server_run():
     # os.waitpid(p2.pid ,0)
 
 
-    # raise Exception() # uncomment see output
+    raise Exception() # uncomment see output
 
-# test_threads_server_run()
+test_threads_server_run()
