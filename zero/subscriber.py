@@ -87,21 +87,24 @@ class Listener:  # pragma: no cover
     async def _create_worker(self):
         ctx = zmq.asyncio.Context()
         socket = ctx.socket(zmq.SUB)
+        try:
+            if sys.platform == "posix":
+                socket.connect("ipc://backendworker")
+            else:
+                socket.connect("tcp://127.0.0.1:6667")
 
-        if sys.platform == "posix":
-            socket.connect("ipc://backendworker")
-        else:
-            socket.connect("tcp://127.0.0.1:6667")
+            socket.setsockopt_string(zmq.SUBSCRIBE, self.__topic)
+            logging.info(f"Starting listener for: {self.__topic}")
 
-        socket.setsockopt_string(zmq.SUBSCRIBE, self.__topic)
-        logging.info(f"Starting listener for: {self.__topic}")
-
-        while True:
-            topic, msg = await socket.recv_multipart()
-            try:
-                await self._handle_msg(msgpack.unpackb(msg))
-            except Exception as e:
-                logging.error(e)
+            while True:
+                topic, msg = await socket.recv_multipart()
+                try:
+                    await self._handle_msg(msgpack.unpackb(msg))
+                except Exception as e:
+                    logging.error(e)
+        finally:
+            socket.close()
+            ctx.term()
 
     async def _handle_msg(self, msg):
         try:

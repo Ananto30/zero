@@ -61,4 +61,5 @@ class _AsyncLogger:  # pragma: no cover
             print(e)
         finally:
             log_listener.close()
+            ctx.term()
             sys.exit()

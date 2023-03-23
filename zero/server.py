@@ -157,16 +157,19 @@ class ZeroServer:
         socket = ctx.socket(zmq.ROUTER)
         socket.bind(f"tcp://127.0.0.1:{self._port}")
         logging.info(f"Starting server at {self._port}")
-
-        while True:
-            ident, rpc, msg = await socket.recv_multipart()
-            rpc_method = rpc.decode()
-            response = await self._handle_msg(rpc_method, msgpack.unpackb(msg))
-            try:
-                verify_allowed_type(response, rpc_method)
-            except Exception as e:
-                logging.exception(e)
-            await socket.send_multipart([ident, msgpack.packb(response)])
+        try:
+            while True:
+                ident, rpc, msg = await socket.recv_multipart() # if exception is here break the loop to upper exception
+                rpc_method = rpc.decode()
+                response = await self._handle_msg(rpc_method, msgpack.unpackb(msg))
+                try:
+                    verify_allowed_type(response, rpc_method)
+                except Exception as e: # in exception continue loop as usuall
+                    logging.exception(e)
+                await socket.send_multipart([ident, msgpack.packb(response)])
+        finally:
+            socket.close()
+            ctx.term()
 
     async def _handle_msg(self, rpc, msg):  # pragma: no cover
         if rpc in self._rpc_router:
@@ -230,18 +233,21 @@ class _Worker:
         logging.info(f"Starting worker: {worker_id}")
 
         async def process_message():
+            ident, rpc, msg = await socket.recv_multipart()
             try:
-                ident, rpc, msg = await socket.recv_multipart()
-                rpc_method = rpc.decode()
-                msg = self._decode(msg)
+               rpc_method = rpc.decode()
+               msg = self._decode(msg)
                 response = await self._handle_msg_async(rpc_method, msg)
                 response = self._encode(response)
                 await socket.send_multipart([ident, response], zmq.DONTWAIT)
             except Exception as e:
                 logging.exception(e)
-
-        while True:
-            await process_message()
+        try:
+            while True:
+                await process_message()
+        finally:
+            socket.close()
+            ctx.term()
 
     def start_dealer_worker(self, worker_id):
         def process_message(rpc, msg):

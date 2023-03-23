@@ -121,6 +121,9 @@ class ZeroMQPythonDevice(ZeroMQInterface):
 
         except Exception as e:
             logging.exception(e)
+        finally:
+            socket.close()
+            ctx.term()
 
 
 # IMPORTANT: register the imlementation here
