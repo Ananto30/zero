@@ -45,6 +45,7 @@ def divide(msg: typing.Tuple[int, int]) -> int:
 
 def sleep(msg: int) -> str:
     sec = msg / 1000
+    print(f"sleeping for {sec} sec...")
     time.sleep(sec)
     return f"slept for {msg} msecs"
 

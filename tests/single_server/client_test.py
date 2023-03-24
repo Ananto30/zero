@@ -55,6 +55,25 @@ def test_local_timeout():
     assert msg == "slept for 1 msecs"
 
 
+@pytest.mark.asyncio
+async def test_async_sleep(base_server):
+    client = AsyncZeroClient(server.HOST, server.PORT, default_timeout=500)
+
+    tasks = []
+    for _ in range(5):
+        tasks.append(asyncio.create_task(client.call("sleep", 200)))
+
+    start = time.time()
+
+    for task in tasks:
+        msg = await task
+        assert msg == "slept for 200 msecs"
+
+    time_taken = time.time() - start
+
+    assert time_taken < 0.7
+
+
 def test_random_timeout():
     client = ZeroClient(server.HOST, server.PORT)
 
@@ -77,22 +96,3 @@ def test_random_timeout_async():
             assert msg == f"slept for {sleep_time} msecs"
         except zero.error.TimeoutException:
             assert sleep_time > 1  # considering network latency, 50 msecs is too low in github actions
-
-
-@pytest.mark.asyncio
-async def test_async_sleep():
-    client = AsyncZeroClient(server.HOST, server.PORT, default_timeout=500)
-
-    tasks = []
-    for _ in range(5):
-        tasks.append(asyncio.create_task(client.call("sleep", 200)))
-
-    start = time.time()
-
-    for task in tasks:
-        msg = await task
-        assert msg == "slept for 200 msecs"
-
-    time_taken = time.time() - start
-
-    assert time_taken < 0.7
