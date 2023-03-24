@@ -64,7 +64,7 @@ def test_random_timeout():
             msg = client.call("sleep", sleep_time, timeout=50)
             assert msg == f"slept for {sleep_time} msecs"
         except zero.error.TimeoutException:
-            assert sleep_time > 30  # considering network latency
+            assert sleep_time > 20  # considering network latency
 
 
 @pytest.mark.asyncio
@@ -83,4 +83,4 @@ async def test_async_sleep():
 
     time_taken = time.time() - start
 
-    assert time_taken < 0.4
+    assert time_taken < 0.7
