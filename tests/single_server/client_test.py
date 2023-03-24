@@ -81,7 +81,7 @@ def test_random_timeout_async():
 
 @pytest.mark.asyncio
 async def test_async_sleep():
-    client = AsyncZeroClient(server.HOST, server.PORT)
+    client = AsyncZeroClient(server.HOST, server.PORT, default_timeout=500)
 
     tasks = []
     for _ in range(5):
