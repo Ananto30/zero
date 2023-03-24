@@ -15,7 +15,6 @@ import zmq
 import zmq.asyncio
 
 from .codegen import CodeGen
-from .common import get_next_available_port
 from .type_util import (
     get_function_input_class,
     get_function_return_class,
@@ -24,6 +23,7 @@ from .type_util import (
     verify_function_input_type,
     verify_function_return,
 )
+from .util import get_next_available_port
 from .zero_mq import ZeroMQ
 
 # import uvloop
@@ -146,7 +146,7 @@ class ZeroServer:
         self._pool.close()
         try:
             os.remove(self._device_ipc)
-        except:
+        except Exception:
             pass
         sys.exit()
 
@@ -261,6 +261,7 @@ class _Worker:
             try:
                 # TODO: is this a bottleneck
                 if inspect.iscoroutinefunction(func):
+                    # this is blocking
                     return self._loop.run_until_complete(func() if msg == "" else func(msg))
                 return func() if msg == "" else func(msg)
             except Exception as e:

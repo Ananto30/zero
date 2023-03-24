@@ -3,7 +3,7 @@ from multiprocessing import Process
 
 from tests.utils import kill_process, ping_until_success
 from zero import ZeroServer
-from zero.common import get_next_available_port
+from zero.util import get_next_available_port
 
 SERVER1_PORT = 4344
 SERVER2_PORT = 4345

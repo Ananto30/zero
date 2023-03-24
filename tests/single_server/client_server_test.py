@@ -2,9 +2,9 @@ from dataclasses import dataclass
 
 import pytest
 
+import zero.error
 from tests.single_server import server
 from zero import AsyncZeroClient, ZeroClient
-from zero.errors import MethodNotFoundException
 
 
 def test_hello_world():
@@ -15,14 +15,16 @@ def test_hello_world():
 
 def test_necho():
     zero_client = ZeroClient(server.HOST, server.PORT)
-    with pytest.raises(MethodNotFoundException):
+    with pytest.raises(zero.error.MethodNotFoundException):
         msg = zero_client.call("necho", "hello")
+        assert msg is None
 
 
 def test_echo_wrong_port():
     zero_client = ZeroClient(server.HOST, 5558, default_timeout=100)
-    msg = zero_client.call("echo", "hello")
-    assert msg is None
+    with pytest.raises(zero.error.TimeoutException):
+        msg = zero_client.call("echo", "hello")
+        assert msg is None
 
 
 def test_sum_list():
@@ -67,15 +69,16 @@ async def test_echo_async():
 @pytest.mark.asyncio
 async def test_necho_async():
     zero_client = AsyncZeroClient(server.HOST, server.PORT)
-    with pytest.raises(MethodNotFoundException):
+    with pytest.raises(zero.error.MethodNotFoundException):
         msg = await zero_client.call("necho", "hello")
 
 
 @pytest.mark.asyncio
 async def test_echo_wrong_port_async():
     zero_client = AsyncZeroClient(server.HOST, 5558, default_timeout=100)
-    msg = await zero_client.call("echo", "hello")
-    assert msg is None
+    with pytest.raises(zero.error.ConnectionException):
+        msg = await zero_client.call("echo", "hello")
+        assert msg is None
 
 
 @pytest.mark.asyncio
@@ -85,5 +88,6 @@ async def test_echo_wrong_type_input_async():
         msg: str
 
     zero_client = AsyncZeroClient(server.HOST, server.PORT)
-    msg = await zero_client.call("echo", Example(msg="hello"))  # type: ignore
-    assert msg is None
+    with pytest.raises(TypeError):
+        msg = await zero_client.call("echo", Example(msg="hello"))  # type: ignore
+        assert msg is None

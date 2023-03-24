@@ -15,7 +15,8 @@ class _AsyncLogger:  # pragma: no cover
     The problem is, as the server runs in several processes, the logger makes each instance in each process.
     If we run two servers, we cannot connect to the same ipc or tcp.
     So our logger's tcp or ipc should be dynamic.
-    But as we got several instances of the logger, we cannot centralize a place from where logger can get the tcp or ipc.
+    But as we got several instances of the logger,
+    we cannot centralize a place from where logger can get the tcp or ipc.
     The end user have to provide the tcp or ipc themselves.
     """
 

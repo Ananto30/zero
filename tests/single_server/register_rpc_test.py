@@ -1,7 +1,7 @@
 import pytest
 
 from zero import ZeroServer
-from zero.errors import ZeroException
+from zero.error import ZeroException
 
 
 def function_with_2_args_no_typing(a, b):

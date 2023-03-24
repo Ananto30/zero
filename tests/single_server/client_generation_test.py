@@ -1,5 +1,8 @@
 import os
 
+import pytest
+
+import zero.error
 from tests.single_server import server
 from zero.generate_client import generate_client_code_and_save
 
@@ -48,6 +51,9 @@ class RpcClient:
         
     def divide(self, msg: typing.Tuple[int, int]) -> int:
         return self._zero_client.call("divide", msg)
+        
+    def sleep(self, msg: int) -> str:
+        return self._zero_client.call("sleep", msg)
         """
         )
 
@@ -55,7 +61,8 @@ class RpcClient:
 
 
 def test_connection_fail_in_code_generation():
-    generate_client_code_and_save(server.HOST, 5558, ".", overwrite_dir=True)
+    with pytest.raises(zero.error.TimeoutException):
+        generate_client_code_and_save(server.HOST, 5558, ".", overwrite_dir=True)
     assert os.path.isfile("rpc_client.py") is False
 
 
