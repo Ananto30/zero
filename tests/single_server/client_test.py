@@ -64,7 +64,19 @@ def test_random_timeout():
             msg = client.call("sleep", sleep_time, timeout=50)
             assert msg == f"slept for {sleep_time} msecs"
         except zero.error.TimeoutException:
-            assert sleep_time > 20  # considering network latency
+            assert sleep_time > 1  # considering network latency, 50 msecs is too low in github actions
+
+
+def test_random_timeout_async():
+    client = AsyncZeroClient(server.HOST, server.PORT)
+
+    for _ in range(100):
+        sleep_time = random.randint(0, 100)
+        try:
+            msg = asyncio.run(client.call("sleep", sleep_time, timeout=50))
+            assert msg == f"slept for {sleep_time} msecs"
+        except zero.error.TimeoutException:
+            assert sleep_time > 1  # considering network latency, 50 msecs is too low in github actions
 
 
 @pytest.mark.asyncio

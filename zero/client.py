@@ -218,7 +218,7 @@ class AsyncZeroClient(_BaseClient):
                     if "__zerror__method_not_found" in decoded_resp:
                         raise MethodNotFoundException(decoded_resp.get("__zerror__method_not_found"))
                 return decoded_resp
-            
+
             raise TimeoutException(f"Timeout while sending message at {self._host}:{self._port}")
 
         try:
