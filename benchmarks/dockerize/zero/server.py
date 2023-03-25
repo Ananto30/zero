@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 
 import jwt
-from shared import CreateOrderReq, Order, OrderResp, OrderStatus, async_save_order
+from shared import CreateOrderReq, Order, OrderResp, OrderStatus
 from shared import save_order as saveOrder
 
 from zero import ZeroServer

@@ -1,5 +1,3 @@
-import logging
-
 from aiohttp import web
 
 from zero import AsyncZeroClient, ZeroClient, ZeroPublisher
@@ -13,28 +11,28 @@ from zero import AsyncZeroClient, ZeroClient, ZeroPublisher
 #     logging.warn("Cannot use uvloop")
 #     pass
 
-zero_sync_client = ZeroClient("server", "5559")
-zero_async_client = AsyncZeroClient("server", "5559")
-zero_publisher = ZeroPublisher("server", "5558")
+client = ZeroClient("server", 5559)
+async_client = AsyncZeroClient("server", 5559)
+zero_publisher = ZeroPublisher("server", 5558)
 
 
 async def hello(request):
-    resp = zero_sync_client.call("hello_world", None)
+    resp = client.call("hello_world", None)
     return web.Response(text=resp)
 
 
 async def async_hello(request):
-    resp = await zero_async_client.call("hello_world", None)
+    resp = await async_client.call("hello_world", None)
     return web.Response(text=resp)
 
 
 async def order(request):
-    resp = zero_sync_client.call("save_order", {"user_id": "1", "items": ["apple", "python"]})
+    resp = client.call("save_order", {"user_id": "1", "items": ["apple", "python"]})
     return web.json_response(resp)
 
 
 async def async_order(request):
-    resp = await zero_async_client.call("save_order", {"user_id": "1", "items": ["apple", "python"]})
+    resp = await async_client.call("save_order", {"user_id": "1", "items": ["apple", "python"]})
     return web.json_response(resp)
 
 
@@ -44,13 +42,13 @@ async def pubs(request):
 
 
 async def enc_dec_jwt(request):
-    resp = await zero_async_client.call("decode_jwt", {"user_id": "a1b2c3"})
+    resp = await async_client.call("decode_jwt", {"user_id": "a1b2c3"})
     return web.json_response(resp)
 
 
 async def echo(request):
     big_list = ["hello world" for i in range(100_000)]
-    resp = await zero_async_client.call("echo", big_list)
+    resp = await async_client.call("echo", big_list)
     return web.Response(text=str(resp))
 
 

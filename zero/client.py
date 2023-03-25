@@ -103,7 +103,7 @@ class ZeroClient(_BaseClient):
         rpc_method_name: str,
         msg: Union[int, float, str, dict, list, tuple, None],
         timeout: Optional[int] = None,
-    ):
+    ) -> Any:
         """
         Call the rpc method of the ZeroServer.
 
@@ -226,7 +226,7 @@ class AsyncZeroClient(_BaseClient):
         rpc_method_name: str,
         msg: Union[int, float, str, dict, list, tuple, None],
         timeout: Optional[int] = None,
-    ):
+    ) -> Any:
         """
         Call the rpc method of the ZeroServer.
 

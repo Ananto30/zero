@@ -16,10 +16,10 @@ format:
 	python3 -m isort . --profile black --line-length 120
 	python3 -m flake8 ./zero --max-line-length 120
 
-build:
+build-package:
 	pip install -U setuptools wheel
 	python3 setup.py sdist bdist_wheel
 
-dist:
+dist-package:
 	pip install -U twine
 	python3 -m twine upload dist/*

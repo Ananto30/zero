@@ -7,6 +7,7 @@ benchmark-aiohttp:
 		docker-compose up wrk-order; \
 		docker-compose down; \
 		)
+
 benchmark-aiozmq:
 		cd aiozmq && ( \
 		docker-compose up -d gateway server redis; \
@@ -15,6 +16,7 @@ benchmark-aiozmq:
 		docker-compose up wrk-order; \
 		docker-compose down; \
 		)
+
 benchmark-fastapi:
 		cd fast_api && ( \
 		docker-compose up -d gateway server redis; \
@@ -23,6 +25,7 @@ benchmark-fastapi:
 		docker-compose up wrk-order; \
 		docker-compose down; \
 		)
+
 benchmark-sanic:
 		cd sanic && ( \
 		docker-compose up -d gateway server redis; \
@@ -31,11 +34,14 @@ benchmark-sanic:
 		docker-compose up wrk-order; \
 		docker-compose down; \
 		)
+
 benchmark-zero:
 		cd zero && ( \
-		docker-compose up -d gateway server redis; \
+		docker-compose up -d --build gateway server redis; \
 		sleep 2; \
 		docker-compose up wrk-hello; \
 		docker-compose up wrk-order; \
+		docker-compose up wrk-hello-async; \
+		docker-compose up wrk-order-async; \
 		docker-compose down; \
 		)
