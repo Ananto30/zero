@@ -59,21 +59,21 @@ def test_one_call_should_not_affect_another():
     client = ZeroClient(server.HOST, server.PORT)
 
     with pytest.raises(zero.error.TimeoutException):
-        msg = client.call("sleep", 1000, timeout=10)
+        msg = client.call("sleep", 1000, timeout=100)
         assert msg is None
 
-    msg = client.call("sleep", 1, timeout=100)
-    assert msg == "slept for 1 msecs"
+    msg = client.call("sleep", 10, timeout=200)
+    assert msg == "slept for 10 msecs"
 
-    msg = client.call("sleep", 1, timeout=100)
-    assert msg == "slept for 1 msecs"
+    msg = client.call("sleep", 20, timeout=200)
+    assert msg == "slept for 20 msecs"
 
     with pytest.raises(zero.error.TimeoutException):
-        msg = client.call("sleep", 100, timeout=10)
+        msg = client.call("sleep", 200, timeout=100)
         assert msg is None
 
-    msg = client.call("sleep", 1, timeout=100)
-    assert msg == "slept for 1 msecs"
+    msg = client.call("sleep", 30, timeout=300)
+    assert msg == "slept for 30 msecs"
 
 
 def test_random_timeout():
