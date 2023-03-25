@@ -1,5 +1,5 @@
 <p align="center">
-    <img height="300px" src="https://ananto30.github.io/i/1200xCL_TP.png" /> 
+    <img height="300px" src="https://ananto30.github.io/i/1200xCL_TP.png" />
 </p>
 <p align="center">
     <em>Zero is a simple RPC like framework to build fast and high performance Python microservices or distributed servers</em>
@@ -184,18 +184,17 @@ Compare the results! 👇
 
 ## Benchmarks 🏆
 
-11th Gen Intel(R) Core(TM) i7-1165G7 @ 2.80GHz, 4 cores, 8 threads, 12GB RAM
+11th Gen Intel® Core™ i7-11800H @ 2.30GHz, 8 cores, 16 threads, 16GB RAM (Docker in Ubuntu 22.04.2 LTS)
 
-*(Sorted alphabetically)*
+_(Sorted alphabetically)_
 
-| Framework | "hello world" (req/s) | 99% latency (ms) | redis save (req/s) | 99% latency (ms) |
-| --------- | --------------------- | ---------------- | ------------------ | ---------------- |
-| aiohttp   | 9553.16               | 25.48            | 5497.03            | 27.90            |
-| aiozmq    | 13241.74              | 12.12            | 5087.68            | 21.59            |
-| fastApi   | 6036.61               | 31.28            | 3648.11            | 50.76            |
-| sanic     | 13195.99              | 20.04            | 7226.72            | 25.24            |
-| zero      | 18867.00              | 11.48            | 12293.81           | 11.68            |
-
+| Framework  | "hello world" (req/s) | 99% latency (ms) | redis save (req/s) | 99% latency (ms) |
+| ---------- | --------------------- | ---------------- | ------------------ | ---------------- |
+| aiohttp    | 14391.38              | 10.96            | 9470.74            | 12.94            |
+| aiozmq     | 15121.86              | 9.42             | 5904.84            | 21.57            |
+| fastApi    | 9590.96               | 18.31            | 6669.81            | 24.41            |
+| sanic      | 18790.49              | 8.69             | 12259.29           | 13.52            |
+| zero(sync) | 24805.61              | 4.57             | 16498.83           | 7.80             |
 
 ## Todo list 📃
 

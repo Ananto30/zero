@@ -26,4 +26,4 @@ if __name__ == "__main__":
     app = ZeroServer(port=PORT)
     app.register_rpc(sleep)
     app.register_rpc(sleep_async)
-    app.run(cores=4)
+    app.run(cores=8)

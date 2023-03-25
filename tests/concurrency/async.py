@@ -1,8 +1,17 @@
 import asyncio
 import random
 import time
+from contextlib import contextmanager
 
 from zero.client import AsyncZeroClient
+
+
+@contextmanager
+def get_client():
+    client = AsyncZeroClient("localhost", 5559)
+    yield client
+    client.close()
+
 
 async_client = AsyncZeroClient("localhost", 5559)
 
@@ -12,11 +21,12 @@ async def task(semaphore, sleep_time):
         res = await async_client.call("sleep", sleep_time)
         if res != f"slept for {sleep_time} msecs":
             print(f"expected: slept for {sleep_time} msecs, got: {res}")
-        print(res)
+        # print(res)
 
 
 async def test():
-    semaphore = asyncio.BoundedSemaphore(10)
+    conc = 10
+    semaphore = asyncio.BoundedSemaphore(conc)
 
     sleep_times = []
     for _ in range(1000):
@@ -32,7 +42,7 @@ async def test():
 
     print(f"total time taken: {time_taken_ms} ms")
     print(f"average time taken: {time_taken_ms / len(tasks)} ms")
-    print(f"average time taken per process: {time_taken_ms / 10} ms")
+    print(f"average time taken per process: {time_taken_ms / conc} ms")
 
     print(f"total time in args: {sum(sleep_times)} ms")
     print(f"average time in args: {sum(sleep_times) / len(sleep_times)} ms")

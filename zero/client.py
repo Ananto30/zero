@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import os
-from typing import Optional, Union
+from typing import Any, Dict, Optional, Union
 
 import msgpack
 import zmq
@@ -199,6 +199,8 @@ class AsyncZeroClient(_BaseClient):
         self._poller: zmq.asyncio.Poller = zmq.asyncio.Poller()
         self._poller.register(self._socket, zmq.POLLIN)
 
+        self.__resps: Dict[str, Any] = {}
+
     async def _ensure_connected(self):
         if self._socket is not None:
             return
@@ -247,14 +249,13 @@ class AsyncZeroClient(_BaseClient):
         async def _poll_data():
             # TODO async has issue with poller, after 3-4 calls, it returns empty
             # socks = await self._poller.poll(_timeout)
+            # print("poll", socks)
             # if self._socket not in dict(socks):
             #     raise TimeoutException(f"Timeout while sending message at {self._host}:{self._port}")
 
             resp = await self._socket.recv()
             resp_id, resp_data = self._decode(resp)
-            if isinstance(resp_data, dict) and "__zerror__method_not_found" in resp_data:
-                raise MethodNotFoundException(resp_data.get("__zerror__method_not_found"))
-            return resp_id, resp_data
+            self.__resps[resp_id] = resp_data
 
         async def _call():
             req_id = unique_id()
@@ -263,12 +264,24 @@ class AsyncZeroClient(_BaseClient):
             frames = [req_id, rpc_method_name, "" if msg is None else msg]
             await self._socket.send(self._encode(frames))
 
-            resp_id, resp_data = await _poll_data()
-            print("mama", resp_id, resp_data)
-            while resp_id != req_id:
-                if current_time_ms() > expire_at:
-                    raise TimeoutException(f"Timeout while waiting for response at {self._host}:{self._port}")
-                resp_id, resp_data = await _poll_data()
+            await _poll_data()
+
+            while req_id not in self.__resps and current_time_ms() < expire_at:
+                await asyncio.sleep(1e-4)
+
+            # while req_id not in self.__resps and current_time_ms() <= expire_at:
+            #     try:
+            #         await _poll_data()
+            #     except zmq.error.Again:
+            #         pass
+
+            if current_time_ms() > expire_at:
+                raise TimeoutException(f"Timeout while waiting for response at {self._host}:{self._port}")
+
+            resp_data = self.__resps.pop(req_id)
+
+            if isinstance(resp_data, dict) and "__zerror__method_not_found" in resp_data:
+                raise MethodNotFoundException(resp_data.get("__zerror__method_not_found"))
 
             return resp_data
 
