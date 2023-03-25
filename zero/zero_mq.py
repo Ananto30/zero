@@ -92,10 +92,21 @@ class ZeroMQPythonDevice(ZeroMQInterface):
 
             gateway.close()
             backend.close()
+            ctx.destroy()
             ctx.term()
+
+        except KeyboardInterrupt:
+            logging.info("Caught KeyboardInterrupt, terminating workers")
+
         except Exception as e:
             logging.exception(e)
             logging.error("bringing down zmq device")
+
+        finally:
+            gateway.close()
+            backend.close()
+            ctx.destroy()
+            ctx.term()
 
     def worker(
         self,
@@ -105,8 +116,8 @@ class ZeroMQPythonDevice(ZeroMQInterface):
         process_message: Callable,
     ):
         try:
-            ctx = zmq.Context()
-            socket = ctx.socket(zmq.DEALER)
+            ctx = zmq.Context.instance()
+            socket: zmq.Socket = ctx.socket(zmq.DEALER)
 
             if os.name == "posix":
                 socket.connect(f"ipc://{worker_ipc}")
@@ -116,9 +127,17 @@ class ZeroMQPythonDevice(ZeroMQInterface):
             logging.info(f"Starting worker: {worker_id}")
 
             while True:
-                ident, rpc, msg = socket.recv_multipart()
-                response = process_message(rpc, msg)
+                frames = socket.recv_multipart()
+                if len(frames) != 2:
+                    logging.error(f"invalid message received: {frames}")
+                    continue
+
+                ident, data = frames
+                response = process_message(data)
                 socket.send_multipart([ident, response], zmq.DONTWAIT)
+
+        except KeyboardInterrupt:
+            logging.info("shutting down worker")
 
         except Exception as e:
             logging.exception(e)

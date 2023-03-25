@@ -63,3 +63,7 @@ def run(port):
     app.register_rpc(divide)
     app.register_rpc(sleep)
     app.run()
+
+
+if __name__ == "__main__":
+    run(PORT)

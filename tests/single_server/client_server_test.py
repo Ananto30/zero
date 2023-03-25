@@ -22,7 +22,7 @@ def test_necho():
 
 def test_echo_wrong_port():
     zero_client = ZeroClient(server.HOST, 5558, default_timeout=100)
-    with pytest.raises(zero.error.TimeoutException):
+    with pytest.raises(zero.error.ConnectionException):
         msg = zero_client.call("echo", "hello")
         assert msg is None
 

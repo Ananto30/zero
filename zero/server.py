@@ -35,6 +35,8 @@ logging.basicConfig(
     level=logging.INFO,
 )
 
+RESERVED_FUNCTIONS = ["get_rpc_contract", "connect"]
+
 
 class ZeroServer:
     def __init__(self, host: str = "0.0.0.0", port: int = 5559):
@@ -80,8 +82,8 @@ class ZeroServer:
             raise Exception(f"register function; not {type(func)}")
         if func.__name__ in self._rpc_router:
             raise Exception(f"Cannot have two RPC function same name: `{func.__name__}`")
-        if func.__name__ == "get_rpc_contract":
-            raise Exception("get_rpc_contract is a reserved function; cannot have `get_rpc_contract` as a RPC function")
+        if func.__name__ in RESERVED_FUNCTIONS:
+            raise Exception(f"{func.__name__} is a reserved function; cannot have `{func.__name__}` as a RPC function")
 
         verify_function_args(func)
         verify_function_input_type(func)
@@ -242,12 +244,13 @@ class _Worker:
             await process_message()
 
     def start_dealer_worker(self, worker_id):
-        def process_message(rpc, msg):
+        def process_message(data):
             try:
-                rpc_method = rpc.decode()
-                msg = self._decode(msg)
+                decoded = self._decode(data)
+                _id, rpc_method, msg = decoded
                 response = self._handle_msg(rpc_method, msg)
-                return self._encode(response)
+                return self._encode([_id, response])
+
             except Exception as e:
                 logging.exception(e)
 
@@ -256,19 +259,23 @@ class _Worker:
     def _handle_msg(self, rpc, msg):
         if rpc == "get_rpc_contract":
             return self.codegen.generate_code(msg[0], msg[1])
-        if rpc in self._rpc_router:
-            func = self._rpc_router[rpc]
-            try:
-                # TODO: is this a bottleneck
-                if inspect.iscoroutinefunction(func):
-                    # this is blocking
-                    return self._loop.run_until_complete(func() if msg == "" else func(msg))
-                return func() if msg == "" else func(msg)
-            except Exception as e:
-                logging.exception(e)
-        else:
+        if rpc == "connect":
+            return "connected"
+
+        if rpc not in self._rpc_router:
             logging.error(f"method `{rpc}` is not found!")
             return {"__zerror__method_not_found": f"method `{rpc}` is not found!"}
+
+        func = self._rpc_router[rpc]
+        try:
+            # TODO: is this a bottleneck
+            if inspect.iscoroutinefunction(func):
+                # this is blocking
+                return self._loop.run_until_complete(func() if msg == "" else func(msg))
+            return func() if msg == "" else func(msg)
+
+        except Exception as e:
+            logging.exception(e)
 
     async def _handle_msg_async(self, rpc, msg):  # pragma: no cover
         if rpc in self._rpc_router:

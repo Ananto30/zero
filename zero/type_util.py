@@ -1,6 +1,6 @@
 import typing
 
-from zero.error import ZeroException
+from .error import ZeroException
 
 # from pydantic import BaseModel
 

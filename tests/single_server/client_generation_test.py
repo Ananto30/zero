@@ -61,7 +61,7 @@ class RpcClient:
 
 
 def test_connection_fail_in_code_generation():
-    with pytest.raises(zero.error.TimeoutException):
+    with pytest.raises(zero.error.ConnectionException):
         generate_client_code_and_save(server.HOST, 5558, ".", overwrite_dir=True)
     assert os.path.isfile("rpc_client.py") is False
 
