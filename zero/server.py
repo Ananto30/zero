@@ -61,7 +61,11 @@ class ZeroServer:
         self._port = port
         self._host = host
         self._serializer = "msgpack"
+
+        # maps rpc function name to the function
         self._rpc_router = {}
+        # maps async rpc function name to the async function
+        self._rpc_router_async = {}
 
         # Stores rpc functions `msg` types
         self._rpc_input_type_map = {}
@@ -80,7 +84,7 @@ class ZeroServer:
         """
         if not isinstance(func, typing.Callable):
             raise Exception(f"register function; not {type(func)}")
-        if func.__name__ in self._rpc_router:
+        if func.__name__ in self._rpc_router or func.__name__ in self._rpc_router_async:
             raise Exception(f"Cannot have two RPC function same name: `{func.__name__}`")
         if func.__name__ in RESERVED_FUNCTIONS:
             raise Exception(f"{func.__name__} is a reserved function; cannot have `{func.__name__}` as a RPC function")
@@ -89,7 +93,11 @@ class ZeroServer:
         verify_function_input_type(func)
         verify_function_return(func)
 
-        self._rpc_router[func.__name__] = func
+        if inspect.iscoroutinefunction(func):
+            self._rpc_router_async[func.__name__] = func
+        else:
+            self._rpc_router[func.__name__] = func
+
         self._rpc_input_type_map[func.__name__] = get_function_input_class(func)
         self._rpc_return_type_map[func.__name__] = get_function_return_class(func)
 
@@ -125,6 +133,7 @@ class ZeroServer:
             spawn_worker = partial(
                 _Worker.spawn_worker,
                 self._rpc_router,
+                self._rpc_router_async,
                 self._device_ipc,
                 self._device_port,
                 self._serializer,
@@ -194,6 +203,7 @@ class _Worker:
     def spawn_worker(
         cls,
         rpc_router: dict,
+        rpc_router_async: dict,
         ipc: str,
         port: int,
         serializer: str,
@@ -204,20 +214,22 @@ class _Worker:
         time.sleep(0.2)
         worker = _Worker(
             rpc_router,
+            rpc_router_async,
             ipc,
             port,
             serializer,
             rpc_input_type_map,
             rpc_return_type_map,
         )
-        # loop = asyncio.get_event_loop()
-        # loop.run_until_complete(worker.create_worker(worker_id))
-        # asyncio.run(worker.start_async_dealer_worker(worker_id))
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(worker.start_async_dealer_worker(worker_id))
+        # asyncio.create_task(worker.start_async_dealer_worker(worker_id))
         worker.start_dealer_worker(worker_id)
 
     def __init__(
         self,
         rpc_router,
+        rpc_router_async,
         ipc,
         port,
         serializer,
@@ -225,6 +237,7 @@ class _Worker:
         rpc_return_type_map,
     ):
         self._rpc_router = rpc_router
+        self._rpc_router_async = rpc_router_async
         self._ipc = ipc
         self._port = port
         self._serializer = serializer
@@ -245,33 +258,21 @@ class _Worker:
             self._encode = msgpack.packb
             self._decode = msgpack.unpackb
 
-    async def start_async_dealer_worker(self, worker_id):  # pragma: no cover
-        ctx = zmq.asyncio.Context()
-        socket = ctx.socket(zmq.DEALER)
-
-        if os.name == "posix":
-            socket.connect(f"ipc://{self._ipc}")
-        else:
-            socket.connect(f"tcp://127.0.0.1:{self._port}")
-
-        logging.info(f"Starting worker: {worker_id}")
-
-        async def process_message():
+    async def start_async_dealer_worker(self, worker_id):
+        async def process_message(data: bytes):
             try:
-                ident, rpc, msg = await socket.recv_multipart()
-                rpc_method = rpc.decode()
-                msg = self._decode(msg)
+                decoded = self._decode(data)
+                _id, rpc_method, msg = decoded
                 response = await self._handle_msg_async(rpc_method, msg)
-                response = self._encode(response)
-                await socket.send_multipart([ident, response], zmq.DONTWAIT)
+                return self._encode([_id, response])
+
             except Exception as e:
                 logging.exception(e)
 
-        while True:
-            await process_message()
+        await ZeroMQ.worker_async(self._ipc, self._port, worker_id, process_message)
 
     def start_dealer_worker(self, worker_id):
-        def process_message(data):
+        def process_message(data: bytes):
             try:
                 decoded = self._decode(data)
                 _id, rpc_method, msg = decoded
@@ -295,20 +296,19 @@ class _Worker:
 
         func = self._rpc_router[rpc]
         try:
-            # TODO: is this a bottleneck
-            if inspect.iscoroutinefunction(func):
-                # this is blocking
-                return self._loop.run_until_complete(func() if msg == "" else func(msg))
             return func() if msg == "" else func(msg)
 
         except Exception as e:
             logging.exception(e)
 
-    async def _handle_msg_async(self, rpc, msg):  # pragma: no cover
-        if rpc in self._rpc_router:
-            try:
-                return await self._rpc_router[rpc](msg)
-            except Exception as e:
-                logging.exception(e)
-        else:
+    async def _handle_msg_async(self, rpc, msg):
+        if rpc not in self._rpc_router_async:
             logging.error(f"method `{rpc}` is not found!")
+            return {"__zerror__method_not_found": f"method `{rpc}` is not found!"}
+
+        func = self._rpc_router_async[rpc]
+        try:
+            return await func() if msg == "" else await func(msg)
+
+        except Exception as e:
+            logging.exception(e)

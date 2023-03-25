@@ -18,7 +18,7 @@ async_client = AsyncZeroClient("localhost", 5559)
 
 async def task(semaphore, sleep_time):
     async with semaphore:
-        res = await async_client.call("sleep", sleep_time)
+        res = await async_client.call("sleep_async", sleep_time)
         if res != f"slept for {sleep_time} msecs":
             print(f"expected: slept for {sleep_time} msecs, got: {res}")
         # print(res)

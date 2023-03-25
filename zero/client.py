@@ -97,6 +97,9 @@ class ZeroClient(_BaseClient):
 
         except zmq.error.Again:
             raise ConnectionException(f"Cannot connect to server at {self._host}:{self._port}")
+        
+        except Exception:
+            raise
 
     def call(
         self,
@@ -206,7 +209,7 @@ class AsyncZeroClient(_BaseClient):
             return
 
         self._init_async_socket()
-        await self.try_connect()
+        # await self.try_connect()
 
     async def try_connect(self):
         try:
@@ -220,6 +223,9 @@ class AsyncZeroClient(_BaseClient):
 
         except zmq.error.Again:
             raise ConnectionException(f"Cannot connect to server at {self._host}:{self._port}")
+
+        except Exception:
+            raise
 
     async def call(
         self,

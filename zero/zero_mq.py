@@ -1,8 +1,9 @@
 import logging
 import os
-from typing import Callable
+from typing import Awaitable, Callable
 
 import zmq
+import zmq.asyncio
 
 """
 If we want to replace the client-server patter with other implementation like Simple Pirate pattern,
@@ -43,7 +44,7 @@ class ZeroMQInterface:
         worker_ipc: str,
         worker_port: int,
         worker_id: int,
-        process_message: Callable,
+        process_message: Callable[[bytes], bytes],
     ):
         """
         A worker is a process that will handle the requests.
@@ -63,6 +64,35 @@ class ZeroMQInterface:
             It takes the rpc method name and msg in parameters as bytes and should return the reply in bytes.
 
             def process_message(rpc: bytes, msg: bytes) -> bytes:
+                ...
+        """
+        raise NotImplementedError()
+
+    def worker_async(
+        self,
+        worker_ipc: str,
+        worker_port: int,
+        worker_id: int,
+        process_message: Callable[[bytes], Awaitable[bytes]],
+    ):
+        """
+        A worker is a process that will handle the requests.
+
+        Parameters
+        ----------
+        worker_ipc: str
+            The address where all worker will connect.
+            By default we use ipc for faster communication.
+            But some os don't support ipc, in that case we use tcp and need the worker_port.
+        worker_port: int
+            It is used if ipc is not supported by os.
+        worker_id: int
+            The id of the worker.
+        process_message: Callable
+            The function that will process the message.
+            It takes the rpc method name and msg in parameters as bytes and should return the reply in bytes.
+
+            async def process_message(rpc: bytes, msg: bytes) -> bytes:
                 ...
         """
         raise NotImplementedError()
@@ -113,7 +143,7 @@ class ZeroMQPythonDevice(ZeroMQInterface):
         worker_ipc: str,
         worker_port: int,
         worker_id: int,
-        process_message: Callable,
+        process_message: Callable[[bytes], bytes],
     ):
         ctx: zmq.Context = None  # type: ignore
         socket: zmq.Socket = None  # type: ignore
@@ -138,6 +168,43 @@ class ZeroMQPythonDevice(ZeroMQInterface):
                 ident, data = frames
                 response = process_message(data)
                 socket.send_multipart([ident, response], zmq.DONTWAIT)
+
+        except KeyboardInterrupt:
+            logging.info("shutting down worker")
+
+        except Exception as e:
+            logging.exception(e)
+
+    async def worker_async(
+        self,
+        worker_ipc: str,
+        worker_port: int,
+        worker_id: int,
+        process_message: Callable[[bytes], Awaitable[bytes]],
+    ):
+        ctx: zmq.asyncion.Context = None  # type: ignore
+        socket: zmq.asyncion.Socket = None  # type: ignore
+
+        try:
+            ctx = zmq.asyncio.Context.instance()
+            socket: zmq.asyncio.Socket = ctx.socket(zmq.DEALER)
+
+            if os.name == "posix":
+                socket.connect(f"ipc://{worker_ipc}")
+            else:
+                socket.connect(f"tcp://127.0.0.1:{worker_port}")
+
+            logging.info(f"Starting worker: {worker_id}")
+
+            while True:
+                frames = await socket.recv_multipart()
+                if len(frames) != 2:
+                    logging.error(f"invalid message received: {frames}")
+                    continue
+
+                ident, data = frames
+                response = await process_message(data)
+                await socket.send_multipart([ident, response], zmq.DONTWAIT)
 
         except KeyboardInterrupt:
             logging.info("shutting down worker")
