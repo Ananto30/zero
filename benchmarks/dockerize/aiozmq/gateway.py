@@ -1,7 +1,7 @@
 import logging
 
-from aiohttp import web
 import aiozmq.rpc
+from aiohttp import web
 
 try:
     import uvloop
@@ -20,7 +20,6 @@ async def hello(request):
         aiozmq_client = await aiozmq.rpc.connect_rpc(connect="tcp://server:5555")
 
     resp = await aiozmq_client.call.hello_world()
-    # print(resp)
     return web.Response(text=resp)
 
 
@@ -31,7 +30,6 @@ async def save_order(request):
 
     data = {"user_id": "1", "items": ["apple", "python"]}
     resp = await aiozmq_client.call.save_order(data)
-    # print(resp)
     return web.json_response(resp)
 
 

@@ -22,8 +22,6 @@
 - The base server (ZeroServer) **utilizes all cpu cores**.
 - **Code generation**! See [example](https://github.com/Ananto30/zero#code-generation-) 👇
 
-**IMPORTANT! Doesn't support windows os yet. WIP**
-
 **Philosophy** behind Zero:
 
 - **Zero learning curve**: The learning curve is tends to zero. You just add your functions and spin up a server, literally that's it!
@@ -39,6 +37,8 @@ _Ensure Python 3.8+_
 ```
 pip install zeroapi
 ```
+
+**For Windows**, [tornado](https://pypi.org/project/tornado/) needs to be installed separately (for async operations). It's not included with `zeroapi` because for linux and mac-os, tornado is not needed as they have their own event loops.
 
 - Create a `server.py`
 

@@ -1,10 +1,11 @@
-import time
 import typing
-from multiprocessing import Process
 
 import jwt
-import pytest
+
 from zero import ZeroServer
+
+PORT = 5559
+HOST = "localhost"
 
 
 async def echo(msg: str) -> str:
@@ -16,9 +17,9 @@ async def hello_world() -> str:
 
 
 async def decode_jwt(msg: str) -> str:
-    encoded_jwt = jwt.encode(msg, "secret", algorithm="HS256")
+    encoded_jwt = jwt.encode(msg, "secret", algorithm="HS256")  # type: ignore
     decoded_jwt = jwt.decode(encoded_jwt, "secret", algorithms=["HS256"])
-    return decoded_jwt
+    return decoded_jwt  # type: ignore
 
 
 def sum_list(msg: typing.List[int]) -> int:
@@ -37,8 +38,13 @@ def echo_union(msg: typing.Union[int, str]) -> typing.Union[int, str]:
     return msg
 
 
-def server():
-    app = ZeroServer()
+def divide(msg: typing.Tuple[int, int]) -> int:
+    return int(msg[0] / msg[1])
+
+
+def run(port):
+    print("Starting server on port", port)
+    app = ZeroServer(port=port)
     app.register_rpc(echo)
     app.register_rpc(hello_world)
     app.register_rpc(decode_jwt)
@@ -46,21 +52,5 @@ def server():
     app.register_rpc(echo_dict)
     app.register_rpc(echo_tuple)
     app.register_rpc(echo_union)
+    app.register_rpc(divide)
     app.run()
-
-
-@pytest.fixture(autouse=True, scope="session")
-def start_server():
-    try:
-        from pytest_cov.embed import cleanup_on_sigterm
-    except ImportError:
-        pass
-    else:
-        cleanup_on_sigterm()
-
-    p = Process(target=server)
-    p.start()
-    time.sleep(1)
-    yield
-    # p.kill()
-    p.terminate()

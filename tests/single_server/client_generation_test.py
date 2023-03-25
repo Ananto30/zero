@@ -1,14 +1,15 @@
-import os.path
+import os
 
+from tests.single_server import server
 from zero.generate_client import generate_client_code_and_save
 
 
 def test_codegeneration():
-    generate_client_code_and_save("localhost", 5559, ".", overwrite_dir=True)
+    generate_client_code_and_save(server.HOST, server.PORT, ".", overwrite_dir=True)
     assert os.path.isfile("rpc_client.py")
+
     with open("rpc_client.py") as f:
         code = f.read()
-        print(code)
         assert (
             code
             == """
@@ -44,6 +45,9 @@ class RpcClient:
         
     def echo_union(self, msg: typing.Union[int, str]) -> typing.Union[int, str]:
         return self._zero_client.call("echo_union", msg)
+        
+    def divide(self, msg: typing.Tuple[int, int]) -> int:
+        return self._zero_client.call("divide", msg)
         """
         )
 
@@ -51,12 +55,12 @@ class RpcClient:
 
 
 def test_connection_fail_in_code_generation():
-    generate_client_code_and_save("localhost", 5558, ".", overwrite_dir=True)
+    generate_client_code_and_save(server.HOST, 5558, ".", overwrite_dir=True)
     assert os.path.isfile("rpc_client.py") is False
 
 
 def test_generate_code_in_different_directory():
-    generate_client_code_and_save("localhost", 5559, "./test_codegen", overwrite_dir=True)
+    generate_client_code_and_save(server.HOST, server.PORT, "./test_codegen", overwrite_dir=True)
     assert os.path.isfile("./test_codegen/rpc_client.py")
 
     os.remove("./test_codegen/rpc_client.py")
@@ -64,11 +68,11 @@ def test_generate_code_in_different_directory():
 
 
 def test_overwrite_dir_false(monkeypatch):
-    generate_client_code_and_save("localhost", 5559, "./test_codegen", overwrite_dir=True)
+    generate_client_code_and_save(server.HOST, server.PORT, "./test_codegen", overwrite_dir=True)
     file_hash = hash(open("./test_codegen/rpc_client.py").read())
 
     monkeypatch.setattr("builtins.input", lambda _: "N")
-    generate_client_code_and_save("localhost", 5559, "./test_codegen", overwrite_dir=False)
+    generate_client_code_and_save(server.HOST, server.PORT, "./test_codegen", overwrite_dir=False)
     assert file_hash == hash(open("./test_codegen/rpc_client.py").read())
 
     os.remove("./test_codegen/rpc_client.py")

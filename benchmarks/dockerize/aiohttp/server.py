@@ -5,7 +5,6 @@ from datetime import datetime
 from aiohttp import web
 from shared import Order, OrderResp, OrderStatus, async_save_order
 
-
 logger = logging.getLogger(__name__)
 
 try:

@@ -1,7 +1,6 @@
 from datetime import datetime
 
 import redis
-
 from model import Order
 
 

@@ -3,7 +3,8 @@ import uuid
 from datetime import datetime
 
 from benchmarks.async_redis_repository import save_order as saveOrder
-from benchmarks.model import Order, OrderStatus, OrderResp, CreateOrderReq
+from benchmarks.model import CreateOrderReq, Order, OrderResp, OrderStatus
+
 from zero import ZeroSubscriber
 
 

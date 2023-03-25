@@ -2,6 +2,7 @@ import logging
 import typing
 
 import jwt
+
 from zero import ZeroServer
 
 
@@ -13,7 +14,7 @@ async def hello_world() -> str:
     return "hello world"
 
 
-async def decode_jwt(msg: str) -> str:
+async def decode_jwt(msg: str) -> dict:
     decoded_jwt = jwt.decode(msg, "secret", algorithms=["HS256"])
     logging.info(decoded_jwt)
     return decoded_jwt

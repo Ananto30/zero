@@ -1,4 +1,5 @@
 import pytest
+
 from zero import ZeroServer
 from zero.errors import ZeroException
 
@@ -70,10 +71,7 @@ def test_function_with_1_arg_no_typing():
     app = ZeroServer()
     with pytest.raises(ZeroException) as e:
         app.register_rpc(function_with_1_arg_no_typing)
-    assert (
-        str(e.value)
-        == "`function_with_1_arg_no_typing` has no type hinting; RPC functions must have type hints"
-    )
+    assert str(e.value) == "`function_with_1_arg_no_typing` has no type hinting; RPC functions must have type hints"
 
 
 def test_function_with_1_arg_with_typing():

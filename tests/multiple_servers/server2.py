@@ -1,8 +1,8 @@
-from zero import ZeroServer, ZeroClient, AsyncZeroClient
+from tests.multiple_servers.config import Config
+from zero import AsyncZeroClient, ZeroClient, ZeroServer
 
-
-client = ZeroClient("localhost", 7777)
-async_client = AsyncZeroClient("localhost", 7777)
+client = ZeroClient("localhost", Config.SERVER1_PORT)
+async_client = AsyncZeroClient("localhost", Config.SERVER1_PORT)
 
 
 def echo(msg: str) -> str:
@@ -21,8 +21,9 @@ async def async_hello() -> str:
     return await async_client.call("hello", None)
 
 
-def run():
-    app = ZeroServer(port=7778)
+def run(port):
+    print("Starting server2 on port", port)
+    app = ZeroServer(port=port)
     app.register_rpc(echo)
     app.register_rpc(hello)
     app.register_rpc(async_echo)
