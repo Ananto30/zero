@@ -1,47 +1,37 @@
-import time
-from multiprocessing import Process
-
-from tests.utils import kill_process, ping_until_success
-from zero import ZeroServer
+from tests.utils import kill_process, start_server
+from zero import ZeroClient, ZeroServer
 from zero.util import get_next_available_port
-
-SERVER1_PORT = 4344
-SERVER2_PORT = 4345
 
 
 async def echo(msg: str) -> str:
     return msg
 
 
-def server1():
-    app = ZeroServer(port=SERVER1_PORT)
+def server1_run(port):
+    app = ZeroServer(port=port)
     app.register_rpc(echo)
-    app.run()
+    app.run(2)
 
 
-def server2():
-    app = ZeroServer(port=SERVER2_PORT)
+def server2_run(port):
+    app = ZeroServer(port=port)
     app.register_rpc(echo)
-    app.run()
+    app.run(2)
 
 
 def test_two_servers_can_be_run():
-    p = Process(target=server1)
-    p.start()
-    ping_until_success(SERVER1_PORT)
+    server1_port = get_next_available_port(4321)
+    server2_port = get_next_available_port(server1_port + 1)
 
-    assert get_next_available_port(SERVER1_PORT) == SERVER2_PORT
+    p = start_server(server1_port, server1_run)
+    assert get_next_available_port(server1_port) == server2_port
+    p2 = start_server(server2_port, server2_run)
 
-    p2 = Process(target=server2)
-    p2.start()
-    ping_until_success(SERVER2_PORT)
+    c1 = ZeroClient("localhost", server1_port)
+    c2 = ZeroClient("localhost", server2_port)
+
+    assert c1.call("echo", "hello1") == "hello1"
+    assert c2.call("echo", "hello2") == "hello2"
 
     kill_process(p)
     kill_process(p2)
-
-
-def test_server_run():
-    p = Process(target=server1)
-    p.start()
-    ping_until_success(SERVER1_PORT)
-    kill_process(p)

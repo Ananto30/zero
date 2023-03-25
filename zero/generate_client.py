@@ -22,7 +22,7 @@ def generate_client_code_and_save(host, port, directory, overwrite_dir=False):
                 return
 
     with open(directory + "/rpc_client.py", "w") as f:
-        f.write(code)  # type: ignore
+        f.write(code)
 
 
 if __name__ == "__main__":  # pragma: no cover

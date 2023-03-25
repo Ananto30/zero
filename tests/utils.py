@@ -1,8 +1,29 @@
+import errno
+import os
+import signal
+import time
 import typing
 from multiprocessing import Process
 
 
-def ping(port: int) -> bool:
+def start_server(port: int, runner: typing.Callable) -> Process:
+    p = Process(target=runner, args=(port,))
+    p.start()
+    _ping_until_success(port)
+    return p
+
+
+def _ping_until_success(port: int, timeout: int = 5):
+    start = time.time()
+    while time.time() - start < timeout:
+        if _ping(port):
+            return
+        time.sleep(0.1)
+
+    raise Exception("Server did not start in time")
+
+
+def _ping(port: int) -> bool:
     import socket
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -15,25 +36,19 @@ def ping(port: int) -> bool:
         s.close()
 
 
-def ping_until_success(port: int, timeout: int = 5):
-    import time
+def kill_process(process: Process):
+    # pid = process.pid
+    # os.kill(pid, signal.SIGINT)
+    process.terminate()
+    _wait_for_process_to_die(process)
+    process.join()
 
+
+def _wait_for_process_to_die(process, timeout: int = 5):
     start = time.time()
     while time.time() - start < timeout:
-        if ping(port):
+        if not process.is_alive():
             return
         time.sleep(0.1)
 
-    raise Exception("Server did not start in time")
-
-
-def start_server(port: int, runner: typing.Callable) -> Process:
-    p = Process(target=runner, args=(port,))
-    p.start()
-    ping_until_success(port)
-    return p
-
-
-def kill_process(process: Process):
-    process.terminate()
-    process.join()
+    raise Exception("Server did not die in time")

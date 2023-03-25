@@ -62,4 +62,4 @@ def run(port):
     app.register_rpc(echo_union)
     app.register_rpc(divide)
     app.register_rpc(sleep)
-    app.run()
+    app.run(2)

@@ -5,6 +5,13 @@ from tests.multiple_servers.server1 import run as server1_run
 from tests.multiple_servers.server2 import run as server2_run
 from tests.utils import kill_process, start_server
 
+try:
+    from pytest_cov.embed import cleanup_on_sigterm
+except ImportError:
+    pass
+else:
+    cleanup_on_sigterm()
+
 
 @pytest.fixture(scope="session")
 def server1():

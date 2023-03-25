@@ -93,6 +93,13 @@ class ZeroServer:
         self._rpc_input_type_map[func.__name__] = get_function_input_class(func)
         self._rpc_return_type_map[func.__name__] = get_function_return_class(func)
 
+    def rpc_func(self, func: typing.Callable):
+        """
+        Decorator to register rpc methods.
+        """
+        self.register_rpc(func)
+        return func
+
     def run(self, cores: int = os.cpu_count() or 1):
         """
         Run the ZeroServer. This is a blocking operation.

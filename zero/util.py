@@ -1,3 +1,4 @@
+import socket
 import time
 import uuid
 
@@ -17,7 +18,6 @@ def get_next_available_port(port: int) -> int:
         Next available port.
 
     """
-    import socket
 
     def is_port_available(port: int) -> bool:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

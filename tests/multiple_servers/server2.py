@@ -28,4 +28,4 @@ def run(port):
     app.register_rpc(hello)
     app.register_rpc(async_echo)
     app.register_rpc(async_hello)
-    app.run()
+    app.run(2)
