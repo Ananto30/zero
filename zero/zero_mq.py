@@ -76,6 +76,10 @@ class ZeroMQPythonDevice(ZeroMQInterface):
         worker_ipc: str,
         worker_port: int,
     ):
+        ctx: zmq.Context = None  # type: ignore
+        gateway: zmq.Socket = None  # type: ignore
+        backend: zmq.Socket = None  # type: ignore
+
         try:
             ctx = zmq.Context.instance()
             gateway = ctx.socket(zmq.ROUTER)
@@ -88,14 +92,21 @@ class ZeroMQPythonDevice(ZeroMQInterface):
             else:
                 backend.bind(f"tcp://127.0.0.1:{worker_port}")
 
+            # details: https://learning-0mq-with-pyzmq.readthedocs.io/en/latest/pyzmq/devices/queue.html
             zmq.device(zmq.QUEUE, gateway, backend)
 
-            gateway.close()
-            backend.close()
-            ctx.term()
+        except KeyboardInterrupt:
+            logging.info("Caught KeyboardInterrupt, terminating workers")
+
         except Exception as e:
             logging.exception(e)
             logging.error("bringing down zmq device")
+
+        finally:
+            gateway.close() if gateway else None
+            backend.close() if backend else None
+            ctx.destroy() if ctx else None
+            ctx.term() if ctx else None
 
     def worker(
         self,
@@ -104,9 +115,12 @@ class ZeroMQPythonDevice(ZeroMQInterface):
         worker_id: int,
         process_message: Callable,
     ):
+        ctx: zmq.Context = None  # type: ignore
+        socket: zmq.Socket = None  # type: ignore
+
         try:
-            ctx = zmq.Context()
-            socket = ctx.socket(zmq.DEALER)
+            ctx = zmq.Context.instance()
+            socket: zmq.Socket = ctx.socket(zmq.DEALER)
 
             if os.name == "posix":
                 socket.connect(f"ipc://{worker_ipc}")
@@ -116,9 +130,17 @@ class ZeroMQPythonDevice(ZeroMQInterface):
             logging.info(f"Starting worker: {worker_id}")
 
             while True:
-                ident, rpc, msg = socket.recv_multipart()
-                response = process_message(rpc, msg)
+                frames = socket.recv_multipart()
+                if len(frames) != 2:
+                    logging.error(f"invalid message received: {frames}")
+                    continue
+
+                ident, data = frames
+                response = process_message(data)
                 socket.send_multipart([ident, response], zmq.DONTWAIT)
+
+        except KeyboardInterrupt:
+            logging.info("shutting down worker")
 
         except Exception as e:
             logging.exception(e)

@@ -7,10 +7,10 @@ import msgpack
 import requests
 from aiohttp import ClientSession
 
-from zero import ZeroClient, ZeroPublisher
+from zero import AsyncZeroClient, ZeroClient, ZeroPublisher
 
-zero_client_sync = ZeroClient("localhost", 5559, use_async=False)
-zero_client_async = ZeroClient("localhost", 5559, use_async=True)
+client = ZeroClient("localhost", 5559)
+async_client = AsyncZeroClient("localhost", 5559)
 zero_pub = ZeroPublisher("localhost", 5558, use_async=True)
 
 
@@ -25,7 +25,7 @@ def async_wrap(func):
     return run
 
 
-async_call = async_wrap(zero_client_sync.call)
+async_call = async_wrap(client.call)
 
 
 # WORST
@@ -39,7 +39,7 @@ async def hello_test_aiohttp():
 
 
 def hello_test():
-    resp = zero_client_sync.call("hello_world", "")
+    resp = client.call("hello_world", "")
 
 
 async def hello_test_async():
@@ -47,11 +47,11 @@ async def hello_test_async():
 
 
 def echo_test():
-    resp = zero_client_sync.call("echo", "hi")
+    resp = client.call("echo", "hi")
 
 
 async def echo_test_async():
-    resp = await zero_client_async.call_async("echo", "hi")
+    resp = await async_client.call_async("echo", "hi")
 
 
 def pub_test():

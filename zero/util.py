@@ -1,3 +1,7 @@
+import time
+import uuid
+
+
 def get_next_available_port(port: int) -> int:
     """
     Get the next available port.
@@ -29,3 +33,30 @@ def get_next_available_port(port: int) -> int:
         port += 1
 
     return port
+
+
+def unique_id() -> str:
+    """
+    Generate a unique id.
+    UUID without dashes.
+
+    Returns
+    -------
+    str
+        Unique id.
+
+    """
+    return str(uuid.uuid4()).replace("-", "")
+
+
+def current_time_ms() -> int:
+    """
+    Get current time in milliseconds.
+
+    Returns
+    -------
+    int
+        Current time in milliseconds.
+
+    """
+    return int(time.time() * 1000)

@@ -3,7 +3,7 @@ import asyncio
 import jwt
 
 from zero import AsyncZeroClient
-from zero.errors import ZeroException
+from zero.error import ZeroException
 
 zero_client = AsyncZeroClient("localhost", 5559)
 

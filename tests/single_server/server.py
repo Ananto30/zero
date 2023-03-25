@@ -1,3 +1,4 @@
+import time
 import typing
 
 import jwt
@@ -42,6 +43,13 @@ def divide(msg: typing.Tuple[int, int]) -> int:
     return int(msg[0] / msg[1])
 
 
+def sleep(msg: int) -> str:
+    sec = msg / 1000
+    print(f"sleeping for {sec} sec...")
+    time.sleep(sec)
+    return f"slept for {msg} msecs"
+
+
 def run(port):
     print("Starting server on port", port)
     app = ZeroServer(port=port)
@@ -53,4 +61,5 @@ def run(port):
     app.register_rpc(echo_tuple)
     app.register_rpc(echo_union)
     app.register_rpc(divide)
+    app.register_rpc(sleep)
     app.run()

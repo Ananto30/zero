@@ -15,7 +15,6 @@ import zmq
 import zmq.asyncio
 
 from .codegen import CodeGen
-from .common import get_next_available_port
 from .type_util import (
     get_function_input_class,
     get_function_return_class,
@@ -24,6 +23,7 @@ from .type_util import (
     verify_function_input_type,
     verify_function_return,
 )
+from .util import get_next_available_port
 from .zero_mq import ZeroMQ
 
 # import uvloop
@@ -34,6 +34,8 @@ logging.basicConfig(
     datefmt="%d-%b-%y %H:%M:%S",
     level=logging.INFO,
 )
+
+RESERVED_FUNCTIONS = ["get_rpc_contract", "connect"]
 
 
 class ZeroServer:
@@ -80,8 +82,8 @@ class ZeroServer:
             raise Exception(f"register function; not {type(func)}")
         if func.__name__ in self._rpc_router:
             raise Exception(f"Cannot have two RPC function same name: `{func.__name__}`")
-        if func.__name__ == "get_rpc_contract":
-            raise Exception("get_rpc_contract is a reserved function; cannot have `get_rpc_contract` as a RPC function")
+        if func.__name__ in RESERVED_FUNCTIONS:
+            raise Exception(f"{func.__name__} is a reserved function; cannot have `{func.__name__}` as a RPC function")
 
         verify_function_args(func)
         verify_function_input_type(func)
@@ -91,18 +93,26 @@ class ZeroServer:
         self._rpc_input_type_map[func.__name__] = get_function_input_class(func)
         self._rpc_return_type_map[func.__name__] = get_function_return_class(func)
 
-                              # utilize all the cores
-    def run(self, cores:int = os.cpu_count()):
+    def run(self, cores: int = os.cpu_count() or 1):
+        """
+        Run the ZeroServer. This is a blocking operation.
+        By default it uses all the cores available.
+
+        It starts a zmq queue device on the main process and spawns workers on the background.
+        It uses a pool of processes to spawn workers. Each worker is a zmq router.
+        A device is used to load balance the requests.
+
+        Parameters
+        ----------
+        cores: int
+            Number of cores to use for the server.
+        """
         try:
+            # for device-worker communication
             # device port is used for non-posix env
             self._device_port = get_next_available_port(6666)
-
             # ipc is used for posix env
             self._device_ipc = uuid.uuid4().hex[18:] + ".ipc"
-
-            if os.name == "nt":
-                # windows need special event loop policy to work with zmq
-                asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
             self._pool = Pool(cores)
 
@@ -146,7 +156,7 @@ class ZeroServer:
         self._pool.close()
         try:
             os.remove(self._device_ipc)
-        except:
+        except Exception:
             pass
         sys.exit()
 
@@ -192,13 +202,28 @@ class _Worker:
         worker_id: int,
     ):
         time.sleep(0.2)
-        worker = _Worker(rpc_router, ipc, port, serializer, rpc_input_type_map, rpc_return_type_map)
+        worker = _Worker(
+            rpc_router,
+            ipc,
+            port,
+            serializer,
+            rpc_input_type_map,
+            rpc_return_type_map,
+        )
         # loop = asyncio.get_event_loop()
         # loop.run_until_complete(worker.create_worker(worker_id))
         # asyncio.run(worker.start_async_dealer_worker(worker_id))
         worker.start_dealer_worker(worker_id)
 
-    def __init__(self, rpc_router, ipc, port, serializer, rpc_input_type_map, rpc_return_type_map):
+    def __init__(
+        self,
+        rpc_router,
+        ipc,
+        port,
+        serializer,
+        rpc_input_type_map,
+        rpc_return_type_map,
+    ):
         self._rpc_router = rpc_router
         self._ipc = ipc
         self._port = port
@@ -207,7 +232,11 @@ class _Worker:
         # self._loop = uvloop.new_event_loop()
         self._rpc_input_type_map = rpc_input_type_map
         self._rpc_return_type_map = rpc_return_type_map
-        self.codegen = CodeGen(self._rpc_router, self._rpc_input_type_map, self._rpc_return_type_map)
+        self.codegen = CodeGen(
+            self._rpc_router,
+            self._rpc_input_type_map,
+            self._rpc_return_type_map,
+        )
         self._init_serializer()
 
     def _init_serializer(self):
@@ -242,12 +271,13 @@ class _Worker:
             await process_message()
 
     def start_dealer_worker(self, worker_id):
-        def process_message(rpc, msg):
+        def process_message(data):
             try:
-                rpc_method = rpc.decode()
-                msg = self._decode(msg)
+                decoded = self._decode(data)
+                _id, rpc_method, msg = decoded
                 response = self._handle_msg(rpc_method, msg)
-                return self._encode(response)
+                return self._encode([_id, response])
+
             except Exception as e:
                 logging.exception(e)
 
@@ -256,18 +286,23 @@ class _Worker:
     def _handle_msg(self, rpc, msg):
         if rpc == "get_rpc_contract":
             return self.codegen.generate_code(msg[0], msg[1])
-        if rpc in self._rpc_router:
-            func = self._rpc_router[rpc]
-            try:
-                # TODO: is this a bottleneck
-                if inspect.iscoroutinefunction(func):
-                    return self._loop.run_until_complete(func() if msg == "" else func(msg))
-                return func() if msg == "" else func(msg)
-            except Exception as e:
-                logging.exception(e)
-        else:
+        if rpc == "connect":
+            return "connected"
+
+        if rpc not in self._rpc_router:
             logging.error(f"method `{rpc}` is not found!")
             return {"__zerror__method_not_found": f"method `{rpc}` is not found!"}
+
+        func = self._rpc_router[rpc]
+        try:
+            # TODO: is this a bottleneck
+            if inspect.iscoroutinefunction(func):
+                # this is blocking
+                return self._loop.run_until_complete(func() if msg == "" else func(msg))
+            return func() if msg == "" else func(msg)
+
+        except Exception as e:
+            logging.exception(e)
 
     async def _handle_msg_async(self, rpc, msg):  # pragma: no cover
         if rpc in self._rpc_router:

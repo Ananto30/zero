@@ -7,7 +7,8 @@ import msgpack
 import zmq
 import zmq.asyncio
 
-from zero.errors import MethodNotFoundException, ZeroException
+from .error import ConnectionException, MethodNotFoundException, TimeoutException, ZeroException
+from .util import current_time_ms, unique_id
 
 
 class _BaseClient:
@@ -22,7 +23,8 @@ class _BaseClient:
         self._default_timeout = default_timeout
         self._serializer = "msgpack"
         self._init_serializer()
-        self._socket: Optional[zmq.Socket] = None
+        self._socket: zmq.Socket = None  # type: ignore
+        self._poller: zmq.Poller = None  # type: ignore
 
     def _init_serializer(self):
         # msgpack is the default serializer
@@ -31,16 +33,18 @@ class _BaseClient:
             self._decode = msgpack.unpackb
 
     def _set_socket_opt(self):
-        if self._socket is None:
-            raise ZeroException("Socket is not initialized")
-
-        if os.name == "nt":
-            # windows need special event loop policy to work with zmq
-            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
-        self._socket.setsockopt(zmq.RCVTIMEO, self._default_timeout)
-        self._socket.setsockopt(zmq.SNDTIMEO, self._default_timeout)
+        self._set_default_timeout()
         self._socket.setsockopt(zmq.LINGER, 0)  # dont buffer messages
+
+    def _set_socket_timeout(self, timeout):
+        self._socket.setsockopt(zmq.RCVTIMEO, timeout)
+        self._socket.setsockopt(zmq.SNDTIMEO, timeout)
+
+    def _set_default_timeout(self):
+        self._set_socket_timeout(self._default_timeout)
+
+    def close(self):
+        self._socket.close() if self._socket else None
 
 
 class ZeroClient(_BaseClient):
@@ -65,12 +69,41 @@ class ZeroClient(_BaseClient):
         super().__init__(host, port, default_timeout)
 
     def _init_socket(self):
-        ctx = zmq.Context.instance()
+        ctx = zmq.Context.instance()  # TODO check if ctx is thread safe
+
         self._socket: zmq.Socket = ctx.socket(zmq.DEALER)
         self._set_socket_opt()
         self._socket.connect(f"tcp://{self._host}:{self._port}")
 
-    def call(self, rpc_method_name: str, msg: Union[int, float, str, dict, list, tuple, None]):
+        self._poller = zmq.Poller()
+        self._poller.register(self._socket, zmq.POLLIN)
+
+    def _ensure_conntected(self):
+        if self._socket is not None:
+            return
+
+        self._init_socket()
+        self.try_connect()
+
+    def try_connect(self):
+        try:
+            frames = [unique_id(), "connect", ""]
+            self._socket.send(self._encode(frames))
+            _, resp_data = self._decode(self._socket.recv())
+            if resp_data != "connected":
+                raise ConnectionException(f"Cannot connect to server at {self._host}:{self._port}")
+
+            logging.info(f"Connected to server at {self._host}:{self._port}")
+
+        except zmq.error.Again:
+            raise ConnectionException(f"Cannot connect to server at {self._host}:{self._port}")
+
+    def call(
+        self,
+        rpc_method_name: str,
+        msg: Union[int, float, str, dict, list, tuple, None],
+        timeout: Optional[int] = None,
+    ):
         """
         Call the rpc method of the ZeroServer.
 
@@ -80,31 +113,53 @@ class ZeroClient(_BaseClient):
         @param msg:
         For msgpack serializer, msg should be base Python types. Cannot be objects.
 
+        @param timeout:
+        Timeout for the call. In milliseconds.
+
         @return:
         Returns the response of ZeroServer's rpc method.
         """
-        if self._socket is None:
-            self._init_socket()
+        self._ensure_conntected()
+
+        _timeout = self._default_timeout if timeout is None else timeout
+
+        def _poll_data():
+            socks = dict(self._poller.poll(_timeout))
+            if self._socket not in socks:
+                raise TimeoutException(f"Timeout while sending message at {self._host}:{self._port}")
+
+            resp_id, resp_data = self._decode(self._socket.recv())
+            if isinstance(resp_data, dict) and "__zerror__method_not_found" in resp_data:
+                raise MethodNotFoundException(resp_data.get("__zerror__method_not_found"))
+            return resp_id, resp_data
+
+        def _call():
+            req_id = unique_id()
+            expire_at = current_time_ms() + _timeout
+
+            frames = [req_id, rpc_method_name, "" if msg is None else msg]
+            self._socket.send(self._encode(frames), zmq.DONTWAIT)
+
+            resp_id, resp_data = _poll_data()
+            while resp_id != req_id:
+                if current_time_ms() > expire_at:
+                    raise TimeoutException(f"Timeout while waiting for response at {self._host}:{self._port}")
+                resp_id, resp_data = _poll_data()
+
+            return resp_data
 
         try:
-            msg = "" if msg is None else msg
-            self._socket.send_multipart([rpc_method_name.encode(), self._encode(msg)], zmq.DONTWAIT)
-            resp = self._socket.recv()
-            decoded_resp = self._decode(resp)
-
-            if isinstance(decoded_resp, dict):
-                if "__zerror__method_not_found" in decoded_resp:
-                    raise MethodNotFoundException(decoded_resp.get("__zerror__method_not_found"))
-
-            return decoded_resp
-
-        except ZeroException as ze:
-            raise ze
-
+            return _call()
+        except ZeroException:
+            raise
+        # non-blocking mode was requested and the message cannot be sent at the moment
+        except zmq.error.Again:
+            raise ConnectionException(f"Connection error at {self._host}:{self._port}")
         except Exception as e:
-            self._socket.close()
+            self.close()
             self._init_socket()
             logging.exception(e)
+            raise
 
 
 class AsyncZeroClient(_BaseClient):
@@ -131,12 +186,45 @@ class AsyncZeroClient(_BaseClient):
         super().__init__(host, port, default_timeout)
 
     def _init_async_socket(self):
-        ctx = zmq.asyncio.Context.instance()
+        if os.name == "nt":
+            # windows need special event loop policy to work with zmq
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+        ctx = zmq.asyncio.Context.instance()  # TODO check if ctx is thread safe
+
         self._socket: zmq.asyncio.Socket = ctx.socket(zmq.DEALER)
         self._set_socket_opt()
         self._socket.connect(f"tcp://{self._host}:{self._port}")
 
-    async def call(self, rpc_method_name: str, msg: Union[int, float, str, dict, list, tuple, None]):
+        self._poller: zmq.asyncio.Poller = zmq.asyncio.Poller()
+        self._poller.register(self._socket, zmq.POLLIN)
+
+    async def _ensure_connected(self):
+        if self._socket is not None:
+            return
+
+        self._init_async_socket()
+        await self.try_connect()
+
+    async def try_connect(self):
+        try:
+            frames = [unique_id(), "connect", ""]
+            await self._socket.send(self._encode(frames))
+            _, resp_data = self._decode(await self._socket.recv())
+            if resp_data != "connected":
+                raise ConnectionException(f"Cannot connect to server at {self._host}:{self._port}")
+
+            logging.info(f"Connected to server at {self._host}:{self._port}")
+
+        except zmq.error.Again:
+            raise ConnectionException(f"Cannot connect to server at {self._host}:{self._port}")
+
+    async def call(
+        self,
+        rpc_method_name: str,
+        msg: Union[int, float, str, dict, list, tuple, None],
+        timeout: Optional[int] = None,
+    ):
         """
         Call the rpc method of the ZeroServer.
 
@@ -146,28 +234,53 @@ class AsyncZeroClient(_BaseClient):
         @param msg:
         For msgpack serializer, msg should be base Python types. Cannot be objects.
 
+        @param timeout:
+        Timeout for the call. In milliseconds.
+
         @return:
         Returns the response of ZeroServer's rpc method.
         """
-        if self._socket is None:
-            self._init_async_socket()
+        await self._ensure_connected()
+
+        _timeout = self._default_timeout if timeout is None else timeout
+
+        async def _poll_data():
+            # TODO async has issue with poller, after 3-4 calls, it returns empty
+            # socks = await self._poller.poll(_timeout)
+            # if self._socket not in dict(socks):
+            #     raise TimeoutException(f"Timeout while sending message at {self._host}:{self._port}")
+
+            resp = await self._socket.recv()
+            resp_id, resp_data = self._decode(resp)
+            if isinstance(resp_data, dict) and "__zerror__method_not_found" in resp_data:
+                raise MethodNotFoundException(resp_data.get("__zerror__method_not_found"))
+            return resp_id, resp_data
+
+        async def _call():
+            req_id = unique_id()
+            expire_at = current_time_ms() + _timeout
+
+            frames = [req_id, rpc_method_name, "" if msg is None else msg]
+            await self._socket.send(self._encode(frames))
+
+            resp_id, resp_data = await _poll_data()
+            print("mama", resp_id, resp_data)
+            while resp_id != req_id:
+                if current_time_ms() > expire_at:
+                    raise TimeoutException(f"Timeout while waiting for response at {self._host}:{self._port}")
+                resp_id, resp_data = await _poll_data()
+
+            return resp_data
 
         try:
-            msg = "" if msg is None else msg
-            await self._socket.send_multipart([rpc_method_name.encode(), self._encode(msg)], zmq.DONTWAIT)
-            resp = await self._socket.recv()
-            decoded_resp = self._decode(resp)
-
-            if isinstance(decoded_resp, dict):
-                if "__zerror__method_not_found" in decoded_resp:
-                    raise MethodNotFoundException(decoded_resp.get("__zerror__method_not_found"))
-
-            return decoded_resp
-
-        except ZeroException as ze:
-            raise ze
-
+            return await _call()
+        except ZeroException:
+            raise
+        # non-blocking mode was requested and the message cannot be sent at the moment
+        except zmq.error.Again:
+            raise ConnectionException(f"Connection error at {self._host}:{self._port}")
         except Exception as e:
-            self._socket.close()
+            self.close()
             self._init_async_socket()
             logging.exception(e)
+            raise
