@@ -12,12 +12,14 @@ func = partial(client.call, "sleep")
 
 
 def get_and_print(msg):
-    r = func(msg)
-    print(r)
+    resp = func(msg)
+    if resp != f"slept for {msg} msecs":
+        print(f"expected: slept for {msg} msecs, got: {resp}")
 
 
 if __name__ == "__main__":
-    pool = Pool(10)
+    process_no = 10
+    pool = Pool(process_no)
 
     sleep_times = []
     for _ in range(1000):
@@ -34,7 +36,7 @@ if __name__ == "__main__":
 
     print(f"total time taken: {time_taken_ms} ms")
     print(f"average time taken: {time_taken_ms / len(sleep_times)} ms")
-    print(f"average time taken per process: {time_taken_ms / 6} ms")
+    print(f"average time taken per process: {time_taken_ms / process_no} ms")
 
     print(f"total time in args: {sum(sleep_times)} ms")
     print(f"average time in args: {sum(sleep_times) / len(sleep_times)} ms")

@@ -93,18 +93,26 @@ class ZeroServer:
         self._rpc_input_type_map[func.__name__] = get_function_input_class(func)
         self._rpc_return_type_map[func.__name__] = get_function_return_class(func)
 
-                              # utilize all the cores
-    def run(self, cores:int = os.cpu_count()):
+    def run(self, cores: int = os.cpu_count() or 1):
+        """
+        Run the ZeroServer. This is a blocking operation.
+        By default it uses all the cores available.
+
+        It starts a zmq queue device on the main process and spawns workers on the background.
+        It uses a pool of processes to spawn workers. Each worker is a zmq router.
+        A device is used to load balance the requests.
+
+        Parameters
+        ----------
+        cores: int
+            Number of cores to use for the server.
+        """
         try:
+            # for device-worker communication
             # device port is used for non-posix env
             self._device_port = get_next_available_port(6666)
-
             # ipc is used for posix env
             self._device_ipc = uuid.uuid4().hex[18:] + ".ipc"
-
-            if os.name == "nt":
-                # windows need special event loop policy to work with zmq
-                asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
             self._pool = Pool(cores)
 
@@ -194,13 +202,28 @@ class _Worker:
         worker_id: int,
     ):
         time.sleep(0.2)
-        worker = _Worker(rpc_router, ipc, port, serializer, rpc_input_type_map, rpc_return_type_map)
+        worker = _Worker(
+            rpc_router,
+            ipc,
+            port,
+            serializer,
+            rpc_input_type_map,
+            rpc_return_type_map,
+        )
         # loop = asyncio.get_event_loop()
         # loop.run_until_complete(worker.create_worker(worker_id))
         # asyncio.run(worker.start_async_dealer_worker(worker_id))
         worker.start_dealer_worker(worker_id)
 
-    def __init__(self, rpc_router, ipc, port, serializer, rpc_input_type_map, rpc_return_type_map):
+    def __init__(
+        self,
+        rpc_router,
+        ipc,
+        port,
+        serializer,
+        rpc_input_type_map,
+        rpc_return_type_map,
+    ):
         self._rpc_router = rpc_router
         self._ipc = ipc
         self._port = port
@@ -209,7 +232,11 @@ class _Worker:
         # self._loop = uvloop.new_event_loop()
         self._rpc_input_type_map = rpc_input_type_map
         self._rpc_return_type_map = rpc_return_type_map
-        self.codegen = CodeGen(self._rpc_router, self._rpc_input_type_map, self._rpc_return_type_map)
+        self.codegen = CodeGen(
+            self._rpc_router,
+            self._rpc_input_type_map,
+            self._rpc_return_type_map,
+        )
         self._init_serializer()
 
     def _init_serializer(self):
