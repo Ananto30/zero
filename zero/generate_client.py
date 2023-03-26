@@ -8,8 +8,8 @@ def generate_client_code_and_save(host, port, directory, overwrite_dir=False):
     zero_client = ZeroClient(host, port)
     code = zero_client.call("get_rpc_contract", [host, port])
 
-    if not code:
-        print(f"Cannot connect to {host}:{port}")
+    if isinstance(code, dict) and "__zerror__failed_to_generate_client_code" in code:
+        print(f"Failed to generate client code: {code['__zerror__failed_to_generate_client_code']}")
         return
 
     if directory != ".":

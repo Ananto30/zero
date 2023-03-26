@@ -6,7 +6,7 @@ from zero import ZeroServer
 app = ZeroServer(port=5559)
 
 
-@app.rpc_func
+@app.register_rpc
 def sleep(msg: int) -> str:
     sec = msg / 1000
     print(f"sleeping for {sec} sec...")
@@ -14,7 +14,7 @@ def sleep(msg: int) -> str:
     return f"slept for {msg} msecs"
 
 
-@app.rpc_func
+@app.register_rpc
 async def sleep_async(msg: int) -> str:
     sec = msg / 1000
     print(f"sleeping for {sec} sec...")

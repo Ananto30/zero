@@ -1,6 +1,9 @@
+import signal
 import socket
+import sys
 import time
 import uuid
+from typing import Callable
 
 
 def get_next_available_port(port: int) -> int:
@@ -60,3 +63,28 @@ def current_time_ms() -> int:
 
     """
     return int(time.time() * 1000)
+
+
+def register_signal_term(sigterm_handler: Callable):
+    """
+    Register the signal term handler.
+
+    Parameters
+    ----------
+    signal_term_handler: typing.Callable
+        Signal term handler.
+
+    """
+    # this is important to catch KeyboardInterrupt
+    original_sigint_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
+
+    signal.signal(signal.SIGTERM, sigterm_handler)
+    signal.signal(signal.SIGINT, original_sigint_handler)
+
+    if sys.platform == "win32":
+        signal.signal(signal.SIGBREAK, sigterm_handler)
+        signal.signal(signal.CTRL_C_EVENT, sigterm_handler)
+        signal.signal(signal.CTRL_BREAK_EVENT, sigterm_handler)
+    else:
+        signal.signal(signal.SIGQUIT, sigterm_handler)
+        signal.signal(signal.SIGHUP, sigterm_handler)

@@ -8,6 +8,8 @@ from zero import ZeroServer
 PORT = 5559
 HOST = "localhost"
 
+app = ZeroServer(port=PORT)
+
 
 async def echo(msg: str) -> str:
     return msg
@@ -43,16 +45,16 @@ def divide(msg: typing.Tuple[int, int]) -> int:
     return int(msg[0] / msg[1])
 
 
-def sleep(msg: int) -> str:
-    sec = msg / 1000
+@app.register_rpc
+def sleep(msec: int) -> str:
+    sec = msec / 1000
     print(f"sleeping for {sec} sec...")
     time.sleep(sec)
-    return f"slept for {msg} msecs"
+    return f"slept for {msec} msecs"
 
 
 def run(port):
     print("Starting server on port", port)
-    app = ZeroServer(port=port)
     app.register_rpc(echo)
     app.register_rpc(hello_world)
     app.register_rpc(decode_jwt)
@@ -61,5 +63,4 @@ def run(port):
     app.register_rpc(echo_tuple)
     app.register_rpc(echo_union)
     app.register_rpc(divide)
-    app.register_rpc(sleep)
     app.run(2)

@@ -2,6 +2,7 @@ import pytest
 
 from zero import ZeroServer
 from zero.error import ZeroException
+from zero.server import RESERVED_FUNCTIONS
 
 
 def function_with_2_args_no_typing(a, b):
@@ -30,6 +31,16 @@ def function_with_1_arg_with_typing(a: str) -> str:
 
 def function_with_1_arg_no_return_type(a: str):
     return a
+
+
+# reserved function
+def get_rpc_contract() -> str:
+    return "Hello World"
+
+
+# reserved function
+def connect() -> str:
+    return "Hello World"
 
 
 def test_function_with_no_args():
@@ -87,3 +98,29 @@ def test_function_with_1_arg_no_return_type():
         str(e.value)
         == "`function_with_1_arg_no_return_type` has no return type hinting; RPC functions must have type hints"
     )
+
+
+def test_not_a_function():
+    app = ZeroServer()
+    with pytest.raises(ZeroException) as e:
+        app.register_rpc(1)  # type: ignore
+    assert str(e.value) == "register function; not <class 'int'>"
+
+
+def test_register_same_function_twice():
+    app = ZeroServer()
+    app.register_rpc(function_with_no_args)
+    with pytest.raises(ZeroException) as e:
+        app.register_rpc(function_with_no_args)
+    assert str(e.value) == "cannot have two RPC function same name: `function_with_no_args`"
+
+
+def test_register_reserved_function_name():
+    app = ZeroServer()
+    with pytest.raises(ZeroException) as e:
+        app.register_rpc(get_rpc_contract)
+    assert str(e.value) == "get_rpc_contract is a reserved function; cannot have `get_rpc_contract` as a RPC function"
+
+    with pytest.raises(ZeroException) as e:
+        app.register_rpc(connect)
+    assert str(e.value) == "connect is a reserved function; cannot have `connect` as a RPC function"

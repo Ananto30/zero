@@ -1,5 +1,4 @@
 import logging
-import os
 from typing import Callable
 
 import zmq
@@ -13,10 +12,9 @@ implement the ZeroMQInterface class and replace the ZeroMQ with the new implemen
 class ZeroMQInterface:
     def queue_device(
         self,
-        worker_ipc: str,
-        worker_port: int,
         host: str,
         port: int,
+        device_comm_channel: str,
     ):
         """
         A queue_device maintains a queue to distribute the requests among the workers.
@@ -25,23 +23,22 @@ class ZeroMQInterface:
 
         Parameters
         ----------
-        worker_ipc: str
-            The address where all worker will connect.
-            By default we use ipc for faster communication.
-            But some os don't support ipc, in that case we use tcp and need the worker_port.
-        worker_port: int
-            It is used if ipc is not supported by os.
         host: str
-            The host address where the device will listen from clients.
+            The host where the queue device will bind.
+            That means the host of the server.
         port: int
-            The port where the device will listen from clients.
+            The port where the queue device will bind.
+            That means the port of the server.
+        device_comm_channel: str
+            The address where the queue device will bind.
+            By default we use ipc for faster communication.
+            But some os don't support ipc, in that case we use tcp.
         """
         raise NotImplementedError()
 
     def worker(
         self,
-        worker_ipc: str,
-        worker_port: int,
+        device_comm_channel: str,
         worker_id: int,
         process_message: Callable,
     ):
@@ -50,12 +47,10 @@ class ZeroMQInterface:
 
         Parameters
         ----------
-        worker_ipc: str
-            The address where all worker will connect.
+        device_comm_channel: str
+            The address where the queue device will bind.
             By default we use ipc for faster communication.
-            But some os don't support ipc, in that case we use tcp and need the worker_port.
-        worker_port: int
-            It is used if ipc is not supported by os.
+            But some os don't support ipc, in that case we use tcp.
         worker_id: int
             The id of the worker.
         process_message: Callable
@@ -73,8 +68,7 @@ class ZeroMQPythonDevice(ZeroMQInterface):
         self,
         host: str,
         port: int,
-        worker_ipc: str,
-        worker_port: int,
+        device_comm_channel: str,
     ):
         ctx: zmq.Context = None  # type: ignore
         gateway: zmq.Socket = None  # type: ignore
@@ -86,11 +80,7 @@ class ZeroMQPythonDevice(ZeroMQInterface):
             gateway.bind(f"tcp://{host}:{port}")
             logging.info(f"Starting server at {host}:{port}")
             backend = ctx.socket(zmq.DEALER)
-
-            if os.name == "posix":
-                backend.bind(f"ipc://{worker_ipc}")
-            else:
-                backend.bind(f"tcp://127.0.0.1:{worker_port}")
+            backend.bind(device_comm_channel)
 
             # details: https://learning-0mq-with-pyzmq.readthedocs.io/en/latest/pyzmq/devices/queue.html
             zmq.device(zmq.QUEUE, gateway, backend)
@@ -103,6 +93,7 @@ class ZeroMQPythonDevice(ZeroMQInterface):
             logging.error("bringing down zmq device")
 
         finally:
+            logging.info("closing zmq device")
             gateway.close() if gateway else None
             backend.close() if backend else None
             ctx.destroy() if ctx else None
@@ -110,8 +101,7 @@ class ZeroMQPythonDevice(ZeroMQInterface):
 
     def worker(
         self,
-        worker_ipc: str,
-        worker_port: int,
+        device_comm_channel: str,
         worker_id: int,
         process_message: Callable,
     ):
@@ -120,12 +110,8 @@ class ZeroMQPythonDevice(ZeroMQInterface):
 
         try:
             ctx = zmq.Context.instance()
-            socket: zmq.Socket = ctx.socket(zmq.DEALER)
-
-            if os.name == "posix":
-                socket.connect(f"ipc://{worker_ipc}")
-            else:
-                socket.connect(f"tcp://127.0.0.1:{worker_port}")
+            socket = ctx.socket(zmq.DEALER)
+            socket.connect(device_comm_channel)
 
             logging.info(f"Starting worker: {worker_id}")
 
@@ -144,6 +130,12 @@ class ZeroMQPythonDevice(ZeroMQInterface):
 
         except Exception as e:
             logging.exception(e)
+
+        finally:
+            logging.info("closing worker")
+            socket.close() if socket else None
+            ctx.destroy() if ctx else None
+            ctx.term() if ctx else None
 
 
 # IMPORTANT: register the imlementation here

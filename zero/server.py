@@ -5,16 +5,16 @@ import os
 import signal
 import sys
 import time
-import typing
-import uuid
 from functools import partial
 from multiprocessing.pool import Pool
+from typing import Callable, Dict, Optional
 
 import msgpack
 import zmq
 import zmq.asyncio
 
 from .codegen import CodeGen
+from .error import ZeroException
 from .type_util import (
     get_function_input_class,
     get_function_return_class,
@@ -23,7 +23,7 @@ from .type_util import (
     verify_function_input_type,
     verify_function_return,
 )
-from .util import get_next_available_port
+from .util import get_next_available_port, register_signal_term, unique_id
 from .zero_mq import ZeroMQ
 
 # import uvloop
@@ -61,13 +61,15 @@ class ZeroServer:
         self._port = port
         self._host = host
         self._serializer = "msgpack"
-        self._rpc_router = {}
+
+        # Stores rpc functions
+        self._rpc_router: Dict[str, Callable] = {}
 
         # Stores rpc functions `msg` types
-        self._rpc_input_type_map = {}
-        self._rpc_return_type_map = {}
+        self._rpc_input_type_map: Dict[str, Optional[type]] = {}
+        self._rpc_return_type_map: Dict[str, Optional[type]] = {}
 
-    def register_rpc(self, func: typing.Callable):
+    def register_rpc(self, func: Callable):
         """
         Register the rpc methods available for clients.
         Make sure they return something.
@@ -78,27 +80,28 @@ class ZeroServer:
         func: typing.Callable
             RPC function.
         """
-        if not isinstance(func, typing.Callable):
-            raise Exception(f"register function; not {type(func)}")
-        if func.__name__ in self._rpc_router:
-            raise Exception(f"Cannot have two RPC function same name: `{func.__name__}`")
-        if func.__name__ in RESERVED_FUNCTIONS:
-            raise Exception(f"{func.__name__} is a reserved function; cannot have `{func.__name__}` as a RPC function")
+        self._verify_function_name(func)
 
         verify_function_args(func)
         verify_function_input_type(func)
         verify_function_return(func)
 
-        self._rpc_router[func.__name__] = func
         self._rpc_input_type_map[func.__name__] = get_function_input_class(func)
         self._rpc_return_type_map[func.__name__] = get_function_return_class(func)
 
-    def rpc_func(self, func: typing.Callable):
-        """
-        Decorator to register rpc methods.
-        """
-        self.register_rpc(func)
+        self._rpc_router[func.__name__] = func
+
         return func
+
+    def _verify_function_name(self, func):
+        if not isinstance(func, Callable):
+            raise ZeroException(f"register function; not {type(func)}")
+        if func.__name__ in self._rpc_router:
+            raise ZeroException(f"cannot have two RPC function same name: `{func.__name__}`")
+        if func.__name__ in RESERVED_FUNCTIONS:
+            raise ZeroException(
+                f"{func.__name__} is a reserved function; cannot have `{func.__name__}` as a RPC function"
+            )
 
     def run(self, cores: int = os.cpu_count() or 1):
         """
@@ -116,30 +119,24 @@ class ZeroServer:
         """
         try:
             # for device-worker communication
-            # device port is used for non-posix env
-            self._device_port = get_next_available_port(6666)
-            # ipc is used for posix env
-            self._device_ipc = uuid.uuid4().hex[18:] + ".ipc"
-
-            self._pool = Pool(cores)
-
-            # process termination
-            # this is important to catch KeyboardInterrupt
-            original_sigint_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
-            signal.signal(signal.SIGTERM, self._sig_handler)
-            signal.signal(signal.SIGINT, original_sigint_handler)
+            self._device_comm_channel = self._get_comm_channel()
 
             spawn_worker = partial(
                 _Worker.spawn_worker,
                 self._rpc_router,
-                self._device_ipc,
-                self._device_port,
+                self._device_comm_channel,
                 self._serializer,
                 self._rpc_input_type_map,
                 self._rpc_return_type_map,
             )
+
+            self._pool = Pool(cores)
             self._pool.map_async(spawn_worker, list(range(1, cores + 1)))
 
+            # process termination signals
+            register_signal_term(self._sig_handler)
+
+            # blocking
             self._start_queue_device()
 
             # TODO: by default we start the device with processes, but we need support to run only router
@@ -151,6 +148,14 @@ class ZeroServer:
             logging.exception(e)
         finally:
             self._terminate_server()
+
+    def _get_comm_channel(self) -> str:
+        if os.name == "posix":
+            ipc_id = unique_id()
+            self._device_ipc = f"{ipc_id}.ipc"
+            return f"ipc://{ipc_id}.ipc"
+        # device port is used for non-posix env
+        return f"tcp://127.0.0.1:{get_next_available_port(6666)}"
 
     def _sig_handler(self, signum, frame):
         logging.warn(f"{signal.Signals(signum).name} signal called")
@@ -165,10 +170,10 @@ class ZeroServer:
             os.remove(self._device_ipc)
         except Exception:
             pass
-        sys.exit()
+        sys.exit(0)
 
     def _start_queue_device(self):
-        ZeroMQ.queue_device(self._host, self._port, self._device_ipc, self._device_port)
+        ZeroMQ.queue_device(self._host, self._port, self._device_comm_channel)
 
     async def _start_router(self):  # pragma: no cover
         ctx = zmq.asyncio.Context()
@@ -201,8 +206,7 @@ class _Worker:
     def spawn_worker(
         cls,
         rpc_router: dict,
-        ipc: str,
-        port: int,
+        device_comm_channel: str,
         serializer: str,
         rpc_input_type_map: dict,
         rpc_return_type_map: dict,
@@ -211,8 +215,7 @@ class _Worker:
         time.sleep(0.2)
         worker = _Worker(
             rpc_router,
-            ipc,
-            port,
+            device_comm_channel,
             serializer,
             rpc_input_type_map,
             rpc_return_type_map,
@@ -225,15 +228,13 @@ class _Worker:
     def __init__(
         self,
         rpc_router,
-        ipc,
-        port,
+        device_comm_channel,
         serializer,
         rpc_input_type_map,
         rpc_return_type_map,
     ):
         self._rpc_router = rpc_router
-        self._ipc = ipc
-        self._port = port
+        self._device_comm_channel = device_comm_channel
         self._serializer = serializer
         self._loop = asyncio.new_event_loop()
         # self._loop = uvloop.new_event_loop()
@@ -255,11 +256,7 @@ class _Worker:
     async def start_async_dealer_worker(self, worker_id):  # pragma: no cover
         ctx = zmq.asyncio.Context()
         socket = ctx.socket(zmq.DEALER)
-
-        if os.name == "posix":
-            socket.connect(f"ipc://{self._ipc}")
-        else:
-            socket.connect(f"tcp://127.0.0.1:{self._port}")
+        socket.connect(self._device_comm_channel)
 
         logging.info(f"Starting worker: {worker_id}")
 
@@ -288,11 +285,15 @@ class _Worker:
             except Exception as e:
                 logging.exception(e)
 
-        ZeroMQ.worker(self._ipc, self._port, worker_id, process_message)
+        ZeroMQ.worker(self._device_comm_channel, worker_id, process_message)
 
     def _handle_msg(self, rpc, msg):
         if rpc == "get_rpc_contract":
-            return self.codegen.generate_code(msg[0], msg[1])
+            try:
+                return self.codegen.generate_code(msg[0], msg[1])
+            except Exception as e:
+                logging.exception(e)
+                return {"__zerror__failed_to_generate_client_code": str(e)}
         if rpc == "connect":
             return "connected"
 
