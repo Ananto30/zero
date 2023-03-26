@@ -170,7 +170,7 @@ class ZeroServer:
             os.remove(self._device_ipc)
         except Exception:
             pass
-        sys.exit(0)
+        sys.exit(1)
 
     def _start_queue_device(self):
         ZeroMQ.queue_device(self._host, self._port, self._device_comm_channel)

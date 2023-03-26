@@ -83,8 +83,6 @@ def register_signal_term(sigterm_handler: Callable):
 
     if sys.platform == "win32":
         signal.signal(signal.SIGBREAK, sigterm_handler)
-        signal.signal(signal.CTRL_C_EVENT, sigterm_handler)
-        signal.signal(signal.CTRL_BREAK_EVENT, sigterm_handler)
     else:
         signal.signal(signal.SIGQUIT, sigterm_handler)
         signal.signal(signal.SIGHUP, sigterm_handler)
