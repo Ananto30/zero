@@ -9,22 +9,18 @@ from functools import partial
 from multiprocessing.pool import Pool
 from typing import Callable, Dict, Optional
 
-import msgpack
-import zmq
-import zmq.asyncio
-
 from .codegen import CodeGen
+from .encoder import Encoder, get_encoder
 from .error import ZeroException
 from .type_util import (
     get_function_input_class,
     get_function_return_class,
-    verify_allowed_type,
     verify_function_args,
     verify_function_input_type,
     verify_function_return,
 )
 from .util import get_next_available_port, register_signal_term, unique_id
-from .zero_mq import ZeroMQ
+from .zero_mq import get_broker, get_worker
 
 # import uvloop
 
@@ -36,10 +32,17 @@ logging.basicConfig(
 )
 
 RESERVED_FUNCTIONS = ["get_rpc_contract", "connect"]
+ZEROMQ_PATTERN = "queue_device"
+ENCODER = "msgpack"
 
 
 class ZeroServer:
-    def __init__(self, host: str = "0.0.0.0", port: int = 5559):
+    def __init__(
+        self,
+        host: str = "0.0.0.0",
+        port: int = 5559,
+        encoder: Optional[Encoder] = None,
+    ):
         """
         ZeroServer registers rpc methods that are called from a ZeroClient.
 
@@ -56,11 +59,18 @@ class ZeroServer:
             Host of the ZeroServer.
         port: int
             Port of the ZeroServer.
-
+        encoder: Optional[Encoder]
+            Encoder to encode/decode messages from/to client.
+            Default is msgpack.
+            If any other encoder is used, the client should use the same encoder.
+            Implement your own encoder by inheriting from `zero.encoder.Encoder`.
         """
         self._port = port
         self._host = host
-        self._serializer = "msgpack"
+        self._address = f"tcp://{self._host}:{self._port}"
+
+        # to encode/decode messages from/to client
+        self._encoder = encoder or get_encoder(ENCODER)
 
         # Stores rpc functions
         self._rpc_router: Dict[str, Callable] = {}
@@ -117,6 +127,8 @@ class ZeroServer:
         cores: int
             Number of cores to use for the server.
         """
+        broker = get_broker(ZEROMQ_PATTERN)
+
         try:
             # for device-worker communication
             self._device_comm_channel = self._get_comm_channel()
@@ -125,7 +137,7 @@ class ZeroServer:
                 _Worker.spawn_worker,
                 self._rpc_router,
                 self._device_comm_channel,
-                self._serializer,
+                self._encoder,
                 self._rpc_input_type_map,
                 self._rpc_return_type_map,
             )
@@ -137,7 +149,7 @@ class ZeroServer:
             register_signal_term(self._sig_handler)
 
             # blocking
-            self._start_queue_device()
+            broker.listen(self._address, self._device_comm_channel)
 
             # TODO: by default we start the device with processes, but we need support to run only router
             # asyncio.run(self._start_router())
@@ -147,6 +159,7 @@ class ZeroServer:
         except Exception as e:
             logging.exception(e)
         finally:
+            broker.close()
             self._terminate_server()
 
     def _get_comm_channel(self) -> str:
@@ -154,6 +167,7 @@ class ZeroServer:
             ipc_id = unique_id()
             self._device_ipc = f"{ipc_id}.ipc"
             return f"ipc://{ipc_id}.ipc"
+        
         # device port is used for non-posix env
         return f"tcp://127.0.0.1:{get_next_available_port(6666)}"
 
@@ -172,34 +186,6 @@ class ZeroServer:
             pass
         sys.exit(1)
 
-    def _start_queue_device(self):
-        ZeroMQ.queue_device(self._host, self._port, self._device_comm_channel)
-
-    async def _start_router(self):  # pragma: no cover
-        ctx = zmq.asyncio.Context()
-        socket = ctx.socket(zmq.ROUTER)
-        socket.bind(f"tcp://127.0.0.1:{self._port}")
-        logging.info(f"Starting server at {self._port}")
-
-        while True:
-            ident, rpc, msg = await socket.recv_multipart()
-            rpc_method = rpc.decode()
-            response = await self._handle_msg(rpc_method, msgpack.unpackb(msg))
-            try:
-                verify_allowed_type(response, rpc_method)
-            except Exception as e:
-                logging.exception(e)
-            await socket.send_multipart([ident, msgpack.packb(response)])
-
-    async def _handle_msg(self, rpc, msg):  # pragma: no cover
-        if rpc in self._rpc_router:
-            try:
-                return await self._rpc_router[rpc](msg)
-            except Exception as e:
-                logging.exception(e)
-        else:
-            logging.error(f"{rpc} is not found!")
-
 
 class _Worker:
     @classmethod
@@ -207,16 +193,18 @@ class _Worker:
         cls,
         rpc_router: dict,
         device_comm_channel: str,
-        serializer: str,
+        encoder: Encoder,
         rpc_input_type_map: dict,
         rpc_return_type_map: dict,
         worker_id: int,
     ):
+        # give some time for the broker to start
         time.sleep(0.2)
+
         worker = _Worker(
             rpc_router,
             device_comm_channel,
-            serializer,
+            encoder,
             rpc_input_type_map,
             rpc_return_type_map,
         )
@@ -227,15 +215,14 @@ class _Worker:
 
     def __init__(
         self,
-        rpc_router,
-        device_comm_channel,
-        serializer,
-        rpc_input_type_map,
-        rpc_return_type_map,
+        rpc_router: dict,
+        device_comm_channel: str,
+        encoder: Encoder,
+        rpc_input_type_map: dict,
+        rpc_return_type_map: dict,
     ):
         self._rpc_router = rpc_router
         self._device_comm_channel = device_comm_channel
-        self._serializer = serializer
         self._loop = asyncio.new_event_loop()
         # self._loop = uvloop.new_event_loop()
         self._rpc_input_type_map = rpc_input_type_map
@@ -245,47 +232,31 @@ class _Worker:
             self._rpc_input_type_map,
             self._rpc_return_type_map,
         )
-        self._init_serializer()
-
-    def _init_serializer(self):
-        # msgpack is the default serializer
-        if self._serializer == "msgpack":
-            self._encode = msgpack.packb
-            self._decode = msgpack.unpackb
-
-    async def start_async_dealer_worker(self, worker_id):  # pragma: no cover
-        ctx = zmq.asyncio.Context()
-        socket = ctx.socket(zmq.DEALER)
-        socket.connect(self._device_comm_channel)
-
-        logging.info(f"Starting worker: {worker_id}")
-
-        async def process_message():
-            try:
-                ident, rpc, msg = await socket.recv_multipart()
-                rpc_method = rpc.decode()
-                msg = self._decode(msg)
-                response = await self._handle_msg_async(rpc_method, msg)
-                response = self._encode(response)
-                await socket.send_multipart([ident, response], zmq.DONTWAIT)
-            except Exception as e:
-                logging.exception(e)
-
-        while True:
-            await process_message()
+        self.encoder = encoder
 
     def start_dealer_worker(self, worker_id):
-        def process_message(data):
+        def process_message(data: bytes) -> Optional[bytes]:
             try:
-                decoded = self._decode(data)
-                _id, rpc_method, msg = decoded
+                decoded = self.encoder.decode(data)
+                req_id, rpc_method, msg = decoded
                 response = self._handle_msg(rpc_method, msg)
-                return self._encode([_id, response])
-
+                return self.encoder.encode([req_id, response])
             except Exception as e:
                 logging.exception(e)
+                # TODO what to return
+                return None
 
-        ZeroMQ.worker(self._device_comm_channel, worker_id, process_message)
+        worker = get_worker(ZEROMQ_PATTERN, worker_id)
+        try:
+            worker.listen(self._device_comm_channel, process_message)
+
+        except KeyboardInterrupt:
+            logging.info("shutting down worker")
+        except Exception as e:
+            logging.exception(e)
+        finally:
+            logging.info("closing worker")
+            worker.close()
 
     def _handle_msg(self, rpc, msg):
         if rpc == "get_rpc_contract":
@@ -294,6 +265,7 @@ class _Worker:
             except Exception as e:
                 logging.exception(e)
                 return {"__zerror__failed_to_generate_client_code": str(e)}
+
         if rpc == "connect":
             return "connected"
 
@@ -307,16 +279,8 @@ class _Worker:
             if inspect.iscoroutinefunction(func):
                 # this is blocking
                 return self._loop.run_until_complete(func() if msg == "" else func(msg))
+
             return func() if msg == "" else func(msg)
 
         except Exception as e:
             logging.exception(e)
-
-    async def _handle_msg_async(self, rpc, msg):  # pragma: no cover
-        if rpc in self._rpc_router:
-            try:
-                return await self._rpc_router[rpc](msg)
-            except Exception as e:
-                logging.exception(e)
-        else:
-            logging.error(f"method `{rpc}` is not found!")
