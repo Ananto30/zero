@@ -34,6 +34,8 @@ async def test_concurrent_divide():
     for req, resp in req_resp.items():
         assert await async_client.call("divide", req) == resp
 
+    async_client.close()
+
 
 def test_default_timeout():
     client = ZeroClient(server.HOST, server.PORT, default_timeout=100)
@@ -44,6 +46,8 @@ def test_default_timeout():
     msg = client.call("sleep", 1)
     assert msg == "slept for 1 msecs"
 
+    client.close()
+
 
 def test_local_timeout():
     client = ZeroClient(server.HOST, server.PORT)
@@ -53,6 +57,23 @@ def test_local_timeout():
 
     msg = client.call("sleep", 1, timeout=100)
     assert msg == "slept for 1 msecs"
+
+
+def test_timeout_all():
+    client = ZeroClient(server.HOST, server.PORT)
+    with pytest.raises(zero.error.TimeoutException):
+        msg = client.call("sleep", 1000, timeout=10)
+        assert msg is None
+
+    with pytest.raises(zero.error.TimeoutException):
+        msg = client.call("sleep", 1000, timeout=200)
+        assert msg is None
+
+    # the server is 2 cores, so even if the timeout is greater,
+    # server couldn't complete the last 2 calls and will timeout
+    with pytest.raises(zero.error.TimeoutException):
+        msg = client.call("sleep", 50, timeout=300)
+        assert msg is None
 
 
 # TODO fix this test for github actions

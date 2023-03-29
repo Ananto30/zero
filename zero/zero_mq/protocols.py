@@ -3,7 +3,7 @@ from typing import Any, Callable, Optional, Protocol
 import zmq
 
 
-class ZeroMQClient(Protocol):
+class ZeroMQClient(Protocol):  # pragma: no cover
     @property
     def context(self) -> zmq.Context:
         ...
@@ -27,7 +27,7 @@ class ZeroMQClient(Protocol):
         ...
 
 
-class AsyncZeroMQClient(Protocol):
+class AsyncZeroMQClient(Protocol):  # pragma: no cover
     @property
     def context(self) -> zmq.Context:
         ...
@@ -51,7 +51,7 @@ class AsyncZeroMQClient(Protocol):
         ...
 
 
-class ZeroMQBroker(Protocol):
+class ZeroMQBroker(Protocol):  # pragma: no cover
     def listen(self, address: str, channel: str) -> None:
         ...
 
@@ -59,7 +59,7 @@ class ZeroMQBroker(Protocol):
         ...
 
 
-class ZeroMQWorker(Protocol):
+class ZeroMQWorker(Protocol):  # pragma: no cover
     def listen(self, address: str, msg_handler: Callable[[bytes], Optional[bytes]]) -> None:
         ...
 
