@@ -1,7 +1,7 @@
 import pytest
 
 from zero import ZeroServer
-from zero.client_server.server import RESERVED_FUNCTIONS
+from zero.config import RESERVED_FUNCTIONS
 from zero.error import ZeroException
 
 

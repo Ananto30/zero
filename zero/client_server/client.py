@@ -2,14 +2,12 @@ import asyncio
 import logging
 from typing import Any, Dict, Optional, Union
 
+import zero.config as config
 from zero.encoder import Encoder, get_encoder
 from zero.error import MethodNotFoundException, TimeoutException
 from zero.util import current_time_ms, unique_id
 from zero.zero_mq import AsyncZeroMQClient, ZeroMQClient, get_async_client, get_client
 from zero.zero_mq.helpers import zpipe
-
-ZEROMQ_PATTERN = "queue_device"
-ENCODER = "msgpack"
 
 
 class ZeroClient:
@@ -34,12 +32,12 @@ class ZeroClient:
         """
         self._address = f"tcp://{host}:{port}"
         self._default_timeout = default_timeout
-        self.encdr = encoder or get_encoder(ENCODER)
+        self.encdr = encoder or get_encoder(config.ENCODER)
 
         self.zmq: ZeroMQClient = None  # type: ignore
 
     def _init(self):
-        self.zmq = get_client(ZEROMQ_PATTERN, self._default_timeout)
+        self.zmq = get_client(config.ZEROMQ_PATTERN, self._default_timeout)
         self.zmq.connect(self._address)
 
         self.peer1, self.peer2 = zpipe(self.zmq.context)
@@ -132,12 +130,12 @@ class AsyncZeroClient:
         """
         self._address = f"tcp://{host}:{port}"
         self._default_timeout = default_timeout
-        self._encoder = encoder or get_encoder(ENCODER)
+        self._encoder = encoder or get_encoder(config.ENCODER)
 
         self.zmq_client: AsyncZeroMQClient = None  # type: ignore
 
     def _init(self):
-        self.zmq_client = get_async_client(ZEROMQ_PATTERN, self._default_timeout)
+        self.zmq_client = get_async_client(config.ZEROMQ_PATTERN, self._default_timeout)
         self.zmq_client.connect(self._address)
 
         self.__resps: Dict[str, Any] = {}
