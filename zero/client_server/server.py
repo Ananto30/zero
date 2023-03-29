@@ -9,18 +9,18 @@ from functools import partial
 from multiprocessing.pool import Pool
 from typing import Callable, Dict, Optional
 
-from .codegen import CodeGen
-from .encoder import Encoder, get_encoder
-from .error import ZeroException
-from .type_util import (
+from zero.codegen import CodeGen
+from zero.encoder import Encoder, get_encoder
+from zero.error import ZeroException
+from zero.type_util import (
     get_function_input_class,
     get_function_return_class,
     verify_function_args,
     verify_function_input_type,
     verify_function_return,
 )
-from .util import get_next_available_port, register_signal_term, unique_id
-from .zero_mq import get_broker, get_worker
+from zero.util import get_next_available_port, register_signal_term, unique_id
+from zero.zero_mq import get_broker, get_worker
 
 # import uvloop
 
@@ -167,7 +167,7 @@ class ZeroServer:
             ipc_id = unique_id()
             self._device_ipc = f"{ipc_id}.ipc"
             return f"ipc://{ipc_id}.ipc"
-        
+
         # device port is used for non-posix env
         return f"tcp://127.0.0.1:{get_next_available_port(6666)}"
 

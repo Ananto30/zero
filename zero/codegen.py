@@ -73,7 +73,6 @@ class RpcClient:
         func_lines = inspect.getsourcelines(self._rpc_router[func_name])[0]
         def_line = [line for line in func_lines if "def" in line][0]
         params = def_line.split("(")[1].split(")")[0]
-        print("mama", params)
         return params.split(":")[0].strip()
 
     def generate_data_classes(self):  # pragma: no cover

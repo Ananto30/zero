@@ -1,8 +1,8 @@
 import pytest
 
 from zero import ZeroServer
+from zero.client_server.server import RESERVED_FUNCTIONS
 from zero.error import ZeroException
-from zero.server import RESERVED_FUNCTIONS
 
 
 def function_with_2_args_no_typing(a, b):

@@ -1,7 +1,13 @@
-from typing import Callable, Optional, Protocol
+from typing import Any, Callable, Optional, Protocol
+
+import zmq
 
 
 class ZeroMQClient(Protocol):
+    @property
+    def context(self) -> zmq.Context:
+        ...
+
     def connect(self, address: str) -> None:
         ...
 
@@ -17,8 +23,15 @@ class ZeroMQClient(Protocol):
     def recv(self) -> bytes:
         ...
 
+    def request(self, message: bytes) -> Any:
+        ...
+
 
 class AsyncZeroMQClient(Protocol):
+    @property
+    def context(self) -> zmq.Context:
+        ...
+
     def connect(self, address: str) -> None:
         ...
 
@@ -32,6 +45,9 @@ class AsyncZeroMQClient(Protocol):
         ...
 
     async def recv(self) -> bytes:
+        ...
+
+    async def request(self, message: bytes) -> Any:
         ...
 
 
