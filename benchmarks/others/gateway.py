@@ -10,7 +10,7 @@ from zero import ZeroClient, ZeroPublisher
 
 #     uvloop.install()
 # except ImportError:
-#     logging.warn("Cannot use uvloop")
+#     logging.warning("Cannot use uvloop")
 #     pass
 
 zero_sync_client = ZeroClient("worker", "5559", use_async=False)

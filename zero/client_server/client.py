@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional, Union
 import zero.config as config
 from zero.encoder import Encoder, get_encoder
 from zero.error import MethodNotFoundException, TimeoutException
-from zero.util import current_time_ms, unique_id
+from zero.utils.util import current_time_ms, unique_id
 from zero.zero_mq import AsyncZeroMQClient, ZeroMQClient, get_async_client, get_client
 from zero.zero_mq.helpers import zpipe
 

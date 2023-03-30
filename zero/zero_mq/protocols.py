@@ -1,8 +1,9 @@
-from typing import Any, Callable, Optional, Protocol
+from typing import Any, Callable, Optional, Protocol, runtime_checkable
 
 import zmq
 
 
+@runtime_checkable
 class ZeroMQClient(Protocol):  # pragma: no cover
     @property
     def context(self) -> zmq.Context:
@@ -27,6 +28,7 @@ class ZeroMQClient(Protocol):  # pragma: no cover
         ...
 
 
+@runtime_checkable
 class AsyncZeroMQClient(Protocol):  # pragma: no cover
     @property
     def context(self) -> zmq.Context:
@@ -51,6 +53,7 @@ class AsyncZeroMQClient(Protocol):  # pragma: no cover
         ...
 
 
+@runtime_checkable
 class ZeroMQBroker(Protocol):  # pragma: no cover
     def listen(self, address: str, channel: str) -> None:
         ...
@@ -59,6 +62,7 @@ class ZeroMQBroker(Protocol):  # pragma: no cover
         ...
 
 
+@runtime_checkable
 class ZeroMQWorker(Protocol):  # pragma: no cover
     def listen(self, address: str, msg_handler: Callable[[bytes], Optional[bytes]]) -> None:
         ...

@@ -3,8 +3,9 @@ from dataclasses import dataclass
 import pytest
 
 import zero.error
-from tests.single_server import server
 from zero import AsyncZeroClient, ZeroClient
+
+from . import server
 
 
 def test_hello_world():

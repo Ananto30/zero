@@ -3,8 +3,9 @@ import os
 import pytest
 
 import zero.error
-from tests.single_server import server
 from zero.generate_client import generate_client_code_and_save
+
+from . import server
 
 
 def test_codegeneration():
@@ -30,6 +31,9 @@ class RpcClient:
 
     def sleep(self, msec: int) -> str:
         return self._zero_client.call("sleep", msec)
+
+    def error(self, msg: str) -> str:
+        return self._zero_client.call("error", msg)
 
     async def echo(self, msg: str) -> str:
         return self._zero_client.call("echo", msg)

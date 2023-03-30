@@ -1,7 +1,7 @@
 import inspect
 
 # from pydantic import BaseModel
-from zero.type_util import is_pydantic
+from zero.utils.type import is_pydantic
 
 
 class CodeGen:

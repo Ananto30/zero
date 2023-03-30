@@ -1,7 +1,8 @@
 import pytest
 
-from tests.multiple_servers.config import Config
 from zero import AsyncZeroClient, ZeroClient
+
+from .config import Config
 
 
 def test_client_inside_server(server1, server2):

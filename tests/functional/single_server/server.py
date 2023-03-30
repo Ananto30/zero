@@ -53,6 +53,11 @@ def sleep(msec: int) -> str:
     return f"slept for {msec} msecs"
 
 
+@app.register_rpc
+def error(msg: str) -> str:
+    raise Exception(msg)
+
+
 def run(port):
     print("Starting server on port", port)
     app.register_rpc(echo)
@@ -64,3 +69,7 @@ def run(port):
     app.register_rpc(echo_union)
     app.register_rpc(divide)
     app.run(2)
+
+
+if __name__ == "__main__":
+    run(PORT)

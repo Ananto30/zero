@@ -1,9 +1,10 @@
 import pytest
 
-from tests.multiple_servers.config import Config
-from tests.multiple_servers.server1 import run as server1_run
-from tests.multiple_servers.server2 import run as server2_run
 from tests.utils import kill_process, start_server
+
+from .config import Config
+from .server1 import run as server1_run
+from .server2 import run as server2_run
 
 try:
     from pytest_cov.embed import cleanup_on_sigterm

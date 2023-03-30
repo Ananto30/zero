@@ -1,6 +1,6 @@
 from tests.utils import kill_process, start_server
 from zero import ZeroClient, ZeroServer
-from zero.util import get_next_available_port
+from zero.utils.util import get_next_available_port
 
 
 async def echo(msg: str) -> str:

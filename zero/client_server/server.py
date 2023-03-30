@@ -9,15 +9,15 @@ from typing import Callable, Dict, Optional
 import zero.config as config
 from zero.client_server.worker import _Worker
 from zero.encoder import Encoder, get_encoder
-from zero.error import ZeroException
-from zero.type_util import (
+from zero.utils.type import (
     get_function_input_class,
     get_function_return_class,
     verify_function_args,
     verify_function_input_type,
     verify_function_return,
+    verify_function_return_type,
 )
-from zero.util import get_next_available_port, register_signal_term, unique_id
+from zero.utils.util import get_next_available_port, register_signal_term, unique_id
 from zero.zero_mq import get_broker
 
 # import uvloop
@@ -78,10 +78,10 @@ class ZeroServer:
             RPC function.
         """
         self._verify_function_name(func)
-
         verify_function_args(func)
         verify_function_input_type(func)
         verify_function_return(func)
+        verify_function_return_type(func)
 
         self._rpc_input_type_map[func.__name__] = get_function_input_class(func)
         self._rpc_return_type_map[func.__name__] = get_function_return_class(func)
@@ -92,13 +92,11 @@ class ZeroServer:
 
     def _verify_function_name(self, func):
         if not isinstance(func, Callable):
-            raise ZeroException(f"register function; not {type(func)}")
+            raise ValueError(f"register function; not {type(func)}")
         if func.__name__ in self._rpc_router:
-            raise ZeroException(f"cannot have two RPC function same name: `{func.__name__}`")
+            raise ValueError(f"cannot have two RPC function same name: `{func.__name__}`")
         if func.__name__ in config.RESERVED_FUNCTIONS:
-            raise ZeroException(
-                f"{func.__name__} is a reserved function; cannot have `{func.__name__}` as a RPC function"
-            )
+            raise ValueError(f"{func.__name__} is a reserved function; cannot have `{func.__name__}` as a RPC function")
 
     def run(self, cores: int = os.cpu_count() or 1):
         """
@@ -114,7 +112,7 @@ class ZeroServer:
         cores: int
             Number of cores to use for the server.
         """
-        broker = get_broker(config.ZEROMQ_PATTERN)
+        self._broker = get_broker(config.ZEROMQ_PATTERN)
 
         try:
             # for device-worker communication
@@ -136,7 +134,7 @@ class ZeroServer:
             register_signal_term(self._sig_handler)
 
             # blocking
-            broker.listen(self._address, self._device_comm_channel)
+            self._broker.listen(self._address, self._device_comm_channel)
 
             # TODO: by default we start the device with processes, but we need support to run only router
             # asyncio.run(self._start_router())
@@ -146,7 +144,6 @@ class ZeroServer:
         except Exception as e:
             logging.exception(e)
         finally:
-            broker.close()
             self._terminate_server()
 
     def _get_comm_channel(self) -> str:
@@ -159,16 +156,17 @@ class ZeroServer:
         return f"tcp://127.0.0.1:{get_next_available_port(6666)}"
 
     def _sig_handler(self, signum, frame):
-        logging.warn(f"{signal.Signals(signum).name} signal called")
+        logging.warning(f"{signal.Signals(signum).name} signal called")
         self._terminate_server()
 
     def _terminate_server(self):
-        logging.warn(f"Terminating server at {self._port}")
-        self._pool.terminate()
-        self._pool.join()
-        self._pool.close()
+        logging.warning(f"Terminating server at {self._port}")
         try:
+            self._broker.close()
+            self._pool.terminate()
+            self._pool.join()
+            self._pool.close()
             os.remove(self._device_ipc)
-        except Exception:
-            pass
+        except Exception as e:
+            logging.exception(e)
         sys.exit(1)

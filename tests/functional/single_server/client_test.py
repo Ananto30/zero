@@ -1,13 +1,13 @@
 import asyncio
 import random
 import time
-from contextlib import contextmanager
 
 import pytest
 
 import zero.error
-from tests.single_server import server
 from zero import AsyncZeroClient, ZeroClient
+
+from . import server
 
 
 @pytest.mark.asyncio
@@ -31,10 +31,11 @@ async def test_concurrent_divide():
         (534, 11): 48,
     }
 
-    for req, resp in req_resp.items():
-        assert await async_client.call("divide", req) == resp
+    async def divide(req):
+        assert await async_client.call("divide", req) == req_resp[req]
 
-    async_client.close()
+    tasks = [asyncio.create_task(divide(req)) for req in req_resp]
+    await asyncio.gather(*tasks)
 
 
 def test_default_timeout():
@@ -120,6 +121,8 @@ def test_random_timeout_async():
             assert msg == f"slept for {sleep_time} msecs"
         except zero.error.TimeoutException:
             assert sleep_time > 1  # considering network latency, 50 msecs is too low in github actions
+
+    client.close()
 
 
 @pytest.mark.asyncio

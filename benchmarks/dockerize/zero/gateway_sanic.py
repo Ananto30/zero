@@ -11,7 +11,7 @@ try:
 
     uvloop.install()
 except ImportError:
-    logging.warn("Cannot use uvloop")
+    logging.warning("Cannot use uvloop")
     pass
 
 

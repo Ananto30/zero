@@ -1,7 +1,8 @@
 import pytest
 
-from tests.single_server import server
 from tests.utils import kill_process, start_server
+
+from . import server
 
 try:
     from pytest_cov.embed import cleanup_on_sigterm

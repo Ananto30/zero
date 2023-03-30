@@ -1,7 +1,5 @@
 from typing import Callable, Dict, List, Optional, Tuple, Union, get_origin, get_type_hints
 
-from .error import ZeroException
-
 # from pydantic import BaseModel
 
 basic_types = [
@@ -33,22 +31,29 @@ allowed_types = basic_types + typing_types + special_types + pydantic_types
 
 def verify_function_args(func: Callable) -> None:
     arg_count = func.__code__.co_argcount
+    if arg_count < 1:
+        return
     if arg_count > 1:
-        raise ZeroException(
+        raise ValueError(
             f"`{func.__name__}` has more than 1 args; RPC functions can have only one arg - msg, or no arg"
         )
 
-    if arg_count == 1:
-        arg_name = func.__code__.co_varnames[0]
-        func_arg_type = get_type_hints(func)
-        if arg_name not in func_arg_type:
-            raise ZeroException(f"`{func.__name__}` has no type hinting; RPC functions must have type hints")
+    arg_name = func.__code__.co_varnames[0]
+    func_arg_type = get_type_hints(func)
+    if arg_name not in func_arg_type:
+        raise TypeError(f"`{func.__name__}` has no type hinting; RPC functions must have type hints")
 
 
 def verify_function_return(func: Callable) -> None:
+    return_count = func.__code__.co_argcount
+    if return_count > 1:
+        raise ValueError(
+            f"`{func.__name__}` has more than 1 return values; RPC functions can have only one return value"
+        )
+
     types = get_type_hints(func)
     if not types.get("return"):
-        raise ZeroException(f"`{func.__name__}` has no return type hinting; RPC functions must have type hints")
+        raise TypeError(f"`{func.__name__}` has no return type hinting; RPC functions must have type hints")
 
 
 def get_function_input_class(func: Callable) -> Optional[type]:
@@ -59,6 +64,8 @@ def get_function_input_class(func: Callable) -> Optional[type]:
         arg_name = func.__code__.co_varnames[0]
         func_arg_type = get_type_hints(func)
         return func_arg_type[arg_name]
+
+    return None
 
 
 def get_function_return_class(func: Callable):
@@ -81,6 +88,25 @@ def verify_function_input_type(func: Callable):
 
     raise TypeError(
         f"{func.__name__} has type {input_type} which is not allowed; "
+        "allowed types are: \n" + "\n".join([str(t) for t in allowed_types])
+    )
+
+
+def verify_function_return_type(func: Callable):
+    return_type = get_function_return_class(func)
+    if return_type is None:
+        return
+    if return_type in basic_types:
+        return
+    if get_origin(return_type) in basic_types:
+        return
+    if get_origin(return_type) in special_types:
+        return
+    if issubclass(return_type, tuple(pydantic_types)):
+        return
+
+    raise TypeError(
+        f"{func.__name__} has return type {return_type} which is not allowed; "
         "allowed types are: \n" + "\n".join([str(t) for t in allowed_types])
     )
 

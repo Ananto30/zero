@@ -1,5 +1,6 @@
-from tests.multiple_servers.config import Config
 from zero import AsyncZeroClient, ZeroClient, ZeroServer
+
+from .config import Config
 
 client = ZeroClient("localhost", Config.SERVER1_PORT)
 async_client = AsyncZeroClient("localhost", Config.SERVER1_PORT)
