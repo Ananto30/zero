@@ -34,7 +34,7 @@ async def test_concurrent_divide():
     async def divide(req):
         assert await async_client.call("divide", req) == req_resp[req]
 
-    tasks = [asyncio.create_task(divide(req)) for req in req_resp]
+    tasks = [divide(req) for req in req_resp]
     await asyncio.gather(*tasks)
 
 

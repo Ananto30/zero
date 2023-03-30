@@ -228,8 +228,8 @@ class TestServer(unittest.TestCase):
                     self.assertIn("ipc", server._device_comm_channel)
                 mock_device.assert_called_once_with(
                     zmq.QUEUE,
-                    server._broker.gateway, # type: ignore
-                    server._broker.backend, # type: ignore
+                    server._broker.gateway,  # type: ignore
+                    server._broker.backend,  # type: ignore
                 )
 
     def test_server_run_keyboard_interrupt(self):
