@@ -31,10 +31,13 @@ async def test_concurrent_divide():
         (534, 11): 48,
     }
 
-    async def divide(req):
-        assert await async_client.call("divide", req) == req_resp[req]
+    async def divide(semaphore, req):
+        async with semaphore:
+            assert await async_client.call("divide", req) == req_resp[req]
 
-    tasks = [divide(req) for req in req_resp]
+    semaphore = asyncio.BoundedSemaphore(4)
+
+    tasks = [divide(semaphore, req) for req in req_resp]
     await asyncio.gather(*tasks)
 
 

@@ -203,7 +203,7 @@ class AsyncZeroClient:
         await _poll_data()
 
         while req_id not in self.__resps and current_time_us() < expire_at:
-            await asyncio.sleep(0.001)
+            await asyncio.sleep(1e-6)
 
         if current_time_us() > expire_at:
             raise TimeoutException(f"Timeout while waiting for response at {self._address}")
