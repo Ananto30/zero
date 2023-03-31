@@ -52,17 +52,17 @@ def unique_id() -> str:
     return str(uuid.uuid4()).replace("-", "")
 
 
-def current_time_ms() -> int:
+def current_time_us() -> int:
     """
-    Get current time in milliseconds.
+    Get current time in microseconds.
 
     Returns
     -------
     int
-        Current time in milliseconds.
+        Current time in microseconds.
 
     """
-    return int(time.time() * 1000)
+    return int(time.time() * 1e6)
 
 
 def register_signal_term(sigterm_handler: Callable):

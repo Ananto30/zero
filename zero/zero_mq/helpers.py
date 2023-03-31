@@ -1,8 +1,8 @@
-import binascii
-import os
 from typing import Tuple
 
 import zmq
+
+from zero.utils.util import unique_id
 
 
 def zpipe(ctx: zmq.Context) -> Tuple[zmq.Socket, zmq.Socket]:
@@ -17,7 +17,7 @@ def zpipe(ctx: zmq.Context) -> Tuple[zmq.Socket, zmq.Socket]:
     b = ctx.socket(zmq.PAIR)
     a.linger = b.linger = 0
     a.hwm = b.hwm = 1
-    iface = "inproc://%s" % binascii.hexlify(os.urandom(8))
+    iface = f"inproc://{unique_id()}"
     a.bind(iface)
     b.connect(iface)
     return a, b

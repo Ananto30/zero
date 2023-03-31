@@ -35,13 +35,13 @@ class RpcClient:
     def error(self, msg: str) -> str:
         return self._zero_client.call("error", msg)
 
-    async def echo(self, msg: str) -> str:
+    def echo(self, msg: str) -> str:
         return self._zero_client.call("echo", msg)
 
-    async def hello_world(self) -> str:
+    def hello_world(self) -> str:
         return self._zero_client.call("hello_world", None)
 
-    async def decode_jwt(self, msg: str) -> str:
+    def decode_jwt(self, msg: str) -> str:
         return self._zero_client.call("decode_jwt", msg)
 
     def sum_list(self, msg: typing.List[int]) -> int:

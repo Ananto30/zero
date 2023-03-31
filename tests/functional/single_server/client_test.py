@@ -38,6 +38,12 @@ async def test_concurrent_divide():
     await asyncio.gather(*tasks)
 
 
+def test_server_error():
+    client = ZeroClient(server.HOST, server.PORT)
+    msg = client.call("error", "some error")
+    assert msg is None
+
+
 def test_default_timeout():
     client = ZeroClient(server.HOST, server.PORT, default_timeout=100)
     with pytest.raises(zero.error.TimeoutException):

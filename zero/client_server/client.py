@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional, Union
 import zero.config as config
 from zero.encoder import Encoder, get_encoder
 from zero.error import MethodNotFoundException, TimeoutException
-from zero.utils.util import current_time_ms, unique_id
+from zero.utils.util import current_time_us, unique_id
 from zero.zero_mq import AsyncZeroMQClient, ZeroMQClient, get_async_client, get_client
 from zero.zero_mq.helpers import zpipe
 
@@ -183,7 +183,7 @@ class AsyncZeroClient:
         await self._ensure_connected()
 
         _timeout = self._default_timeout if timeout is None else timeout
-        expire_at = current_time_ms() + _timeout
+        expire_at = current_time_us() + (_timeout * 1000)
 
         async def _poll_data():
             # TODO async has issue with poller, after 3-4 calls, it returns empty
@@ -202,12 +202,13 @@ class AsyncZeroClient:
         # dont need to poll again in the while loop
         await _poll_data()
 
-        while req_id not in self.__resps and current_time_ms() < expire_at:
+        while req_id not in self.__resps and current_time_us() < expire_at:
             await asyncio.sleep(0.001)
 
-        if current_time_ms() > expire_at:
+        if current_time_us() > expire_at:
             raise TimeoutException(f"Timeout while waiting for response at {self._address}")
 
+        print(expire_at, current_time_us(), self.__resps)
         resp_data = self.__resps.pop(req_id)
 
         if isinstance(resp_data, dict) and "__zerror__method_not_found" in resp_data:
