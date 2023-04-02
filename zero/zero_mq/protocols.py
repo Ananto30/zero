@@ -1,6 +1,7 @@
 from typing import Any, Callable, Optional, Protocol, runtime_checkable
 
 import zmq
+import zmq.asyncio
 
 
 @runtime_checkable
@@ -31,7 +32,7 @@ class ZeroMQClient(Protocol):  # pragma: no cover
 @runtime_checkable
 class AsyncZeroMQClient(Protocol):  # pragma: no cover
     @property
-    def context(self) -> zmq.Context:
+    def context(self) -> zmq.asyncio.Context:
         ...
 
     def connect(self, address: str) -> None:
