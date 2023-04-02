@@ -2,7 +2,7 @@
     <img height="300px" src="https://ananto30.github.io/i/1200xCL_TP.png" />
 </p>
 <p align="center">
-    <em>Zero is a simple RPC like framework to build fast and high performance Python microservices or distributed servers</em>
+    <em>Zero is a simple Python framework (RPC like) to build fast and high performance microservices or distributed servers</em>
 </p>
 <p align="center">
     <a href="https://codecov.io/gh/Ananto30/zero" target="_blank">
@@ -38,24 +38,26 @@ _Ensure Python 3.8+_
 pip install zeroapi
 ```
 
-**For Windows**, [tornado](https://pypi.org/project/tornado/) needs to be installed separately (for async operations). It's not included with `zeroapi` because for linux and mac-os, tornado is not needed as they have their own event loops.
+**For Windows**, [tornado](https://pypi.org/project/tornado/) needs to be installed separately (for async operations). 
+It's not included with `zeroapi` because for linux and mac-os, tornado is not needed as they have their own event loops.
 
 - Create a `server.py`
 
 ```python
 from zero import ZeroServer
 
+app = ZeroServer(port=5559)
+
+@app.register_rpc
 def echo(msg: str) -> str:
     return msg
 
+@app.register_rpc
 async def hello_world() -> str:
     return "hello world"
 
 
 if __name__ == "__main__":
-    app = ZeroServer(port=5559)
-    app.register_rpc(echo)
-    app.register_rpc(hello_world)
     app.run()
 
 ```
@@ -123,6 +125,8 @@ You can also use our code generation tool to generate Python client code!
 
 After running the server, like above, you can call the server to get the client code.
 
+Using `zero.generate_client` you can generate client code for even remote servers using the `--host` and `--port` options. You don't need access to the code 😃
+
 ```shell
 python -m zero.generate_client --host localhost --port 5559 --overwrite-dir ./my_client
 ```
@@ -150,7 +154,7 @@ class RpcClient:
 
 ```
 
-You can just use this -
+Use the client -
 
 ```python
 from my_client import RpcClient, zero_client
@@ -162,7 +166,7 @@ if __name__ == "__main__":
     client.hello_world(None)
 ```
 
-Using `zero.generate_client` you can generate client code for even remote servers using the `--host` and `--port` options. You don't need access to the code 😃
+Currently, the code generation tool supports only `ZeroClient` and not `AsyncZeroClient`.
 
 ## Important notes 📝
 
