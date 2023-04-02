@@ -239,6 +239,6 @@ class TestServer(unittest.TestCase):
         def add(msg: Tuple[int, int]) -> int:
             return msg[0] + msg[1]
 
-        with patch.object(server, "_get_comm_channel", side_effect=KeyboardInterrupt):
+        with patch.object(server, "_start_server", side_effect=KeyboardInterrupt):
             with self.assertRaises(SystemExit):
                 server.run()

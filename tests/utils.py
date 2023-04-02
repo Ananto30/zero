@@ -1,3 +1,4 @@
+import subprocess
 import time
 import typing
 from multiprocessing import Process
@@ -34,8 +35,6 @@ def _ping(port: int) -> bool:
 
 
 def kill_process(process: Process):
-    # pid = process.pid
-    # os.kill(pid, signal.SIGINT)
     process.terminate()
     _wait_for_process_to_die(process)
     process.join()
@@ -49,3 +48,14 @@ def _wait_for_process_to_die(process, timeout: int = 5):
         time.sleep(0.1)
 
     raise Exception("Server did not die in time")
+
+
+def start_subprocess(module: str) -> subprocess.Popen:
+    p = subprocess.Popen(["python", "-m", module])
+    _ping_until_success(5559)
+    return p
+
+
+def kill_subprocess(process: subprocess.Popen):
+    process.terminate()
+    process.wait()

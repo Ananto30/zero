@@ -17,7 +17,7 @@ from zero.utils.type import (
     verify_function_return,
     verify_function_return_type,
 )
-from zero.utils.util import get_next_available_port, register_signal_term, unique_id, log_error_multi
+from zero.utils.util import get_next_available_port, log_error, register_signal_term, unique_id
 from zero.zero_mq import get_broker
 
 # import uvloop
@@ -87,14 +87,6 @@ class ZeroServer:
         self._rpc_router[func.__name__] = func
         return func
 
-    def _verify_function_name(self, func):
-        if not isinstance(func, Callable):
-            raise ValueError(f"register function; not {type(func)}")
-        if func.__name__ in self._rpc_router:
-            raise ValueError(f"cannot have two RPC function same name: `{func.__name__}`")
-        if func.__name__ in config.RESERVED_FUNCTIONS:
-            raise ValueError(f"{func.__name__} is a reserved function; cannot have `{func.__name__}` as a RPC function")
-
     def run(self, workers: int = os.cpu_count() or 1):
         """
         Run the ZeroServer. This is a blocking operation.
@@ -119,11 +111,6 @@ class ZeroServer:
         # for device-worker communication
         self._device_comm_channel = self._get_comm_channel()
 
-        # process termination signals
-        register_signal_term(self._sig_handler)
-
-        self._pool = Pool(workers)
-        
         spawn_worker = partial(
             _Worker.spawn_worker,
             self._rpc_router,
@@ -134,19 +121,26 @@ class ZeroServer:
         )
 
         try:
-            # TODO: by default we start the workers with processes, 
-            # but we need support to run only router, without workers
-            self._pool.map_async(spawn_worker, list(range(1, workers + 1)))
-
-            # blocking
-            self._broker.listen(self._address, self._device_comm_channel)
-
+            self._start_server(workers, spawn_worker)
         except KeyboardInterrupt:
             logging.warning("Caught KeyboardInterrupt, terminating server")
         except Exception as e:
             logging.exception(e)
         finally:
             self._terminate_server()
+
+    def _start_server(self, workers: int, spawn_worker: Callable):
+        self._pool = Pool(workers)
+
+        # process termination signals
+        register_signal_term(self._sig_handler)
+
+        # TODO: by default we start the workers with processes,
+        # but we need support to run only router, without workers
+        self._pool.map_async(spawn_worker, list(range(1, workers + 1)))
+
+        # blocking
+        self._broker.listen(self._address, self._device_comm_channel)
 
     def _get_comm_channel(self) -> str:
         if os.name == "posix":
@@ -157,11 +151,32 @@ class ZeroServer:
         # device port is used for non-posix env
         return f"tcp://127.0.0.1:{get_next_available_port(6666)}"
 
+    def _verify_function_name(self, func):
+        if not isinstance(func, Callable):
+            raise ValueError(f"register function; not {type(func)}")
+        if func.__name__ in self._rpc_router:
+            raise ValueError(f"cannot have two RPC function same name: `{func.__name__}`")
+        if func.__name__ in config.RESERVED_FUNCTIONS:
+            raise ValueError(f"{func.__name__} is a reserved function; cannot have `{func.__name__}` as a RPC function")
+
     def _sig_handler(self, signum, frame):
         logging.warning(f"{signal.Signals(signum).name} signal called")
         self._terminate_server()
 
     def _terminate_server(self):
         logging.warning(f"Terminating server at {self._port}")
-        log_error_multi(self._broker.close, self._pool.terminate, self._pool.join, self._pool.close, os.remove(self._device_ipc) if hasattr(self, "_device_ipc") and self._device_ipc else None)
+        self._broker.close() if self._broker else None
+        self._terminate_pool()
+        self._remove_ipc()
         sys.exit(1)
+
+    @log_error
+    def _remove_ipc(self):
+        if os.name == "posix":
+            os.remove(self._device_ipc)
+
+    @log_error
+    def _terminate_pool(self):
+        self._pool.terminate()
+        self._pool.join()
+        self._pool.close()

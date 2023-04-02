@@ -37,8 +37,8 @@ class _Worker:
         def process_message(data: bytes) -> Optional[bytes]:
             try:
                 decoded = self._encoder.decode(data)
-                req_id, rpc_method, msg = decoded
-                response = self.handle_msg(rpc_method, msg)
+                req_id, func_name, msg = decoded
+                response = self.handle_msg(func_name, msg)
                 return self._encoder.encode([req_id, response])
             except Exception as e:
                 logging.exception(e)
@@ -65,7 +65,7 @@ class _Worker:
 
         if rpc not in self._rpc_router:
             logging.error(f"Function `{rpc}` is not found!")
-            return {"__zerror__method_not_found": f"Function `{rpc}` is not found!"}
+            return {"__zerror__function_not_found": f"Function `{rpc}` is not found!"}
 
         func = self._rpc_router[rpc]
         try:
