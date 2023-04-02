@@ -4,6 +4,7 @@ import sys
 import time
 import uuid
 from typing import Callable
+import logging
 
 
 def get_next_available_port(port: int) -> int:
@@ -86,3 +87,23 @@ def register_signal_term(sigterm_handler: Callable):
     else:
         signal.signal(signal.SIGQUIT, sigterm_handler)
         signal.signal(signal.SIGHUP, sigterm_handler)
+
+def log_error(func):
+    """
+    Decorator to log errors.
+    """
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            logging.exception(e)
+    return wrapper
+
+def log_error_multi(*funcs):
+    """
+    Decorator to log errors.
+    """
+    def wrapper(*args, **kwargs):
+        for func in funcs:
+            log_error(func)(*args, **kwargs)
+    return wrapper

@@ -26,7 +26,7 @@ class ZeroMQWorker:
             if self.socket in socks:
                 frames = self.socket.recv_multipart()
                 if len(frames) != 2:
-                    logging.error(f"invalid message received: {frames}")
+                    logging.error(f"Invalid message received: {frames}")
                     continue
 
                 ident, message = frames

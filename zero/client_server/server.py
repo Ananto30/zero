@@ -17,7 +17,7 @@ from zero.utils.type import (
     verify_function_return,
     verify_function_return_type,
 )
-from zero.utils.util import get_next_available_port, register_signal_term, unique_id
+from zero.utils.util import get_next_available_port, register_signal_term, unique_id, log_error_multi
 from zero.zero_mq import get_broker
 
 # import uvloop
@@ -31,14 +31,10 @@ class ZeroServer:
         encoder: Optional[Encoder] = None,
     ):
         """
-        ZeroServer registers rpc methods that are called from a ZeroClient.
+        ZeroServer registers and exposes rpc functions that can be called from a ZeroClient.
 
         By default ZeroServer uses all of the cores for best performance possible.
-        A zmq queue device load balances the requests and runs on the main thread.
-
-        Ensure to run the server inside
-        `if __name__ == "__main__":`
-        As the server runs on multiple processes.
+        A "zmq queue device" load balances the requests and runs on the main thread.
 
         Parameters
         ----------
@@ -50,7 +46,7 @@ class ZeroServer:
             Encoder to encode/decode messages from/to client.
             Default is msgpack.
             If any other encoder is used, the client should use the same encoder.
-            Implement your own encoder by inheriting from `zero.encoder.Encoder`.
+            Implement custom encoder by inheriting from `zero.encoder.Encoder`.
         """
         self._port = port
         self._host = host
@@ -59,7 +55,7 @@ class ZeroServer:
         # to encode/decode messages from/to client
         self._encoder = encoder or get_encoder(config.ENCODER)
 
-        # Stores rpc functions
+        # Stores rpc functions against their names
         self._rpc_router: Dict[str, Callable] = {}
 
         # Stores rpc functions `msg` types
@@ -68,13 +64,15 @@ class ZeroServer:
 
     def register_rpc(self, func: Callable):
         """
-        Register the rpc methods available for clients.
-        Make sure they return something.
-        If the methods don't return anything, it will get timeout in client.
+        Register a function available for clients.
+        Function should have a single argument.
+        Argument and return should have a type hint.
+
+        If the function got exception, client will get None as return value.
 
         Parameters
         ----------
-        func: typing.Callable
+        func: Callable
             RPC function.
         """
         self._verify_function_name(func)
@@ -87,7 +85,6 @@ class ZeroServer:
         self._rpc_return_type_map[func.__name__] = get_function_return_class(func)
 
         self._rpc_router[func.__name__] = func
-
         return func
 
     def _verify_function_name(self, func):
@@ -98,10 +95,14 @@ class ZeroServer:
         if func.__name__ in config.RESERVED_FUNCTIONS:
             raise ValueError(f"{func.__name__} is a reserved function; cannot have `{func.__name__}` as a RPC function")
 
-    def run(self, cores: int = os.cpu_count() or 1):
+    def run(self, workers: int = os.cpu_count() or 1):
         """
         Run the ZeroServer. This is a blocking operation.
         By default it uses all the cores available.
+
+        Ensure to run the server inside
+        `if __name__ == "__main__":`
+        As the server runs on multiple processes.
 
         It starts a zmq queue device on the main process and spawns workers on the background.
         It uses a pool of processes to spawn workers. Each worker is a zmq router.
@@ -109,38 +110,39 @@ class ZeroServer:
 
         Parameters
         ----------
-        cores: int
-            Number of cores to use for the server.
+        workers: int
+            Number of workers to spawn.
+            Each worker is a zmq router and runs on a separate process.
         """
         self._broker = get_broker(config.ZEROMQ_PATTERN)
 
+        # for device-worker communication
+        self._device_comm_channel = self._get_comm_channel()
+
+        # process termination signals
+        register_signal_term(self._sig_handler)
+
+        self._pool = Pool(workers)
+        
+        spawn_worker = partial(
+            _Worker.spawn_worker,
+            self._rpc_router,
+            self._device_comm_channel,
+            self._encoder,
+            self._rpc_input_type_map,
+            self._rpc_return_type_map,
+        )
+
         try:
-            # for device-worker communication
-            self._device_comm_channel = self._get_comm_channel()
-
-            spawn_worker = partial(
-                _Worker.spawn_worker,
-                self._rpc_router,
-                self._device_comm_channel,
-                self._encoder,
-                self._rpc_input_type_map,
-                self._rpc_return_type_map,
-            )
-
-            self._pool = Pool(cores)
-            self._pool.map_async(spawn_worker, list(range(1, cores + 1)))
-
-            # process termination signals
-            register_signal_term(self._sig_handler)
+            # TODO: by default we start the workers with processes, 
+            # but we need support to run only router, without workers
+            self._pool.map_async(spawn_worker, list(range(1, workers + 1)))
 
             # blocking
             self._broker.listen(self._address, self._device_comm_channel)
 
-            # TODO: by default we start the device with processes, but we need support to run only router
-            # asyncio.run(self._start_router())
-
         except KeyboardInterrupt:
-            logging.error("Caught KeyboardInterrupt, terminating workers")
+            logging.warning("Caught KeyboardInterrupt, terminating server")
         except Exception as e:
             logging.exception(e)
         finally:
@@ -161,12 +163,5 @@ class ZeroServer:
 
     def _terminate_server(self):
         logging.warning(f"Terminating server at {self._port}")
-        try:
-            self._broker.close()
-            self._pool.terminate()
-            self._pool.join()
-            self._pool.close()
-            os.remove(self._device_ipc)
-        except Exception as e:
-            logging.exception(e)
+        log_error_multi(self._broker.close, self._pool.terminate, self._pool.join, self._pool.close, os.remove(self._device_ipc) if hasattr(self, "_device_ipc") and self._device_ipc else None)
         sys.exit(1)

@@ -27,7 +27,7 @@ def run(port):
     app.register_rpc(square_root)
     app.register_rpc(async_square_root)
     app.register_rpc(sleep)
-    app.run(cores=4)
+    app.run(workers=4)
 
 
 if __name__ == "__main__":
