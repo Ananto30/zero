@@ -8,7 +8,7 @@ from zero import AsyncZeroClient, ZeroClient, ZeroPublisher
 
 #     uvloop.install()
 # except ImportError:
-#     logging.warn("Cannot use uvloop")
+#     logging.warning("Cannot use uvloop")
 #     pass
 
 client = ZeroClient("server", 5559)

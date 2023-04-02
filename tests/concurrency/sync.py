@@ -1,9 +1,9 @@
 import random
 import time
 from functools import partial
-from multiprocessing.pool import Pool, ThreadPool
+from multiprocessing.pool import Pool
 
-from zero.client import ZeroClient
+from zero import ZeroClient
 
 client = ZeroClient("localhost", 5559)
 
@@ -15,6 +15,7 @@ def get_and_print(msg):
     resp = func(msg)
     if resp != f"slept for {msg} msecs":
         print(f"expected: slept for {msg} msecs, got: {resp}")
+    print(resp)
 
 
 if __name__ == "__main__":

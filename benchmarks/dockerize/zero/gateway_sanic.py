@@ -1,4 +1,5 @@
 import logging
+
 from sanic import Sanic
 from sanic.response import json, text
 
@@ -10,7 +11,7 @@ try:
 
     uvloop.install()
 except ImportError:
-    logging.warn("Cannot use uvloop")
+    logging.warning("Cannot use uvloop")
     pass
 
 

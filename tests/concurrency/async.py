@@ -3,7 +3,7 @@ import random
 import time
 from contextlib import contextmanager
 
-from zero.client import AsyncZeroClient
+from zero import AsyncZeroClient
 
 
 @contextmanager
