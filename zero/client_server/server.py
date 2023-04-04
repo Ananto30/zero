@@ -138,7 +138,7 @@ class ZeroServer:
         # TODO: by default we start the workers with processes,
         # but we need support to run only router, without workers
         worker_res = self._pool.map_async(spawn_worker, list(range(1, workers + 1)))
-        worker_res.wait()
+        worker_res.ready()
 
         # blocking
         self._broker.listen(self._address, self._device_comm_channel)
