@@ -16,3 +16,8 @@ coverage.*
 
 # code generation test directory
 test_codegen
+
+# Documentation 
+node_modules
+docs/.vitepress/cache
+docs/.vitepress/dist
