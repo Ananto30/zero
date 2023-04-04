@@ -34,7 +34,7 @@ class ZeroServer:
         ZeroServer registers and exposes rpc functions that can be called from a ZeroClient.
 
         By default ZeroServer uses all of the cores for best performance possible.
-        A "zmq queue device" load balances the requests and runs on the main thread.
+        A "zmq proxy" load balances the requests and runs on the main thread.
 
         Parameters
         ----------
@@ -96,7 +96,7 @@ class ZeroServer:
         `if __name__ == "__main__":`
         As the server runs on multiple processes.
 
-        It starts a zmq queue device on the main process and spawns workers on the background.
+        It starts a zmq proxy on the main process and spawns workers on the background.
         It uses a pool of processes to spawn workers. Each worker is a zmq router.
         A device is used to load balance the requests.
 
@@ -137,7 +137,8 @@ class ZeroServer:
 
         # TODO: by default we start the workers with processes,
         # but we need support to run only router, without workers
-        self._pool.map_async(spawn_worker, list(range(1, workers + 1)))
+        worker_res = self._pool.map_async(spawn_worker, list(range(1, workers + 1)))
+        worker_res.wait()
 
         # blocking
         self._broker.listen(self._address, self._device_comm_channel)
@@ -178,5 +179,5 @@ class ZeroServer:
     @log_error
     def _terminate_pool(self):
         self._pool.terminate()
-        self._pool.join()
         self._pool.close()
+        self._pool.join()

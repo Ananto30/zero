@@ -7,5 +7,5 @@ logging.basicConfig(
 )
 
 RESERVED_FUNCTIONS = ["get_rpc_contract", "connect"]
-ZEROMQ_PATTERN = "queue_device"
+ZEROMQ_PATTERN = "proxy"
 ENCODER = "msgpack"
