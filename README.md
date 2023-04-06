@@ -11,6 +11,9 @@
     <a href="https://pypi.org/project/zeroapi/" target="_blank">
         <img src="https://img.shields.io/pypi/v/zeroapi" />
     </a>
+    <a href="https://codeclimate.com/github/Ananto30/zero/maintainability" target="_blank">
+        <img src="https://api.codeclimate.com/v1/badges/4f2fd83bee97326699bc/maintainability" />
+    </a>
 </p>
 <hr>
 
