@@ -39,7 +39,11 @@ Some text
 
 ### Advanced
 
-- [Code Generation](../advanced/code_generation.md)
+- [Code Generation](../advanced/feature.md)
+
+### Tools
+
+- [Code Generation](../tool/code_generation.md)
 
 ### Testing
 
