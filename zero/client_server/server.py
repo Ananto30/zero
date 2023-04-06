@@ -19,7 +19,7 @@ from zero.utils.type import (
 )
 from zero.utils.util import get_next_available_port, log_error, register_signal_term, unique_id
 from zero.zero_mq import get_broker
-
+import zmq.utils.win32
 # import uvloop
 
 
@@ -137,12 +137,11 @@ class ZeroServer:
 
         # TODO: by default we start the workers with processes,
         # but we need support to run only router, without workers
-        worker_res = self._pool.map_async(spawn_worker, list(range(1, workers + 1)))
-        if sys.platform == "win32":
-            worker_res.wait()
+        self._pool.map_async(spawn_worker, list(range(1, workers + 1)))
 
         # blocking
-        self._broker.listen(self._address, self._device_comm_channel)
+        with zmq.utils.win32.allow_interrupt(self._terminate_server):
+            self._broker.listen(self._address, self._device_comm_channel)
 
     def _get_comm_channel(self) -> str:
         if os.name == "posix":
@@ -170,7 +169,6 @@ class ZeroServer:
         self._broker.close() if self._broker else None
         self._terminate_pool()
         self._remove_ipc()
-        sys.exit(1)
 
     @log_error
     def _remove_ipc(self):
