@@ -161,7 +161,8 @@ class ZeroServer:
 
     def _terminate_server(self):
         logging.warning(f"Terminating server at {self._port}")
-        self._broker.close() if hasattr(self, "_broker") and self._broker is not None else None
+        if hasattr(self, "_broker") and self._broker is not None:
+            self._broker.close()
         self._terminate_pool()
         self._remove_ipc()
         sys.exit(0)

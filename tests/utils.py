@@ -51,7 +51,7 @@ def _wait_for_process_to_die(process, timeout: int = 5):
 
 
 def start_subprocess(module: str) -> subprocess.Popen:
-    p = subprocess.Popen(["python", "-m", module])
+    p = subprocess.Popen(["python", "-m", module], shell=False)
     _ping_until_success(5559)
     return p
 
