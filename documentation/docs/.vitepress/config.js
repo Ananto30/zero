@@ -16,12 +16,6 @@ export default {
       }
     },
 
-    // Google Analytics
-    // head: [
-    //   [ 'script', { async: '' , src: "https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX" } ],
-    //   [ 'script', {} , "window.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('js', new Date());\ngtag('config', 'G-XXXXXXXXXX');" ],
-    // ],
-
     themeConfig: {
       siteTitle: 'Zero',
       logo : '/logo.png',
