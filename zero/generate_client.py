@@ -25,8 +25,8 @@ def generate_client_code_and_save(host, port, directory, overwrite_dir=False):
             if answer.lower() != "y":
                 return
 
-    with open(directory + "/rpc_client.py", "w") as f:
-        f.write(code)
+    with open(directory + "/rpc_client.py", "w") as fp:
+        fp.write(code)
 
 
 if __name__ == "__main__":  # pragma: no cover

@@ -64,8 +64,8 @@ class _Worker:
                 req_id, rpc_method, msg = decoded
                 response = self.handle_msg(rpc_method, msg)
                 return self.encoder.encode([req_id, response])
-            except Exception as e:
-                logging.exception(e)
+            except Exception as exc:
+                logging.exception(exc)
                 # TODO what to return
                 return None
 
@@ -75,8 +75,8 @@ class _Worker:
 
         except KeyboardInterrupt:
             logging.info("shutting down worker")
-        except Exception as e:
-            logging.exception(e)
+        except Exception as exc:
+            logging.exception(exc)
         finally:
             logging.info("closing worker")
             worker.close()
@@ -101,12 +101,12 @@ class _Worker:
 
             return func() if msg == "" else func(msg)
 
-        except Exception as e:
-            logging.exception(e)
+        except Exception as exc:
+            logging.exception(exc)
 
     def generate_rpc_contract(self, msg):
         try:
             return self.codegen.generate_code(msg[0], msg[1])
-        except Exception as e:
-            logging.exception(e)
-            return {"__zerror__failed_to_generate_client_code": str(e)}
+        except Exception as exc:
+            logging.exception(exc)
+            return {"__zerror__failed_to_generate_client_code": str(exc)}

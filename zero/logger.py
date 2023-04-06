@@ -62,8 +62,8 @@ class _AsyncLogger:  # pragma: no cover
                 logging.info(log)
         except KeyboardInterrupt:
             print("Caught KeyboardInterrupt, terminating async logger")
-        except Exception as e:
-            print(e)
+        except Exception as exc:
+            print(exc)
         finally:
             log_listener.close()
             sys.exit()

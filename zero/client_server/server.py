@@ -52,6 +52,10 @@ class ZeroServer:
             If any other encoder is used, the client should use the same encoder.
             Implement your own encoder by inheriting from `zero.encoder.Encoder`.
         """
+        self._broker = None
+        self._device_comm_channel = None
+        self._pool = None
+
         self._port = port
         self._host = host
         self._address = f"tcp://{self._host}:{self._port}"
@@ -147,8 +151,8 @@ class ZeroServer:
 
         except KeyboardInterrupt:
             logging.error("Caught KeyboardInterrupt, terminating workers")
-        except Exception as e:
-            logging.exception(e)
+        except Exception as exc:
+            logging.exception(exc)
         finally:
             self._terminate_server()
 
@@ -173,6 +177,6 @@ class ZeroServer:
             self._pool.join()
             self._pool.close()
             os.remove(self._device_ipc)
-        except Exception as e:
-            logging.exception(e)
+        except Exception as exc:
+            logging.exception(exc)
         sys.exit(1)

@@ -64,8 +64,8 @@ class ZeroSubscriber:  # pragma: no cover
 
             zmq.device(zmq.FORWARDER, gateway, backend)
 
-        except Exception as e:
-            logging.error(e)
+        except Exception as exc:
+            logging.error(exc)
             logging.error("bringing down zmq device")
         finally:
             gateway.close()
@@ -99,11 +99,11 @@ class Listener:  # pragma: no cover
             topic, msg = await socket.recv_multipart()
             try:
                 await self._handle_msg(msgpack.unpackb(msg))
-            except Exception as e:
-                logging.error(e)
+            except Exception as exc:
+                logging.error(exc)
 
     async def _handle_msg(self, msg):
         try:
             return await self.__func(msg)
-        except Exception as e:
-            logging.exception(e)
+        except Exception as exc:
+            logging.exception(exc)

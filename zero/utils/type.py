@@ -138,21 +138,21 @@ def verify_allowed_type(msg, rpc_method: Optional[str] = None):
 def verify_incoming_rpc_call_input_type(
     msg, rpc_method: str, rpc_input_type_map: dict
 ):  # pragma: no cover
-    it = rpc_input_type_map[rpc_method]
-    if it is None:
+    input_type = rpc_input_type_map[rpc_method]
+    if input_type is None:
         return
 
-    if it in basic_types:
-        if it != type(msg):
+    if input_type in basic_types:
+        if input_type != type(msg):
             raise TypeError(
-                f"{msg} is not allowed for method `{rpc_method}`; allowed type: {it}"
+                f"{msg} is not allowed for method `{rpc_method}`; allowed type: {input_type}"
             )
 
-    origin_type = get_origin(it)
+    origin_type = get_origin(input_type)
     if origin_type in basic_types:
         if origin_type != type(msg):
             raise TypeError(
-                f"{msg} is not allowed for method `{rpc_method}`; allowed type: {it}"
+                f"{msg} is not allowed for method `{rpc_method}`; allowed type: {input_type}"
             )
 
 

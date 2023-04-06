@@ -174,8 +174,8 @@ class AsyncZeroClient:
                 resp_id, data = self._encoder.decode(frames)
                 self._resp_map[resp_id] = data
                 await self.peer1.send(b"")
-            except Exception as e:
-                logging.error(f"Error while polling data: {e}")
+            except Exception as exc:
+                logging.error(f"Error while polling data: {exc}")
 
     async def call(
         self,

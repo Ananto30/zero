@@ -16,16 +16,16 @@ def zpipe(
 
     Returns a pair of PAIRs connected via inproc
     """
-    a = ctx.socket(zmq.PAIR)
-    b = ctx.socket(zmq.PAIR)
-    a.linger = b.linger = 0
-    a.hwm = b.hwm = 1
-    a.sndtimeo = b.sndtimeo = timeout
-    a.rcvtimeo = b.rcvtimeo = timeout
+    sock_a = ctx.socket(zmq.PAIR)
+    sock_b = ctx.socket(zmq.PAIR)
+    sock_a.linger = sock_b.linger = 0
+    sock_a.hwm = sock_b.hwm = 1
+    sock_a.sndtimeo = sock_b.sndtimeo = timeout
+    sock_a.rcvtimeo = sock_b.rcvtimeo = timeout
     iface = f"inproc://{unique_id()}"
-    a.bind(iface)
-    b.connect(iface)
-    return a, b
+    sock_a.bind(iface)
+    sock_b.connect(iface)
+    return sock_a, sock_b
 
 
 def zpipe_async(
@@ -38,13 +38,13 @@ def zpipe_async(
 
     Returns a pair of PAIRs connected via inproc
     """
-    a = ctx.socket(zmq.PAIR)
-    b = ctx.socket(zmq.PAIR)
-    a.linger = b.linger = 0
-    a.hwm = b.hwm = 1
-    a.sndtimeo = b.sndtimeo = timeout
-    a.rcvtimeo = b.rcvtimeo = timeout
+    sock_a = ctx.socket(zmq.PAIR)
+    sock_b = ctx.socket(zmq.PAIR)
+    sock_a.linger = sock_b.linger = 0
+    sock_a.hwm = sock_b.hwm = 1
+    sock_a.sndtimeo = sock_b.sndtimeo = timeout
+    sock_a.rcvtimeo = sock_b.rcvtimeo = timeout
     iface = f"inproc://{unique_id()}"
-    a.bind(iface)
-    b.connect(iface)
-    return a, b
+    sock_a.bind(iface)
+    sock_b.connect(iface)
+    return sock_a, sock_b
