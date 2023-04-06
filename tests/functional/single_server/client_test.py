@@ -1,6 +1,7 @@
 import asyncio
 import random
 import time
+from functools import partial
 
 import pytest
 
@@ -47,6 +48,23 @@ def test_server_error():
     assert msg is None
 
 
+def test_multiple_errors():
+    client = ZeroClient(server.HOST, server.PORT)
+    msg = client.call("error", "some error")
+    assert msg is None
+    msg = client.call("error", "some error")
+    assert msg is None
+    msg = client.call("error", "some error")
+    assert msg is None
+    msg = client.call("error", "some error")
+    assert msg is None
+    msg = client.call("error", "some error")
+    assert msg is None
+
+    msg = client.call("divide", (10, 2))
+    assert msg == 5
+
+
 def test_default_timeout():
     client = ZeroClient(server.HOST, server.PORT, default_timeout=100)
     with pytest.raises(zero.error.TimeoutException):
@@ -86,25 +104,27 @@ def test_timeout_all():
         assert msg is None
 
 
-# TODO fix this test for github actions
+# TODO fix server is blocked until a long running call is completed
 # def test_one_call_should_not_affect_another():
 #     client = ZeroClient(server.HOST, server.PORT)
 
-#     with pytest.raises(zero.error.TimeoutException):
-#         msg = client.call("sleep", 1000, timeout=100)
-#         assert msg is None
-
-#     msg = client.call("sleep", 10, timeout=200)
-#     assert msg == "slept for 10 msecs"
-
-#     msg = client.call("sleep", 10, timeout=200)
-#     assert msg == "slept for 10 msecs"
+#     sleep = partial(client.call, "sleep_async")
 
 #     with pytest.raises(zero.error.TimeoutException):
-#         msg = client.call("sleep", 200, timeout=100)
+#         msg = sleep(1000, timeout=100)
 #         assert msg is None
 
-#     msg = client.call("sleep", 30, timeout=300)
+#     msg = sleep(10, timeout=200)
+#     assert msg == "slept for 10 msecs"
+
+#     msg = sleep(10, timeout=200)
+#     assert msg == "slept for 10 msecs"
+
+#     with pytest.raises(zero.error.TimeoutException):
+#         msg = sleep(200, timeout=100)
+#         assert msg is None
+
+#     msg = sleep(30, timeout=300)
 #     assert msg == "slept for 30 msecs"
 
 

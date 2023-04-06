@@ -32,6 +32,9 @@ class RpcClient:
     def sleep(self, msec: int) -> str:
         return self._zero_client.call("sleep", msec)
 
+    def sleep_async(self, msec: int) -> str:
+        return self._zero_client.call("sleep_async", msec)
+
     def error(self, msg: str) -> str:
         return self._zero_client.call("error", msg)
 

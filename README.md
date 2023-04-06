@@ -24,13 +24,12 @@
 
 **Philosophy** behind Zero:
 
-- **Zero learning curve**: The learning curve is tends to zero. You just add your functions and spin up a server, literally that's it!
-  The framework hides the complexity of messaging pattern that enables faster communication.
+- **Zero learning curve**: The learning curve is tends to zero. You just add your functions and spin up a server, literally that's it! The framework hides the complexity of messaging pattern that enables faster communication.
 - **ZeroMQ**: An awesome messaging library enables the power of Zero.
 
 Let's get started!
 
-## Getting started 🚀
+# Getting started 🚀
 
 _Ensure Python 3.8+_
 
@@ -38,8 +37,7 @@ _Ensure Python 3.8+_
 pip install zeroapi
 ```
 
-**For Windows**, [tornado](https://pypi.org/project/tornado/) needs to be installed separately (for async operations). 
-It's not included with `zeroapi` because for linux and mac-os, tornado is not needed as they have their own event loops.
+**For Windows**, [tornado](https://pypi.org/project/tornado/) needs to be installed separately (for async operations). It's not included with `zeroapi` because for linux and mac-os, tornado is not needed as they have their own event loops.
 
 - Create a `server.py`
 
@@ -59,7 +57,6 @@ async def hello_world() -> str:
 
 if __name__ == "__main__":
     app.run()
-
 ```
 
 Please note that server **RPC methods are type hinted**. Type hint is **must** in Zero server.
@@ -91,7 +88,6 @@ def hello():
 if __name__ == "__main__":
     echo()
     hello()
-
 ```
 
 Or using async client -
@@ -116,10 +112,9 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(echo())
     loop.run_until_complete(hello())
-
 ```
 
-## Code Generation! 🙌
+# Code Generation! 🙌
 
 You can also use our code generation tool to generate Python client code!
 
@@ -151,7 +146,6 @@ class RpcClient:
 
     def hello_world(self, msg: str) -> str:
         return self._zero_client.call("hello_world", msg)
-
 ```
 
 Use the client -
@@ -168,12 +162,12 @@ if __name__ == "__main__":
 
 Currently, the code generation tool supports only `ZeroClient` and not `AsyncZeroClient`.
 
-## Important notes 📝
+# Important notes 📝
 
 - `ZeroServer` should always be run under `if __name__ == "__main__":`, as it uses multiprocessing.
 - The methods which are under `register_rpc()` in `ZeroServer` should have **type hinting**, like `def echo(msg: str):`
 
-## Let's do some benchmarking 🤘
+# Let's do some benchmarking 🤘
 
 Zero is talking about inter service communication. In most real life scenarios, we need to call another microservice.
 
@@ -186,29 +180,29 @@ There are two endpoints in every tests,
 
 Compare the results! 👇
 
-## Benchmarks 🏆
+# Benchmarks 🏆
 
 11th Gen Intel® Core™ i7-11800H @ 2.30GHz, 8 cores, 16 threads, 16GB RAM (Docker in Ubuntu 22.04.2 LTS)
 
 _(Sorted alphabetically)_
 
-| Framework   | "hello world" (req/s) | 99% latency (ms) | redis save (req/s) | 99% latency (ms) |
-| ----------- | --------------------- | ---------------- | ------------------ | ---------------- |
-| aiohttp     | 14391.38              | 10.96            | 9470.74            | 12.94            |
-| aiozmq      | 15121.86              | 9.42             | 5904.84            | 21.57            |
-| fastApi     | 9590.96               | 18.31            | 6669.81            | 24.41            |
-| sanic       | 18790.49              | 8.69             | 12259.29           | 13.52            |
-| zero(sync)  | 24805.61              | 4.57             | 16498.83           | 7.80             |
-| zero(async) | 22716.84              | 5.61             | 17446.19           | 7.24             |
+Framework   | "hello world" (req/s) | 99% latency (ms) | redis save (req/s) | 99% latency (ms)
+----------- | --------------------- | ---------------- | ------------------ | ----------------
+aiohttp     | 14391.38              | 10.96            | 9470.74            | 12.94
+aiozmq      | 15121.86              | 9.42             | 5904.84            | 21.57
+fastApi     | 9590.96               | 18.31            | 6669.81            | 24.41
+sanic       | 18790.49              | 8.69             | 12259.29           | 13.52
+zero(sync)  | 24805.61              | 4.57             | 16498.83           | 7.80
+zero(async) | 22716.84              | 5.61             | 17446.19           | 7.24
 
-## Todo list 📃
+# Todo list 📃
 
 - Add pydantic support
 - Code generation for pydantic models
 - Improve error handling
 - Fault tolerance
 
-## Contribution
+# Contribution
 
 Contributors are welcomed 🙏
 

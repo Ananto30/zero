@@ -1,6 +1,7 @@
 import logging
 from typing import Callable, Optional
 
+# import zmq.green as zmq
 import zmq
 
 
@@ -22,16 +23,16 @@ class ZeroMQWorker:
         logging.info(f"Starting worker {self.worker_id}")
 
         while True:
-            socks = dict(self.poller.poll(1000))
+            socks = dict(self.poller.poll(100))
             if self.socket in socks:
-                frames = self.socket.recv_multipart()
+                frames = self.socket.recv_multipart(flags=zmq.NOBLOCK)
                 if len(frames) != 2:
                     logging.error(f"Invalid message received: {frames}")
                     continue
 
                 ident, message = frames
                 response = msg_handler(message)
-                self.socket.send_multipart([ident, response], zmq.DONTWAIT)
+                self.socket.send_multipart([ident, response], zmq.NOBLOCK)
 
     def close(self) -> None:
         self.socket.close()

@@ -6,20 +6,15 @@ from functools import partial
 from multiprocessing.pool import Pool
 from typing import Callable, Dict, Optional
 
-import zero.config as config
-from zero.client_server.worker import _Worker
-from zero.encoder import Encoder, get_encoder
-from zero.utils.type import (
-    get_function_input_class,
-    get_function_return_class,
-    verify_function_args,
-    verify_function_input_type,
-    verify_function_return,
-    verify_function_return_type,
-)
-from zero.utils.util import get_next_available_port, log_error, register_signal_term, unique_id
-from zero.zero_mq import get_broker
 import zmq.utils.win32
+
+from zero import config
+from zero.encoder import Encoder, get_encoder
+from zero.utils import type_util, util
+from zero.zero_mq import get_broker
+
+from .worker import _Worker
+
 # import uvloop
 
 
@@ -76,13 +71,13 @@ class ZeroServer:
             RPC function.
         """
         self._verify_function_name(func)
-        verify_function_args(func)
-        verify_function_input_type(func)
-        verify_function_return(func)
-        verify_function_return_type(func)
+        type_util.verify_function_args(func)
+        type_util.verify_function_input_type(func)
+        type_util.verify_function_return(func)
+        type_util.verify_function_return_type(func)
 
-        self._rpc_input_type_map[func.__name__] = get_function_input_class(func)
-        self._rpc_return_type_map[func.__name__] = get_function_return_class(func)
+        self._rpc_input_type_map[func.__name__] = type_util.get_function_input_class(func)
+        self._rpc_return_type_map[func.__name__] = type_util.get_function_return_class(func)
 
         self._rpc_router[func.__name__] = func
         return func
@@ -98,7 +93,7 @@ class ZeroServer:
 
         It starts a zmq proxy on the main process and spawns workers on the background.
         It uses a pool of processes to spawn workers. Each worker is a zmq router.
-        A device is used to load balance the requests.
+        A proxy device is used to load balance the requests.
 
         Parameters
         ----------
@@ -133,7 +128,7 @@ class ZeroServer:
         self._pool = Pool(workers)
 
         # process termination signals
-        register_signal_term(self._sig_handler)
+        util.register_signal_term(self._sig_handler)
 
         # TODO: by default we start the workers with processes,
         # but we need support to run only router, without workers
@@ -145,12 +140,12 @@ class ZeroServer:
 
     def _get_comm_channel(self) -> str:
         if os.name == "posix":
-            ipc_id = unique_id()
+            ipc_id = util.unique_id()
             self._device_ipc = f"{ipc_id}.ipc"
             return f"ipc://{ipc_id}.ipc"
 
         # device port is used for non-posix env
-        return f"tcp://127.0.0.1:{get_next_available_port(6666)}"
+        return f"tcp://127.0.0.1:{util.get_next_available_port(6666)}"
 
     def _verify_function_name(self, func):
         if not isinstance(func, Callable):
@@ -166,16 +161,17 @@ class ZeroServer:
 
     def _terminate_server(self):
         logging.warning(f"Terminating server at {self._port}")
-        self._broker.close() if self._broker else None
+        self._broker.close() if hasattr(self, "_broker") and self._broker is not None else None
         self._terminate_pool()
         self._remove_ipc()
+        sys.exit(0)
 
-    @log_error
+    @util.log_error
     def _remove_ipc(self):
         if os.name == "posix":
             os.remove(self._device_ipc)
 
-    @log_error
+    @util.log_error
     def _terminate_pool(self):
         self._pool.terminate()
         self._pool.close()
