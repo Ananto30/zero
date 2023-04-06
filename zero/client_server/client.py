@@ -85,7 +85,9 @@ class ZeroClient:
 
         def _poll_data():
             if not self.zmq.poll(_timeout):
-                raise TimeoutException(f"Timeout while sending message at {self._address}")
+                raise TimeoutException(
+                    f"Timeout while sending message at {self._address}"
+                )
 
             resp_id, resp_data = self.encdr.decode(self.zmq.recv())
             return resp_id, resp_data
@@ -227,7 +229,9 @@ class AsyncZeroClient:
             await asyncio.sleep(1e-6)
 
         if current_time_us() > expire_at:
-            raise TimeoutException(f"Timeout while waiting for response at {self._address}")
+            raise TimeoutException(
+                f"Timeout while waiting for response at {self._address}"
+            )
 
         resp_data = self._resp_map.pop(req_id)
 

@@ -61,7 +61,9 @@ class RpcClient:
         def_line = [line for line in func_lines if "def" in line][0]
 
         # put self after the first (
-        def_line = def_line.replace(f"{func_name}(", f"{func_name}(self").replace("async ", "")
+        def_line = def_line.replace(f"{func_name}(", f"{func_name}(self").replace(
+            "async ", ""
+        )
 
         # if there is input, add comma after self
         if self._rpc_input_type_map[func_name]:

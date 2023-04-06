@@ -94,9 +94,13 @@ class ZeroServer:
         if not isinstance(func, Callable):
             raise ValueError(f"register function; not {type(func)}")
         if func.__name__ in self._rpc_router:
-            raise ValueError(f"cannot have two RPC function same name: `{func.__name__}`")
+            raise ValueError(
+                f"cannot have two RPC function same name: `{func.__name__}`"
+            )
         if func.__name__ in config.RESERVED_FUNCTIONS:
-            raise ValueError(f"{func.__name__} is a reserved function; cannot have `{func.__name__}` as a RPC function")
+            raise ValueError(
+                f"{func.__name__} is a reserved function; cannot have `{func.__name__}` as a RPC function"
+            )
 
     def run(self, cores: int = os.cpu_count() or 1):
         """

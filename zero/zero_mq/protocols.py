@@ -65,7 +65,9 @@ class ZeroMQBroker(Protocol):  # pragma: no cover
 
 @runtime_checkable
 class ZeroMQWorker(Protocol):  # pragma: no cover
-    def listen(self, address: str, msg_handler: Callable[[bytes], Optional[bytes]]) -> None:
+    def listen(
+        self, address: str, msg_handler: Callable[[bytes], Optional[bytes]]
+    ) -> None:
         ...
 
     def close(self) -> None:

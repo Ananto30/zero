@@ -1,4 +1,13 @@
-from typing import Callable, Dict, List, Optional, Tuple, Union, get_origin, get_type_hints
+from typing import (
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    Union,
+    get_origin,
+    get_type_hints,
+)
 
 # from pydantic import BaseModel
 
@@ -41,7 +50,9 @@ def verify_function_args(func: Callable) -> None:
     arg_name = func.__code__.co_varnames[0]
     func_arg_type = get_type_hints(func)
     if arg_name not in func_arg_type:
-        raise TypeError(f"`{func.__name__}` has no type hinting; RPC functions must have type hints")
+        raise TypeError(
+            f"`{func.__name__}` has no type hinting; RPC functions must have type hints"
+        )
 
 
 def verify_function_return(func: Callable) -> None:
@@ -53,7 +64,9 @@ def verify_function_return(func: Callable) -> None:
 
     types = get_type_hints(func)
     if not types.get("return"):
-        raise TypeError(f"`{func.__name__}` has no return type hinting; RPC functions must have type hints")
+        raise TypeError(
+            f"`{func.__name__}` has no return type hinting; RPC functions must have type hints"
+        )
 
 
 def get_function_input_class(func: Callable) -> Optional[type]:
@@ -115,23 +128,30 @@ def verify_allowed_type(msg, rpc_method: Optional[str] = None):
     if not isinstance(msg, tuple(allowed_types)):
         method_name = f"for method `{rpc_method}`" if rpc_method else ""
         raise TypeError(
-            f"{msg} is not allowed {method_name}; allowed types are: \n" + "\n".join([str(t) for t in allowed_types])
+            f"{msg} is not allowed {method_name}; allowed types are: \n"
+            + "\n".join([str(t) for t in allowed_types])
         )
 
 
-def verify_incoming_rpc_call_input_type(msg, rpc_method: str, rpc_input_type_map: dict):  # pragma: no cover
+def verify_incoming_rpc_call_input_type(
+    msg, rpc_method: str, rpc_input_type_map: dict
+):  # pragma: no cover
     it = rpc_input_type_map[rpc_method]
     if it is None:
         return
 
     if it in basic_types:
         if it != type(msg):
-            raise TypeError(f"{msg} is not allowed for method `{rpc_method}`; allowed type: {it}")
+            raise TypeError(
+                f"{msg} is not allowed for method `{rpc_method}`; allowed type: {it}"
+            )
 
     origin_type = get_origin(it)
     if origin_type in basic_types:
         if origin_type != type(msg):
-            raise TypeError(f"{msg} is not allowed for method `{rpc_method}`; allowed type: {it}")
+            raise TypeError(
+                f"{msg} is not allowed for method `{rpc_method}`; allowed type: {it}"
+            )
 
 
 def is_pydantic(cls):  # pragma: no cover
