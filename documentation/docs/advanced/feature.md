@@ -4,13 +4,13 @@ prev:
   link: 'basic/middleware.md'
 
 next:
-  text: 'Getting Started Testing'
-  link: 'testing/getting_started.md'
+  text: 'Code Generation'
+  link: 'tool/code_generation.md'
 ---
 
 
 
-# Code Generation
+# Feature
 
 Some text
 

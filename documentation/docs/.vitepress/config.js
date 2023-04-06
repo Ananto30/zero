@@ -80,7 +80,15 @@ export default {
           text: 'Advanced',
           collapsed: true,
           items: [
-            { text: 'Code Generation',link: 'advanced/code_generation.md' },
+            { text: 'Feature',link: 'advanced/feature.md' },
+          ],
+        },
+
+        {
+          text: 'Tools',
+          collapsed: true,
+          items: [
+            { text: 'Code Generation',link: 'tool/code_generation.md' },
           ],
         },
         

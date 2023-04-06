@@ -1,7 +1,7 @@
 ---
 prev:
   text: 'Code Generation'
-  link: 'advanced/code_generation.md'
+  link: 'tool/code_generation.md'
 
 next:
   text: 'Http Testing'
