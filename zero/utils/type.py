@@ -44,7 +44,8 @@ def verify_function_args(func: Callable) -> None:
         return
     if arg_count > 1:
         raise ValueError(
-            f"`{func.__name__}` has more than 1 args; RPC functions can have only one arg - msg, or no arg"
+            f"`{func.__name__}` has more than 1 args; "
+            "RPC functions can have only one arg - msg, or no arg"
         )
 
     arg_name = func.__code__.co_varnames[0]
@@ -59,7 +60,8 @@ def verify_function_return(func: Callable) -> None:
     return_count = func.__code__.co_argcount
     if return_count > 1:
         raise ValueError(
-            f"`{func.__name__}` has more than 1 return values; RPC functions can have only one return value"
+            f"`{func.__name__}` has more than 1 return values; "
+            "RPC functions can have only one return value"
         )
 
     types = get_type_hints(func)

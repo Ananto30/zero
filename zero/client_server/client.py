@@ -68,7 +68,8 @@ class ZeroClient:
         Call the rpc method of the ZeroServer.
 
         @param rpc_method_name:
-        Method name should be string. This method should reside on the ZeroServer to get a successful response.
+        Method name should be string.
+        This method should reside on the ZeroServer to get a successful response.
 
         @param msg:
         For msgpack serializer, msg should be base Python types. Cannot be objects.
@@ -186,7 +187,8 @@ class AsyncZeroClient:
         Call the rpc method of the ZeroServer.
 
         @param rpc_method_name:
-        Method name should be string. This method should reside on the ZeroServer to get a successful response.
+        Method name should be string.
+        This method should reside on the ZeroServer to get a successful response.
 
         @param msg:
         For msgpack serializer, msg should be base Python types. Cannot be objects.

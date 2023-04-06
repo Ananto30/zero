@@ -10,9 +10,11 @@ class _AsyncLogger:  # pragma: no cover
     *We don't have any support for async logger now.*
 
     The idea is to have a push pull based logger to reduce io time in main process.
-    Logger will serve the methods like info, warn, error, exception and push to the desired tcp or ipc.
+    Logger will serve the methods like info, warn, error, exception
+        and push to the desired tcp or ipc.
 
-    The problem is, as the server runs in several processes, the logger makes each instance in each process.
+    The problem is, as the server runs in several processes,
+        the logger makes each instance in each process.
     If we run two servers, we cannot connect to the same ipc or tcp.
     So our logger's tcp or ipc should be dynamic.
     But as we got several instances of the logger,

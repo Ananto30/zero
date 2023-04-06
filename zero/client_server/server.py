@@ -99,7 +99,8 @@ class ZeroServer:
             )
         if func.__name__ in config.RESERVED_FUNCTIONS:
             raise ValueError(
-                f"{func.__name__} is a reserved function; cannot have `{func.__name__}` as a RPC function"
+                f"{func.__name__} is a reserved function; cannot have `{func.__name__}` "
+                "as a RPC function"
             )
 
     def run(self, cores: int = os.cpu_count() or 1):
@@ -140,7 +141,8 @@ class ZeroServer:
             # blocking
             self._broker.listen(self._address, self._device_comm_channel)
 
-            # TODO: by default we start the device with processes, but we need support to run only router
+            # TODO: by default we start the device with processes,
+            #  but we need support to run only router
             # asyncio.run(self._start_router())
 
         except KeyboardInterrupt:
