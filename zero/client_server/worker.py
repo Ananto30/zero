@@ -24,7 +24,7 @@ class _Worker:
         # give some time for the broker to start
         time.sleep(0.2)
 
-        worker = _Worker(
+        worker = cls(
             rpc_router,
             device_comm_channel,
             encoder,
