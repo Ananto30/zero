@@ -23,7 +23,7 @@ class ZeroSubscriber:  # pragma: no cover
 
     def register_listener(self, topic: str, func: typing.Callable):
         if not isinstance(func, typing.Callable):
-            raise Exception(f"topic should listen to function not {type(func)}")
+            raise ValueError(f"topic should listen to function not {type(func)}")
         self.__topic_map[topic] = func
 
     def run(self):
@@ -32,19 +32,23 @@ class ZeroSubscriber:  # pragma: no cover
             processes = [
                 Process(
                     target=Listener.spawn_listener_worker,
-                    args=(topic, self.__topic_map[topic]),
+                    args=(topic, func),
                 )
-                for topic in self.__topic_map
+                for topic, func in self.__topic_map.items()
             ]
-            [prcs.start() for prcs in processes]
+            for prcs in processes:
+                prcs.start()
             self._create_zmq_device()
         except KeyboardInterrupt:
             print("Caught KeyboardInterrupt, terminating workers")
-            [prcs.terminate() for prcs in processes]
+            for prcs in processes:
+                prcs.terminate()
         else:
             print("Normal termination")
-            [prcs.close() for prcs in processes]
-        [prcs.join() for prcs in processes]
+            for prcs in processes:
+                prcs.close()
+        for prcs in processes:
+            prcs.join()
 
     def _create_zmq_device(self):
         try:
@@ -54,7 +58,7 @@ class ZeroSubscriber:  # pragma: no cover
             gateway.bind(f"tcp://*:{self.__port}")
             gateway.setsockopt_string(zmq.SUBSCRIBE, "")
 
-            logging.info(f"Starting server at {self.__port}")
+            logging.info("Starting server at %d", self.__port)
 
             backend = ctx.socket(zmq.PUB)
             if sys.platform == "posix":
@@ -64,8 +68,8 @@ class ZeroSubscriber:  # pragma: no cover
 
             zmq.device(zmq.FORWARDER, gateway, backend)
 
-        except Exception as e:
-            logging.error(e)
+        except Exception as exc:
+            logging.error(exc)
             logging.error("bringing down zmq device")
         finally:
             gateway.close()
@@ -76,7 +80,7 @@ class ZeroSubscriber:  # pragma: no cover
 class Listener:  # pragma: no cover
     @classmethod
     def spawn_listener_worker(cls, topic, func):
-        worker = Listener(topic, func)
+        worker = cls(topic, func)
         asyncio.run(worker._create_worker())
 
     def __init__(self, topic, func):
@@ -93,17 +97,17 @@ class Listener:  # pragma: no cover
             socket.connect("tcp://127.0.0.1:6667")
 
         socket.setsockopt_string(zmq.SUBSCRIBE, self.__topic)
-        logging.info(f"Starting listener for: {self.__topic}")
+        logging.info("Starting listener for: %s", self.__topic)
 
         while True:
             topic, msg = await socket.recv_multipart()
             try:
                 await self._handle_msg(msgpack.unpackb(msg))
-            except Exception as e:
-                logging.error(e)
+            except Exception as exc:
+                logging.error(exc)
 
     async def _handle_msg(self, msg):
         try:
             return await self.__func(msg)
-        except Exception as e:
-            logging.exception(e)
+        except Exception as exc:
+            logging.exception(exc)

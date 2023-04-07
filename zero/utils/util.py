@@ -22,17 +22,17 @@ def get_next_available_port(port: int) -> int:
 
     """
 
-    def is_port_available(port: int) -> bool:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    def is_port_available() -> bool:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            s.bind(("localhost", port))
+            sock.bind(("localhost", port))
             return True
         except socket.error:
             return False
         finally:
-            s.close()
+            sock.close()
 
-    while not is_port_available(port):
+    while not is_port_available():
         port += 1
 
     return port

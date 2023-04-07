@@ -2,7 +2,7 @@ import asyncio
 import logging
 from typing import Any, Dict, Optional, Union
 
-import zero.config as config
+from zero import config
 from zero.encoder import Encoder, get_encoder
 from zero.error import MethodNotFoundException, TimeoutException
 from zero.utils.util import current_time_us, unique_id
@@ -12,11 +12,11 @@ from zero.zero_mq.helpers import zpipe_async
 
 class ZeroClient:
     def __init__(
-        self,
-        host: str,
-        port: int,
-        default_timeout: int = 2000,
-        encoder: Optional[Encoder] = None,
+            self,
+            host: str,
+            port: int,
+            default_timeout: int = 2000,
+            encoder: Optional[Encoder] = None,
     ):
         """
         ZeroClient provides the client interface for calling the ZeroServer.
@@ -45,7 +45,7 @@ class ZeroClient:
             self.zmq.close()
             self.zmq = None  # type: ignore
 
-    def _ensure_conntected(self):
+    def _ensure_connected(self):
         if self.zmq is not None:
             return
 
@@ -56,19 +56,20 @@ class ZeroClient:
         frames = [unique_id(), "connect", ""]
         self.zmq.send(self.encdr.encode(frames))
         self.encdr.decode(self.zmq.recv())
-        logging.info(f"Connected to server at {self._address}")
+        logging.info("Connected to server at %s", self._address)
 
     def call(
-        self,
-        rpc_method_name: str,
-        msg: Union[int, float, str, dict, list, tuple, None],
-        timeout: Optional[int] = None,
+            self,
+            rpc_method_name: str,
+            msg: Union[int, float, str, dict, list, tuple, None],
+            timeout: Optional[int] = None,
     ) -> Any:
         """
         Call the rpc method of the ZeroServer.
 
         @param rpc_method_name:
-        Method name should be string. This method should reside on the ZeroServer to get a successful response.
+        Method name should be string.
+        This method should reside on the ZeroServer to get a successful response.
 
         @param msg:
         For msgpack serializer, msg should be base Python types. Cannot be objects.
@@ -79,13 +80,15 @@ class ZeroClient:
         @return:
         Returns the response of ZeroServer's rpc method.
         """
-        self._ensure_conntected()
+        self._ensure_connected()
 
         _timeout = self._default_timeout if timeout is None else timeout
 
         def _poll_data():
             if not self.zmq.poll(_timeout):
-                raise TimeoutException(f"Timeout while sending message at {self._address}")
+                raise TimeoutException(
+                    f"Timeout while sending message at {self._address}"
+                )
 
             resp_id, resp_data = self.encdr.decode(self.zmq.recv())
             return resp_id, resp_data
@@ -106,11 +109,11 @@ class ZeroClient:
 
 class AsyncZeroClient:
     def __init__(
-        self,
-        host: str,
-        port: int,
-        default_timeout: int = 2000,
-        encoder: Optional[Encoder] = None,
+            self,
+            host: str,
+            port: int,
+            default_timeout: int = 2000,
+            encoder: Optional[Encoder] = None,
     ):
         """
         AsyncZeroClient provides the asynchronous client interface for calling the ZeroServer.
@@ -129,14 +132,14 @@ class AsyncZeroClient:
         self._address = f"tcp://{host}:{port}"
         self._default_timeout = default_timeout
         self._encoder = encoder or get_encoder(config.ENCODER)
+        self._resp_map: Dict[str, Any] = {}
 
+        self.peer1 = self.peer2 = None
         self.zmq: AsyncZeroMQClient = None  # type: ignore
 
     def _init(self):
         self.zmq = get_async_client(config.ZEROMQ_PATTERN, self._default_timeout)
         self.zmq.connect(self._address)
-
-        self._resp_map: Dict[str, Any] = {}
 
         self.peer1, self.peer2 = zpipe_async(self.zmq.context, 10000)
         # TODO try to use pipe instead of sleep
@@ -159,7 +162,7 @@ class AsyncZeroClient:
         frames = [unique_id(), "connect", ""]
         await self.zmq.send(self._encoder.encode(frames))
         self._encoder.decode(await self.zmq.recv())
-        logging.info(f"Connected to server at {self._address}")
+        logging.info("Connected to server at %s", self._address)
 
     async def _poll_data(self):  # pragma: no cover
         while True:
@@ -171,20 +174,21 @@ class AsyncZeroClient:
                 resp_id, data = self._encoder.decode(frames)
                 self._resp_map[resp_id] = data
                 await self.peer1.send(b"")
-            except Exception as e:
-                logging.error(f"Error while polling data: {e}")
+            except Exception as exc:
+                logging.error("Error while polling data: %s", exc)
 
     async def call(
-        self,
-        rpc_method_name: str,
-        msg: Union[int, float, str, dict, list, tuple, None],
-        timeout: Optional[int] = None,
+            self,
+            rpc_method_name: str,
+            msg: Union[int, float, str, dict, list, tuple, None],
+            timeout: Optional[int] = None,
     ) -> Any:
         """
         Call the rpc method of the ZeroServer.
 
         @param rpc_method_name:
-        Method name should be string. This method should reside on the ZeroServer to get a successful response.
+        Method name should be string.
+        This method should reside on the ZeroServer to get a successful response.
 
         @param msg:
         For msgpack serializer, msg should be base Python types. Cannot be objects.
@@ -227,7 +231,9 @@ class AsyncZeroClient:
             await asyncio.sleep(1e-6)
 
         if current_time_us() > expire_at:
-            raise TimeoutException(f"Timeout while waiting for response at {self._address}")
+            raise TimeoutException(
+                f"Timeout while waiting for response at {self._address}"
+            )
 
         resp_data = self._resp_map.pop(req_id)
 
