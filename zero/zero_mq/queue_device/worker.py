@@ -19,7 +19,7 @@ class ZeroMQWorker:
         self.poller.register(self.socket, zmq.POLLIN)
 
     def listen(
-            self, address: str, msg_handler: Callable[[bytes], Optional[bytes]]
+        self, address: str, msg_handler: Callable[[bytes], Optional[bytes]]
     ) -> None:
         self.socket.connect(address)
         logging.info("Starting worker %d", self.worker_id)

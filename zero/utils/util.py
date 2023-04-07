@@ -97,7 +97,8 @@ def log_error(func):
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except Exception as e:
-            logging.exception(e)
+        except Exception as exc:  # pylint: disable=broad-except
+            logging.exception(exc)
+            return None
 
     return wrapper

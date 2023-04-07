@@ -12,11 +12,11 @@ from zero.zero_mq.helpers import zpipe_async
 
 class ZeroClient:
     def __init__(
-            self,
-            host: str,
-            port: int,
-            default_timeout: int = 2000,
-            encoder: Optional[Encoder] = None,
+        self,
+        host: str,
+        port: int,
+        default_timeout: int = 2000,
+        encoder: Optional[Encoder] = None,
     ):
         """
         ZeroClient provides the client interface for calling the ZeroServer.
@@ -64,10 +64,12 @@ class ZeroClient:
         Parameters
         ----------
         rpc_func_name: str
-            Function name should be string. This funtion should reside on the ZeroServer to get a successful response.
+            Function name should be string.
+            This funtion should reside on the ZeroServer to get a successful response.
 
         msg: Union[int, float, str, dict, list, tuple, None]
-            The only argument of the rpc function. This should be of the same type as the rpc function's argument.
+            The only argument of the rpc function.
+            This should be of the same type as the rpc function's argument.
 
         timeout: Optional[int]
             Timeout for the call. In milliseconds.
@@ -112,7 +114,8 @@ class ZeroClient:
         resp_id, resp_data = None, None
         # as the client is synchronous, we know that the response will be available any next poll
         # we try to get the response until timeout because a previous call might be timed out
-        # and the response is still in the socket, so we poll until we get the response for this call
+        # and the response is still in the socket,
+        # so we poll until we get the response for this call
         while resp_id != req_id:
             resp_id, resp_data = _poll_data()
 
@@ -141,16 +144,16 @@ class ZeroClient:
         frames = [util.unique_id(), "connect", ""]
         self.zmqc.send(self.encdr.encode(frames))
         self.encdr.decode(self.zmqc.recv())
-        logging.info(f"Connected to server at {self._address}")
+        logging.info("Connected to server at %s", self._address)
 
 
 class AsyncZeroClient:
     def __init__(
-            self,
-            host: str,
-            port: int,
-            default_timeout: int = 2000,
-            encoder: Optional[Encoder] = None,
+        self,
+        host: str,
+        port: int,
+        default_timeout: int = 2000,
+        encoder: Optional[Encoder] = None,
     ):
         """
         AsyncZeroClient provides the asynchronous client interface for calling the ZeroServer.
@@ -189,7 +192,7 @@ class AsyncZeroClient:
         self._resp_map: Dict[str, Any] = {}
 
         self.zmqc: AsyncZeroMQClient = None  # type: ignore
-        self.peer1 = self.peer2 = None # type: ignore
+        self.peer1 = self.peer2 = None  # type: ignore
 
     async def call(
         self,
@@ -203,10 +206,12 @@ class AsyncZeroClient:
         Parameters
         ----------
         rpc_func_name: str
-            Function name should be string. This funtion should reside on the ZeroServer to get a successful response.
+            Function name should be string.
+            This funtion should reside on the ZeroServer to get a successful response.
 
         msg: Union[int, float, str, dict, list, tuple, None]
-            The only argument of the rpc function. This should be of the same type as the rpc function's argument.
+            The only argument of the rpc function.
+            This should be of the same type as the rpc function's argument.
 
         timeout: Optional[int]
             Timeout for the call. In milliseconds.
@@ -301,7 +306,7 @@ class AsyncZeroClient:
         frames = [util.unique_id(), "connect", ""]
         await self.zmqc.send(self._encoder.encode(frames))
         self._encoder.decode(await self.zmqc.recv())
-        logging.info(f"Connected to server at {self._address}")
+        logging.info("Connected to server at %s", self._address)
 
     async def _poll_data(self):  # pragma: no cover
         while True:
@@ -313,5 +318,5 @@ class AsyncZeroClient:
                 resp_id, data = self._encoder.decode(frames)
                 self._resp_map[resp_id] = data
                 await self.peer1.send(b"")
-            except Exception as e:
-                logging.error(f"Error while polling data: {e}")
+            except Exception as exc:  # pylint: disable=broad-except
+                logging.error("Error while polling data: %s", exc)

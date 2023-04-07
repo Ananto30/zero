@@ -136,7 +136,7 @@ def verify_allowed_type(msg, rpc_method: Optional[str] = None):
 
 
 def verify_incoming_rpc_call_input_type(
-        msg, rpc_method: str, rpc_input_type_map: dict
+    msg, rpc_method: str, rpc_input_type_map: dict
 ):  # pragma: no cover
     input_type = rpc_input_type_map[rpc_method]
     if input_type is None:

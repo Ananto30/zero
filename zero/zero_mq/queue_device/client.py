@@ -71,7 +71,7 @@ class AsyncZeroMQClient:
             # windows need special event loop policy to work with zmq
             asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-        self._address = None  # type: ignore
+        self._address: str = None  # type: ignore
         self._default_timeout = default_timeout
         self._context = zmq.asyncio.Context.instance()
 

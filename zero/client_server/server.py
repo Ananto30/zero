@@ -11,7 +11,7 @@ import zmq.utils.win32
 from zero import config
 from zero.encoder import Encoder, get_encoder
 from zero.utils import type_util, util
-from zero.zero_mq import get_broker
+from zero.zero_mq import get_broker, ZeroMQBroker
 
 from .worker import _Worker
 
@@ -20,10 +20,10 @@ from .worker import _Worker
 
 class ZeroServer:
     def __init__(
-            self,
-            host: str = "0.0.0.0",
-            port: int = 5559,
-            encoder: Optional[Encoder] = None,
+        self,
+        host: str = "0.0.0.0",
+        port: int = 5559,
+        encoder: Optional[Encoder] = None,
     ):
         """
         ZeroServer registers and exposes rpc functions that can be called from a ZeroClient.
@@ -81,8 +81,12 @@ class ZeroServer:
         type_util.verify_function_return(func)
         type_util.verify_function_return_type(func)
 
-        self._rpc_input_type_map[func.__name__] = type_util.get_function_input_class(func)
-        self._rpc_return_type_map[func.__name__] = type_util.get_function_return_class(func)
+        self._rpc_input_type_map[func.__name__] = type_util.get_function_input_class(
+            func
+        )
+        self._rpc_return_type_map[func.__name__] = type_util.get_function_return_class(
+            func
+        )
 
         self._rpc_router[func.__name__] = func
         return func
@@ -124,8 +128,8 @@ class ZeroServer:
             self._start_server(workers, spawn_worker)
         except KeyboardInterrupt:
             logging.warning("Caught KeyboardInterrupt, terminating server")
-        except Exception as e:
-            logging.exception(e)
+        except Exception as exc:  # pylint: disable=broad-except
+            logging.exception(exc)
         finally:
             self._terminate_server()
 
