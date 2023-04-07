@@ -45,7 +45,7 @@ class ZeroClient:
             self.zmq.close()
             self.zmq = None  # type: ignore
 
-    def _ensure_conntected(self):
+    def _ensure_connected(self):
         if self.zmq is not None:
             return
 
@@ -80,7 +80,7 @@ class ZeroClient:
         @return:
         Returns the response of ZeroServer's rpc method.
         """
-        self._ensure_conntected()
+        self._ensure_connected()
 
         _timeout = self._default_timeout if timeout is None else timeout
 
