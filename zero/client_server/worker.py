@@ -4,7 +4,7 @@ import logging
 import time
 from typing import Optional
 
-import zero.config as config
+from zero import config
 from zero.codegen.codegen import CodeGen
 from zero.encoder.protocols import Encoder
 from zero.zero_mq.factory import get_worker
@@ -64,15 +64,14 @@ class _Worker:
                 req_id, rpc_method, msg = decoded
                 response = self.handle_msg(rpc_method, msg)
                 return self.encoder.encode([req_id, response])
-            except Exception as exc:
-                logging.exception(exc)
+            except Exception as inner_exc:
+                logging.exception(inner_exc)
                 # TODO what to return
                 return None
 
         worker = get_worker(config.ZEROMQ_PATTERN, worker_id)
         try:
             worker.listen(self._device_comm_channel, process_message)
-
         except KeyboardInterrupt:
             logging.info("shutting down worker")
         except Exception as exc:
@@ -93,16 +92,20 @@ class _Worker:
             return {"__zerror__method_not_found": f"method `{rpc}` is not found!"}
 
         func = self._rpc_router[rpc]
+        ret = None
+
         try:
             # TODO: is this a bottleneck
             if inspect.iscoroutinefunction(func):
                 # this is blocking
-                return self._loop.run_until_complete(func() if msg == "" else func(msg))
-
-            return func() if msg == "" else func(msg)
+                ret = self._loop.run_until_complete(func(msg) if msg else func())
+            else:
+                ret = func(msg) if msg else func()
 
         except Exception as exc:
             logging.exception(exc)
+
+        return ret
 
     def generate_rpc_contract(self, msg):
         try:

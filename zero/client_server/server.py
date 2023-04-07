@@ -6,7 +6,7 @@ from functools import partial
 from multiprocessing.pool import Pool
 from typing import Callable, Dict, Optional
 
-import zero.config as config
+from zero import config
 from zero.client_server.worker import _Worker
 from zero.encoder import Encoder, get_encoder
 from zero.utils.type import (
@@ -55,6 +55,7 @@ class ZeroServer:
         self._broker = None
         self._device_comm_channel = None
         self._pool = None
+        self._device_ipc = None
 
         self._host = host
         self._port = port

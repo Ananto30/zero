@@ -158,7 +158,8 @@ def verify_incoming_rpc_call_input_type(
 
 def is_pydantic(cls):  # pragma: no cover
     if cls not in basic_types:
-        if not get_origin(cls) in basic_types:
-            if not get_origin(cls) in special_types:
+        if get_origin(cls) not in basic_types:
+            if get_origin(cls) not in special_types:
                 if issubclass(cls, tuple(pydantic_types)):
                     return True
+    return False

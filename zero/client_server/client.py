@@ -2,7 +2,7 @@ import asyncio
 import logging
 from typing import Any, Dict, Optional, Union
 
-import zero.config as config
+from zero import config
 from zero.encoder import Encoder, get_encoder
 from zero.error import MethodNotFoundException, TimeoutException
 from zero.utils.util import current_time_us, unique_id
@@ -132,14 +132,14 @@ class AsyncZeroClient:
         self._address = f"tcp://{host}:{port}"
         self._default_timeout = default_timeout
         self._encoder = encoder or get_encoder(config.ENCODER)
+        self._resp_map: Dict[str, Any] = {}
 
+        self.peer1 = self.peer2 = None
         self.zmq: AsyncZeroMQClient = None  # type: ignore
 
     def _init(self):
         self.zmq = get_async_client(config.ZEROMQ_PATTERN, self._default_timeout)
         self.zmq.connect(self._address)
-
-        self._resp_map: Dict[str, Any] = {}
 
         self.peer1, self.peer2 = zpipe_async(self.zmq.context, 10000)
         # TODO try to use pipe instead of sleep

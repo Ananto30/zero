@@ -38,7 +38,7 @@ class RpcClient:
         return code
 
     def get_imports(self):
-        return f"from typing import {', '.join([i for i in self._typing_imports])}"
+        return f"from typing import {', '.join(i for i in self._typing_imports)}"
 
     def get_input_type_str(self, func_name: str):  # pragma: no cover
         if self._rpc_input_type_map[func_name] is None:
