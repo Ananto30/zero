@@ -103,7 +103,7 @@ class _Worker:
 
         except Exception as e:
             logging.exception(e)
-            return {"__zerror__exception": repr(e)}
+            return {"__zerror__server_exception": repr(e)}
 
     def generate_rpc_contract(self, msg):
         try:

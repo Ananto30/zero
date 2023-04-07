@@ -234,7 +234,7 @@ class AsyncZeroClient:
         if isinstance(resp_data, dict):
             if e := resp_data.get("__zerror__method_not_found"):
                 raise MethodNotFoundException(e)
-            if e := resp_data.get("__zerror__exception"):
+            if e := resp_data.get("__zerror__server_exception"):
                 raise RemoteException(e)
 
         return resp_data
