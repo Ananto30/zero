@@ -2,7 +2,7 @@ import asyncio
 import logging
 from typing import Any, Dict, Optional, Union
 
-import zero.config as config
+from zero import config
 from zero.encoder import Encoder, get_encoder
 from zero.error import MethodNotFoundException, TimeoutException
 from zero.utils import util
@@ -12,11 +12,11 @@ from zero.zero_mq.helpers import zpipe_async
 
 class ZeroClient:
     def __init__(
-        self,
-        host: str,
-        port: int,
-        default_timeout: int = 2000,
-        encoder: Optional[Encoder] = None,
+            self,
+            host: str,
+            port: int,
+            default_timeout: int = 2000,
+            encoder: Optional[Encoder] = None,
     ):
         """
         ZeroClient provides the client interface for calling the ZeroServer.
@@ -92,13 +92,15 @@ class ZeroClient:
             Or zeromq cannot receive the response from the server.
             Mainly represents zmq.error.Again exception.
         """
-        self._ensure_conntected()
+        self._ensure_connected()
 
         _timeout = self._default_timeout if timeout is None else timeout
 
         def _poll_data():
             if not self.zmqc.poll(_timeout):
-                raise TimeoutException(f"Timeout while sending message at {self._address}")
+                raise TimeoutException(
+                    f"Timeout while sending message at {self._address}"
+                )
 
             resp_id, resp_data = self.encdr.decode(self.zmqc.recv())
             return resp_id, resp_data
@@ -124,7 +126,7 @@ class ZeroClient:
             self.zmqc.close()
             self.zmqc = None  # type: ignore
 
-    def _ensure_conntected(self):
+    def _ensure_connected(self):
         if self.zmqc is not None:
             return
 
@@ -144,11 +146,11 @@ class ZeroClient:
 
 class AsyncZeroClient:
     def __init__(
-        self,
-        host: str,
-        port: int,
-        default_timeout: int = 2000,
-        encoder: Optional[Encoder] = None,
+            self,
+            host: str,
+            port: int,
+            default_timeout: int = 2000,
+            encoder: Optional[Encoder] = None,
     ):
         """
         AsyncZeroClient provides the asynchronous client interface for calling the ZeroServer.
@@ -184,8 +186,10 @@ class AsyncZeroClient:
         self._address = f"tcp://{host}:{port}"
         self._default_timeout = default_timeout
         self._encoder = encoder or get_encoder(config.ENCODER)
+        self._resp_map: Dict[str, Any] = {}
 
         self.zmqc: AsyncZeroMQClient = None  # type: ignore
+        self.peer1 = self.peer2 = None # type: ignore
 
     async def call(
         self,
@@ -259,7 +263,9 @@ class AsyncZeroClient:
             await asyncio.sleep(1e-6)
 
         if util.current_time_us() > expire_at:
-            raise TimeoutException(f"Timeout while waiting for response at {self._address}")
+            raise TimeoutException(
+                f"Timeout while waiting for response at {self._address}"
+            )
 
         resp_data = self._resp_map.pop(req_id)
 

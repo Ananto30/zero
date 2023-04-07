@@ -4,7 +4,7 @@ import logging
 import time
 from typing import Optional
 
-import zero.config as config
+from zero import config
 from zero.codegen.codegen import CodeGen
 from zero.encoder.protocols import Encoder
 from zero.zero_mq.factory import get_worker
@@ -12,12 +12,12 @@ from zero.zero_mq.factory import get_worker
 
 class _Worker:
     def __init__(
-        self,
-        rpc_router: dict,
-        device_comm_channel: str,
-        encoder: Encoder,
-        rpc_input_type_map: dict,
-        rpc_return_type_map: dict,
+            self,
+            rpc_router: dict,
+            device_comm_channel: str,
+            encoder: Encoder,
+            rpc_input_type_map: dict,
+            rpc_return_type_map: dict,
     ):
         self._rpc_router = rpc_router
         self._device_comm_channel = device_comm_channel
@@ -40,8 +40,8 @@ class _Worker:
                 req_id, func_name, msg = decoded
                 response = self.handle_msg(func_name, msg)
                 return self._encoder.encode([req_id, response])
-            except Exception as e:
-                logging.exception(e)
+            except Exception as inner_exc:
+                logging.exception(inner_exc)
                 # TODO what to return
                 return None
 
@@ -49,9 +49,9 @@ class _Worker:
         try:
             worker.listen(self._device_comm_channel, process_message)
         except KeyboardInterrupt:
-            logging.warning(f"Caught KeyboardInterrupt, terminating worker {worker_id}")
-        except Exception as e:
-            logging.exception(e)
+            logging.warning("Caught KeyboardInterrupt, terminating worker %d", worker_id)
+        except Exception as exc:
+            logging.exception(exc)
         finally:
             logging.warning(f"Closing worker {worker_id}")
             worker.close()
@@ -64,27 +64,31 @@ class _Worker:
             return "connected"
 
         if rpc not in self._rpc_router:
-            logging.error(f"Function `{rpc}` is not found!")
-            return {"__zerror__function_not_found": f"Function `{rpc}` is not found!"}
+            logging.error("Function `%s` not found!", rpc)
+            return {"__zerror__function_not_found": f"Function `{rpc}` not found!"}
 
         func = self._rpc_router[rpc]
+        ret = None
+
         try:
             # TODO: is this a bottleneck
             if inspect.iscoroutinefunction(func):
                 # this is blocking
-                return self._loop.run_until_complete(func() if msg == "" else func(msg))
+                ret = self._loop.run_until_complete(func(msg) if msg else func())
+            else:
+                ret = func(msg) if msg else func()
 
-            return func() if msg == "" else func(msg)
+        except Exception as exc:
+            logging.exception(exc)
 
-        except Exception as e:
-            logging.exception(e)
+        return ret
 
     def generate_rpc_contract(self, msg):
         try:
             return self.codegen.generate_code(msg[0], msg[1])
-        except Exception as e:
-            logging.exception(e)
-            return {"__zerror__failed_to_generate_client_code": str(e)}
+        except Exception as exc:
+            logging.exception(exc)
+            return {"__zerror__failed_to_generate_client_code": str(exc)}
 
     @classmethod
     def spawn_worker(

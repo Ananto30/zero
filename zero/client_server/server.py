@@ -20,10 +20,10 @@ from .worker import _Worker
 
 class ZeroServer:
     def __init__(
-        self,
-        host: str = "0.0.0.0",
-        port: int = 5559,
-        encoder: Optional[Encoder] = None,
+            self,
+            host: str = "0.0.0.0",
+            port: int = 5559,
+            encoder: Optional[Encoder] = None,
     ):
         """
         ZeroServer registers and exposes rpc functions that can be called from a ZeroClient.
@@ -43,8 +43,13 @@ class ZeroServer:
             If any other encoder is used, the client should use the same encoder.
             Implement custom encoder by inheriting from `zero.encoder.Encoder`.
         """
-        self._port = port
+        self._broker: ZeroMQBroker = None  # type: ignore
+        self._device_comm_channel: str = None  # type: ignore
+        self._pool: Pool = None  # type: ignore
+        self._device_ipc: str = None  # type: ignore
+
         self._host = host
+        self._port = port
         self._address = f"tcp://{self._host}:{self._port}"
 
         # to encode/decode messages from/to client
@@ -151,17 +156,22 @@ class ZeroServer:
         if not isinstance(func, Callable):
             raise ValueError(f"register function; not {type(func)}")
         if func.__name__ in self._rpc_router:
-            raise ValueError(f"cannot have two RPC function same name: `{func.__name__}`")
+            raise ValueError(
+                f"cannot have two RPC function same name: `{func.__name__}`"
+            )
         if func.__name__ in config.RESERVED_FUNCTIONS:
-            raise ValueError(f"{func.__name__} is a reserved function; cannot have `{func.__name__}` as a RPC function")
+            raise ValueError(
+                f"{func.__name__} is a reserved function; cannot have `{func.__name__}` "
+                "as a RPC function"
+            )
 
     def _sig_handler(self, signum, frame):
-        logging.warning(f"{signal.Signals(signum).name} signal called")
+        logging.warning("%s signal called", signal.Signals(signum).name)
         self._terminate_server()
 
     def _terminate_server(self):
-        logging.warning(f"Terminating server at {self._port}")
-        if hasattr(self, "_broker") and self._broker is not None:
+        logging.warning("Terminating server at %d", self._port)
+        if self._broker is not None:
             self._broker.close()
         self._terminate_pool()
         self._remove_ipc()
