@@ -89,7 +89,7 @@ class _Worker:
             return "connected"
 
         if rpc not in self._rpc_router:
-            logging.error(f"method `%s` is not found!", rpc)
+            logging.error("method `%s` is not found!", rpc)
             return {"__zerror__method_not_found": f"method `{rpc}` is not found!"}
 
         func = self._rpc_router[rpc]
