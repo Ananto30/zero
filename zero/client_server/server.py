@@ -25,10 +25,10 @@ from zero.zero_mq import get_broker
 
 class ZeroServer:
     def __init__(
-        self,
-        host: str = "0.0.0.0",
-        port: int = 5559,
-        encoder: Optional[Encoder] = None,
+            self,
+            host: str = "0.0.0.0",
+            port: int = 5559,
+            encoder: Optional[Encoder] = None,
     ):
         """
         ZeroServer registers rpc methods that are called from a ZeroClient.

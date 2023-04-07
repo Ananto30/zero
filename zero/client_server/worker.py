@@ -13,13 +13,13 @@ from zero.zero_mq.factory import get_worker
 class _Worker:
     @classmethod
     def spawn_worker(
-        cls,
-        rpc_router: dict,
-        device_comm_channel: str,
-        encoder: Encoder,
-        rpc_input_type_map: dict,
-        rpc_return_type_map: dict,
-        worker_id: int,
+            cls,
+            rpc_router: dict,
+            device_comm_channel: str,
+            encoder: Encoder,
+            rpc_input_type_map: dict,
+            rpc_return_type_map: dict,
+            worker_id: int,
     ):
         # give some time for the broker to start
         time.sleep(0.2)
@@ -37,12 +37,12 @@ class _Worker:
         worker.start_dealer_worker(worker_id)
 
     def __init__(
-        self,
-        rpc_router: dict,
-        device_comm_channel: str,
-        encoder: Encoder,
-        rpc_input_type_map: dict,
-        rpc_return_type_map: dict,
+            self,
+            rpc_router: dict,
+            device_comm_channel: str,
+            encoder: Encoder,
+            rpc_input_type_map: dict,
+            rpc_return_type_map: dict,
     ):
         self._rpc_router = rpc_router
         self._device_comm_channel = device_comm_channel

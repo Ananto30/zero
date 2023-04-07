@@ -7,7 +7,7 @@ from zero.utils.util import unique_id
 
 
 def zpipe(
-    ctx: zmq.Context, timeout: int = 1000
+        ctx: zmq.Context, timeout: int = 1000
 ) -> Tuple[zmq.Socket, zmq.Socket]:  # pragma: no cover
     """
     Build inproc pipe for talking to threads
@@ -29,7 +29,7 @@ def zpipe(
 
 
 def zpipe_async(
-    ctx: zmq.asyncio.Context, timeout: int = 1000
+        ctx: zmq.asyncio.Context, timeout: int = 1000
 ) -> Tuple[zmq.asyncio.Socket, zmq.asyncio.Socket]:
     """
     Build inproc pipe for talking to threads

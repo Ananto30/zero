@@ -12,11 +12,11 @@ from zero.zero_mq.helpers import zpipe_async
 
 class ZeroClient:
     def __init__(
-        self,
-        host: str,
-        port: int,
-        default_timeout: int = 2000,
-        encoder: Optional[Encoder] = None,
+            self,
+            host: str,
+            port: int,
+            default_timeout: int = 2000,
+            encoder: Optional[Encoder] = None,
     ):
         """
         ZeroClient provides the client interface for calling the ZeroServer.
@@ -59,10 +59,10 @@ class ZeroClient:
         logging.info("Connected to server at %s", self._address)
 
     def call(
-        self,
-        rpc_method_name: str,
-        msg: Union[int, float, str, dict, list, tuple, None],
-        timeout: Optional[int] = None,
+            self,
+            rpc_method_name: str,
+            msg: Union[int, float, str, dict, list, tuple, None],
+            timeout: Optional[int] = None,
     ) -> Any:
         """
         Call the rpc method of the ZeroServer.
@@ -109,11 +109,11 @@ class ZeroClient:
 
 class AsyncZeroClient:
     def __init__(
-        self,
-        host: str,
-        port: int,
-        default_timeout: int = 2000,
-        encoder: Optional[Encoder] = None,
+            self,
+            host: str,
+            port: int,
+            default_timeout: int = 2000,
+            encoder: Optional[Encoder] = None,
     ):
         """
         AsyncZeroClient provides the asynchronous client interface for calling the ZeroServer.
@@ -178,10 +178,10 @@ class AsyncZeroClient:
                 logging.error("Error while polling data: %s", exc)
 
     async def call(
-        self,
-        rpc_method_name: str,
-        msg: Union[int, float, str, dict, list, tuple, None],
-        timeout: Optional[int] = None,
+            self,
+            rpc_method_name: str,
+            msg: Union[int, float, str, dict, list, tuple, None],
+            timeout: Optional[int] = None,
     ) -> Any:
         """
         Call the rpc method of the ZeroServer.
