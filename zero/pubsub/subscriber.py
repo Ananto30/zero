@@ -54,7 +54,7 @@ class ZeroSubscriber:  # pragma: no cover
             gateway.bind(f"tcp://*:{self.__port}")
             gateway.setsockopt_string(zmq.SUBSCRIBE, "")
 
-            logging.info(f"Starting server at %d", self.__port)
+            logging.info("Starting server at %d", self.__port)
 
             backend = ctx.socket(zmq.PUB)
             if sys.platform == "posix":
@@ -93,7 +93,7 @@ class Listener:  # pragma: no cover
             socket.connect("tcp://127.0.0.1:6667")
 
         socket.setsockopt_string(zmq.SUBSCRIBE, self.__topic)
-        logging.info(f"Starting listener for: %s", self.__topic)
+        logging.info("Starting listener for: %s", self.__topic)
 
         while True:
             topic, msg = await socket.recv_multipart()
