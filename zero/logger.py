@@ -50,11 +50,12 @@ class _AsyncLogger:  # pragma: no cover
 
         if os.name == "posix":
             log_listener.bind(f"ipc://{_AsyncLogger.ipc}")
-            logging.info(f"Async logger starting at ipc://{_AsyncLogger.ipc}")
+            logging.info("Async logger starting at ipc://%s", _AsyncLogger.ipc)
         else:
             log_listener.bind(f"tcp://127.0.0.1:{_AsyncLogger.port}")
             logging.info(
-                f"Async logger starting at tcp://127.0.0.1:{_AsyncLogger.port}"
+                "Async logger starting at tcp://127.0.0.1:%s",
+                _AsyncLogger.port
             )
         try:
             while True:

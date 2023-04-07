@@ -56,8 +56,8 @@ class ZeroServer:
         self._device_comm_channel = None
         self._pool = None
 
-        self._port = port
         self._host = host
+        self._port = port
         self._address = f"tcp://{self._host}:{self._port}"
 
         # to encode/decode messages from/to client
@@ -166,11 +166,11 @@ class ZeroServer:
         return f"tcp://127.0.0.1:{get_next_available_port(6666)}"
 
     def _sig_handler(self, signum, frame):
-        logging.warning(f"{signal.Signals(signum).name} signal called")
+        logging.warning("%s signal called", signal.Signals(signum).name)
         self._terminate_server()
 
     def _terminate_server(self):
-        logging.warning(f"Terminating server at {self._port}")
+        logging.warning("Terminating server at %d", self._port)
         try:
             self._broker.close()
             self._pool.terminate()

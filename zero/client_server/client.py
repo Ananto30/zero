@@ -56,7 +56,7 @@ class ZeroClient:
         frames = [unique_id(), "connect", ""]
         self.zmq.send(self.encdr.encode(frames))
         self.encdr.decode(self.zmq.recv())
-        logging.info(f"Connected to server at {self._address}")
+        logging.info("Connected to server at %s", self._address)
 
     def call(
         self,
@@ -162,7 +162,7 @@ class AsyncZeroClient:
         frames = [unique_id(), "connect", ""]
         await self.zmq.send(self._encoder.encode(frames))
         self._encoder.decode(await self.zmq.recv())
-        logging.info(f"Connected to server at {self._address}")
+        logging.info("Connected to server at %s", self._address)
 
     async def _poll_data(self):  # pragma: no cover
         while True:
@@ -175,7 +175,7 @@ class AsyncZeroClient:
                 self._resp_map[resp_id] = data
                 await self.peer1.send(b"")
             except Exception as exc:
-                logging.error(f"Error while polling data: {exc}")
+                logging.error("Error while polling data: %s", exc)
 
     async def call(
         self,
