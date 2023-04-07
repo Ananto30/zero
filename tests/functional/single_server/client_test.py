@@ -43,8 +43,11 @@ async def test_concurrent_divide():
 
 def test_server_error():
     client = ZeroClient(server.HOST, server.PORT)
-    msg = client.call("error", "some error")
-    assert msg is None
+    try:
+        msg = client.call("error", "some error")
+        raise AssertionError("Should have thrown an Exception")
+    except zero.error.RemoteException:
+        pass
 
 
 def test_default_timeout():
