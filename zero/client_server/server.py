@@ -52,10 +52,10 @@ class ZeroServer:
             If any other encoder is used, the client should use the same encoder.
             Implement your own encoder by inheriting from `zero.encoder.Encoder`.
         """
-        self._broker = None
-        self._device_comm_channel = None
-        self._pool = None
-        self._device_ipc = None
+        self._broker = None  # type: ignore
+        self._device_comm_channel = None  # type: ignore
+        self._pool = None  # type: ignore
+        self._device_ipc = None  # type: ignore
 
         self._host = host
         self._port = port
