@@ -14,6 +14,12 @@ test:
 format:
 	isort . --profile black -l 99
 	black .
+
+install-lint:
+	python -m pip install --upgrade pip
+	pip install black isort flake8 pylint pytype
+
+lint:
 	flake8 ./zero
 	pylint ./zero
 	pytype ./zero
