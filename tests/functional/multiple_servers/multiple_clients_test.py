@@ -6,7 +6,7 @@ from .config import Config
 
 
 @pytest.mark.asyncio
-async def test_multiple_clients(server1, server2):
+async def test_multiple_clients(server1, server2):  # pylint: disable=unused-argument
     server2_port = Config.SERVER2_PORT
 
     client1 = ZeroClient("localhost", server2_port)

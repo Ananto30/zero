@@ -5,7 +5,7 @@ from zero import AsyncZeroClient, ZeroClient
 from .config import Config
 
 
-def test_client_inside_server(server1, server2):
+def test_client_inside_server(server1, server2):  # pylint: disable=unused-argument
     client = ZeroClient("localhost", Config.SERVER2_PORT)
     assert client.call("echo", "Hello") == "Server1: Hello"
     assert client.call("hello", None) == "Hello from server1"
@@ -14,7 +14,9 @@ def test_client_inside_server(server1, server2):
 
 
 @pytest.mark.asyncio
-async def test_client_inside_server_async(server1, server2):
+async def test_client_inside_server_async(
+    server1, server2
+):  # pylint: disable=unused-argument
     async_client = AsyncZeroClient("localhost", Config.SERVER2_PORT)
     assert await async_client.call("echo", "Hello") == "Server1: Hello"
     assert await async_client.call("hello", None) == "Hello from server1"

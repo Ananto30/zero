@@ -64,7 +64,7 @@ async def sleep_async(msec: int) -> str:
 
 @app.register_rpc
 def error(msg: str) -> str:
-    raise Exception(msg)
+    raise RuntimeError(msg)
 
 
 def run(port):

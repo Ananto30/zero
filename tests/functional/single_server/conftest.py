@@ -2,8 +2,6 @@ import pytest
 
 from tests.utils import kill_subprocess, start_subprocess
 
-from . import server
-
 try:
     from pytest_cov.embed import cleanup_on_sigterm
 except ImportError:
