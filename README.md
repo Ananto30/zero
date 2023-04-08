@@ -11,6 +11,10 @@
     <a href="https://pypi.org/project/zeroapi/" target="_blank">
         <img src="https://img.shields.io/pypi/v/zeroapi" />
     </a>
+    <br>
+    <a href="https://app.codacy.com/gh/Ananto30/zero/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade">
+        <img src="https://app.codacy.com/project/badge/Grade/f6d4db49974b470f95999565f7901595"/>
+    </a>
     <a href="https://codeclimate.com/github/Ananto30/zero/maintainability" target="_blank">
         <img src="https://api.codeclimate.com/v1/badges/4f2fd83bee97326699bc/maintainability" />
     </a>
@@ -188,7 +192,7 @@ Compare the results! 👇
 *(Sorted alphabetically)*
 
 Framework   | "hello world" (req/s) | 99% latency (ms) | redis save (req/s) | 99% latency (ms)
-\----------- | --------------------- | ---------------- | ------------------ | ----------------
+----------- | --------------------- | ---------------- | ------------------ | ----------------
 aiohttp     | 14391.38              | 10.96            | 9470.74            | 12.94
 aiozmq      | 15121.86              | 9.42             | 5904.84            | 21.57
 fastApi     | 9590.96               | 18.31            | 6669.81            | 24.41
@@ -196,12 +200,11 @@ sanic       | 18790.49              | 8.69             | 12259.29           | 13
 zero(sync)  | 24805.61              | 4.57             | 16498.83           | 7.80
 zero(async) | 22716.84              | 5.61             | 17446.19           | 7.24
 
-# Todo list 📃
+# Roadmap 🗺
 
-*   Add pydantic support
-*   Code generation for pydantic models
-*   Improve error handling
-*   Fault tolerance
+*   \[ ] Make msgspec as default serializer
+*   \[ ] Add support for async server (currently the sync server runs async functions in the eventloop, which is blocking)
+*   \[ ] Add pub/sub support
 
 # Contribution
 
