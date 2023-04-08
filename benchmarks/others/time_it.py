@@ -74,7 +74,9 @@ def time_it(func):
 
     num_runs = 10_000
     duration = timeit.Timer(func).timeit(number=num_runs)
-    print(f"{func.__name__} took {duration / num_runs} seconds, total {duration}, rps {num_runs / duration}")
+    print(
+        f"{func.__name__} took {duration / num_runs} seconds, total {duration}, rps {num_runs / duration}"
+    )
 
 
 def run_async(func):

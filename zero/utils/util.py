@@ -1,3 +1,4 @@
+import logging
 import signal
 import socket
 import sys
@@ -86,3 +87,18 @@ def register_signal_term(sigterm_handler: Callable):
     else:
         signal.signal(signal.SIGQUIT, sigterm_handler)
         signal.signal(signal.SIGHUP, sigterm_handler)
+
+
+def log_error(func):
+    """
+    Decorator to log errors.
+    """
+
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as exc:  # pylint: disable=broad-except
+            logging.exception(exc)
+            return None
+
+    return wrapper

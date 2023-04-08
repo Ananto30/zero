@@ -33,9 +33,9 @@ async def test_concurrent_divide():
 
     async def divide(semaphore, req):
         async with semaphore:
-            assert await async_client.call("divide", req) == req_resp[req]
+            assert await async_client.call("divide", req, timeout=500) == req_resp[req]
 
-    semaphore = asyncio.BoundedSemaphore(4)
+    semaphore = asyncio.BoundedSemaphore(3)
 
     tasks = [divide(semaphore, req) for req in req_resp]
     await asyncio.gather(*tasks)
@@ -44,10 +44,28 @@ async def test_concurrent_divide():
 def test_server_error():
     client = ZeroClient(server.HOST, server.PORT)
     try:
-        msg = client.call("error", "some error")
+        client.call("error", "some error")
         raise AssertionError("Should have thrown an Exception")
     except zero.error.RemoteException:
         pass
+
+
+def test_multiple_errors():
+    client = ZeroClient(server.HOST, server.PORT)
+    with pytest.raises(zero.error.RemoteException):
+        msg = client.call("error", "some error")
+        assert msg is None
+        msg = client.call("error", "some error")
+        assert msg is None
+        msg = client.call("error", "some error")
+        assert msg is None
+        msg = client.call("error", "some error")
+        assert msg is None
+        msg = client.call("error", "some error")
+        assert msg is None
+
+    msg = client.call("divide", (10, 2))
+    assert msg == 5
 
 
 def test_default_timeout():
@@ -89,25 +107,27 @@ def test_timeout_all():
         assert msg is None
 
 
-# TODO fix this test for github actions
+# TODO fix server is blocked until a long running call is completed
 # def test_one_call_should_not_affect_another():
 #     client = ZeroClient(server.HOST, server.PORT)
 
-#     with pytest.raises(zero.error.TimeoutException):
-#         msg = client.call("sleep", 1000, timeout=100)
-#         assert msg is None
-
-#     msg = client.call("sleep", 10, timeout=200)
-#     assert msg == "slept for 10 msecs"
-
-#     msg = client.call("sleep", 10, timeout=200)
-#     assert msg == "slept for 10 msecs"
+#     sleep = partial(client.call, "sleep_async")
 
 #     with pytest.raises(zero.error.TimeoutException):
-#         msg = client.call("sleep", 200, timeout=100)
+#         msg = sleep(1000, timeout=100)
 #         assert msg is None
 
-#     msg = client.call("sleep", 30, timeout=300)
+#     msg = sleep(10, timeout=200)
+#     assert msg == "slept for 10 msecs"
+
+#     msg = sleep(10, timeout=200)
+#     assert msg == "slept for 10 msecs"
+
+#     with pytest.raises(zero.error.TimeoutException):
+#         msg = sleep(200, timeout=100)
+#         assert msg is None
+
+#     msg = sleep(30, timeout=300)
 #     assert msg == "slept for 30 msecs"
 
 
@@ -120,7 +140,9 @@ def test_random_timeout():
             msg = client.call("sleep", sleep_time, timeout=50)
             assert msg == f"slept for {sleep_time} msecs"
         except zero.error.TimeoutException:
-            assert sleep_time > 1  # considering network latency, 50 msecs is too low in github actions
+            assert (
+                sleep_time > 1
+            )  # considering network latency, 50 msecs is too low in github actions
 
 
 def test_random_timeout_async():
@@ -132,7 +154,9 @@ def test_random_timeout_async():
             msg = asyncio.run(client.call("sleep", sleep_time, timeout=50))
             assert msg == f"slept for {sleep_time} msecs"
         except zero.error.TimeoutException:
-            assert sleep_time > 1  # considering network latency, 50 msecs is too low in github actions
+            assert (
+                sleep_time > 1
+            )  # considering network latency, 50 msecs is too low in github actions
 
     client.close()
 

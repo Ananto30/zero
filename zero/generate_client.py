@@ -25,13 +25,14 @@ def generate_client_code_and_save(host, port, directory, overwrite_dir=False):
             if answer.lower() != "y":
                 return
 
-    with open(directory + "/rpc_client.py", "w") as fp:
+    with open(directory + "/rpc_client.py", "w", encoding="utf-8") as fp:
         fp.write(code)
 
 
 if __name__ == "__main__":  # pragma: no cover
     parser = argparse.ArgumentParser()
-    parser._action_groups.pop()
+    # remove default group
+    parser._action_groups.pop()  # pylint: disable=protected-access
     required = parser.add_argument_group("required arguments")
     optional = parser.add_argument_group("optional arguments")
     parser.add_argument("directory")

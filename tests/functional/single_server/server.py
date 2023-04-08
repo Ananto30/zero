@@ -1,3 +1,4 @@
+import asyncio
 import time
 import typing
 
@@ -54,8 +55,16 @@ def sleep(msec: int) -> str:
 
 
 @app.register_rpc
+async def sleep_async(msec: int) -> str:
+    sec = msec / 1000
+    print(f"sleeping for {sec} sec...")
+    await asyncio.sleep(sec)
+    return f"slept for {msec} msecs"
+
+
+@app.register_rpc
 def error(msg: str) -> str:
-    raise Exception(msg)
+    raise RuntimeError(msg)
 
 
 def run(port):

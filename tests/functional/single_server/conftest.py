@@ -1,8 +1,6 @@
 import pytest
 
-from tests.utils import kill_process, start_server
-
-from . import server
+from tests.utils import kill_subprocess, start_subprocess
 
 try:
     from pytest_cov.embed import cleanup_on_sigterm
@@ -14,6 +12,6 @@ else:
 
 @pytest.fixture(autouse=True, scope="session")
 def base_server():
-    process = start_server(server.PORT, server.run)
+    process = start_subprocess("tests.functional.single_server.server")
     yield
-    kill_process(process)
+    kill_subprocess(process)

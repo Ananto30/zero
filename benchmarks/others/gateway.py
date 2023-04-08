@@ -24,12 +24,16 @@ async def hello(request):
 
 
 async def order(request):
-    resp = zero_sync_client.call("save_order", {"user_id": "1", "items": ["apple", "python"]})
+    resp = zero_sync_client.call(
+        "save_order", {"user_id": "1", "items": ["apple", "python"]}
+    )
     return web.json_response(resp)
 
 
 async def async_order(request):
-    resp = await zero_async_client.call_async("save_order", {"user_id": "1", "items": ["apple", "python"]})
+    resp = await zero_async_client.call_async(
+        "save_order", {"user_id": "1", "items": ["apple", "python"]}
+    )
     return web.json_response(resp)
 
 

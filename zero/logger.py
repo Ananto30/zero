@@ -54,8 +54,7 @@ class _AsyncLogger:  # pragma: no cover
         else:
             log_listener.bind(f"tcp://127.0.0.1:{_AsyncLogger.port}")
             logging.info(
-                "Async logger starting at tcp://127.0.0.1:%s",
-                _AsyncLogger.port
+                "Async logger starting at tcp://127.0.0.1:%s", _AsyncLogger.port
             )
         try:
             while True:

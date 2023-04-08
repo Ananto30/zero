@@ -43,7 +43,7 @@ def test_echo_dict():
 def test_echo_tuple():
     zero_client = ZeroClient(server.HOST, server.PORT)
     msg = zero_client.call("echo_tuple", (1, "a"))
-    assert type(msg) == list  # IMPORTANT
+    assert isinstance(msg, list)  # IMPORTANT
     assert msg == [1, "a"]
 
 
@@ -71,7 +71,7 @@ async def test_echo_async():
 async def test_necho_async():
     zero_client = AsyncZeroClient(server.HOST, server.PORT)
     with pytest.raises(zero.error.MethodNotFoundException):
-        msg = await zero_client.call("necho", "hello")
+        await zero_client.call("necho", "hello")
 
 
 @pytest.mark.asyncio

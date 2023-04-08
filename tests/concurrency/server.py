@@ -23,4 +23,4 @@ async def sleep_async(msg: int) -> str:
 
 
 if __name__ == "__main__":
-    app.run(cores=8)
+    app.run(workers=8)
