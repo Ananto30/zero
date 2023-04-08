@@ -19,30 +19,28 @@
 
 **Features**:
 
-- Zero provides **faster communication** (see [benchmarks](https://github.com/Ananto30/zero#benchmarks-)) between the microservices using [zeromq](https://zeromq.org/) under the hood.
-- Zero uses messages for communication and traditional **client-server** or **request-reply** pattern is supported.
-- Support for both **Async** and **sync**.
-- The base server (ZeroServer) **utilizes all cpu cores**.
-- **Code generation**! See [example](https://github.com/Ananto30/zero#code-generation-) 👇
+*   Zero provides **faster communication** (see [benchmarks](https://github.com/Ananto30/zero#benchmarks-)) between the microservices using [zeromq](https://zeromq.org/) under the hood.
+*   Zero uses messages for communication and traditional **client-server** or **request-reply** pattern is supported.
+*   Support for both **Async** and **sync**.
+*   The base server (ZeroServer) **utilizes all cpu cores**.
+*   **Code generation**! See [example](https://github.com/Ananto30/zero#code-generation-) 👇
 
 **Philosophy** behind Zero:
 
-- **Zero learning curve**: The learning curve is tends to zero. You just add your functions and spin up a server, literally that's it! The framework hides the complexity of messaging pattern that enables faster communication.
-- **ZeroMQ**: An awesome messaging library enables the power of Zero.
+*   **Zero learning curve**: The learning curve is tends to zero. You just add your functions and spin up a server, literally that's it! The framework hides the complexity of messaging pattern that enables faster communication.
+*   **ZeroMQ**: An awesome messaging library enables the power of Zero.
 
 Let's get started!
 
 # Getting started 🚀
 
-_Ensure Python 3.8+_
+*Ensure Python 3.8+*
 
-```
-pip install zeroapi
-```
+    pip install zeroapi
 
 **For Windows**, [tornado](https://pypi.org/project/tornado/) needs to be installed separately (for async operations). It's not included with `zeroapi` because for linux and mac-os, tornado is not needed as they have their own event loops.
 
-- Create a `server.py`
+*   Create a `server.py`
 
 ```python
 from zero import ZeroServer
@@ -64,15 +62,15 @@ if __name__ == "__main__":
 
 Please note that server **RPC methods are type hinted**. Type hint is **must** in Zero server.
 
-_See the method type async or sync, doesn't matter._ 😃
+*See the method type async or sync, doesn't matter.* 😃
 
-- Run it
+*   Run it
 
-```
-python -m server
-```
+<!---->
 
-- Call the rpc methods
+    python -m server
+
+*   Call the rpc methods
 
 ```python
 from zero import ZeroClient
@@ -167,8 +165,8 @@ Currently, the code generation tool supports only `ZeroClient` and not `AsyncZer
 
 # Important notes 📝
 
-- `ZeroServer` should always be run under `if __name__ == "__main__":`, as it uses multiprocessing.
-- The methods which are under `register_rpc()` in `ZeroServer` should have **type hinting**, like `def echo(msg: str):`
+*   `ZeroServer` should always be run under `if __name__ == "__main__":`, as it uses multiprocessing.
+*   The methods which are under `register_rpc()` in `ZeroServer` should have **type hinting**, like `def echo(msg: str):`
 
 # Let's do some benchmarking 🤘
 
@@ -178,8 +176,8 @@ So we will be testing a gateway calling another server for some data. Check the 
 
 There are two endpoints in every tests,
 
-- `/hello`: Just call for a hello world response 😅
-- `/order`: Save a Order object in redis
+*   `/hello`: Just call for a hello world response 😅
+*   `/order`: Save a Order object in redis
 
 Compare the results! 👇
 
@@ -187,10 +185,10 @@ Compare the results! 👇
 
 11th Gen Intel® Core™ i7-11800H @ 2.30GHz, 8 cores, 16 threads, 16GB RAM (Docker in Ubuntu 22.04.2 LTS)
 
-_(Sorted alphabetically)_
+*(Sorted alphabetically)*
 
 Framework   | "hello world" (req/s) | 99% latency (ms) | redis save (req/s) | 99% latency (ms)
------------ | --------------------- | ---------------- | ------------------ | ----------------
+\----------- | --------------------- | ---------------- | ------------------ | ----------------
 aiohttp     | 14391.38              | 10.96            | 9470.74            | 12.94
 aiozmq      | 15121.86              | 9.42             | 5904.84            | 21.57
 fastApi     | 9590.96               | 18.31            | 6669.81            | 24.41
@@ -200,10 +198,10 @@ zero(async) | 22716.84              | 5.61             | 17446.19           | 7.
 
 # Todo list 📃
 
-- Add pydantic support
-- Code generation for pydantic models
-- Improve error handling
-- Fault tolerance
+*   Add pydantic support
+*   Code generation for pydantic models
+*   Improve error handling
+*   Fault tolerance
 
 # Contribution
 
