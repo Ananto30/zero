@@ -10,7 +10,7 @@ from zero.error import ConnectionException, TimeoutException
 
 class ZeroMQClient:
     def __init__(self, default_timeout):
-        self._address = None  # type: ignore
+        self._address = None
         self._default_timeout = default_timeout
         self._context = zmq.Context.instance()
 

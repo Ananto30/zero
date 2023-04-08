@@ -126,7 +126,7 @@ class ZeroClient:
     def close(self):
         if self.zmqc is not None:
             self.zmqc.close()
-            self.zmqc = None  # type: ignore
+            self.zmqc = None
 
     def _ensure_connected(self):
         if self.zmqc is not None:
@@ -191,7 +191,7 @@ class AsyncZeroClient:
         self._resp_map: Dict[str, Any] = {}
 
         self.zmqc: AsyncZeroMQClient = None  # type: ignore
-        self.peer1 = self.peer2 = None  # type: ignore
+        self.peer1 = self.peer2 = None
 
     async def call(
         self,
@@ -280,7 +280,7 @@ class AsyncZeroClient:
     def close(self):
         if self.zmqc is not None:
             self.zmqc.close()
-            self.zmqc = None  # type: ignore
+            self.zmqc = None
             self._resp_map = {}
 
     async def _ensure_connected(self):

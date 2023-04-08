@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 
+import zmq
 import zmq.asyncio
 
 

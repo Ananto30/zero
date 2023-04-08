@@ -169,7 +169,7 @@ class ZeroServer:
                 "as a RPC function"
             )
 
-    def _sig_handler(self, signum, frame):
+    def _sig_handler(self, signum, frame):  # pylint: disable=unused-argument
         logging.warning("%s signal called", signal.Signals(signum).name)
         self._terminate_server()
 
