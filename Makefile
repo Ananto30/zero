@@ -5,7 +5,7 @@ setup:
 	source venv/bin/activate && ( \
 		pip install -r requirements.txt; \
 		pip install -r tests/requirements.txt; \
-		pip install black isort flake8 pylint pytype; \
+		pip install black isort flake8 pylint pytype mypy; \
 		)
 
 test:
@@ -17,7 +17,8 @@ format:
 
 install-lint:
 	python -m pip install --upgrade pip
-	pip install black isort flake8 pylint pytype
+	pip install -r requirements.txt  # needed for pytype
+	pip install black isort flake8 pylint pytype mypy
 
 lint:
 	flake8 ./zero
