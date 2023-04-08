@@ -82,6 +82,7 @@ class _Worker:
 
         except Exception as exc:  # pylint: disable=broad-except
             logging.exception(exc)
+            ret = {"__zerror__server_exception": repr(exc)}
 
         return ret
 

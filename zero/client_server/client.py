@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional, Union
 
 from zero import config
 from zero.encoder import Encoder, get_encoder
-from zero.error import MethodNotFoundException, TimeoutException
+from zero.error import MethodNotFoundException, RemoteException, TimeoutException
 from zero.utils import util
 from zero.zero_mq import AsyncZeroMQClient, ZeroMQClient, get_async_client, get_client
 from zero.zero_mq.helpers import zpipe_async
@@ -119,8 +119,7 @@ class ZeroClient:
         while resp_id != req_id:
             resp_id, resp_data = _poll_data()
 
-        if isinstance(resp_data, dict) and "__zerror__function_not_found" in resp_data:
-            raise MethodNotFoundException(resp_data.get("__zerror__function_not_found"))
+        check_response(resp_data)
 
         return resp_data
 
@@ -274,8 +273,7 @@ class AsyncZeroClient:
 
         resp_data = self._resp_map.pop(req_id)
 
-        if isinstance(resp_data, dict) and "__zerror__function_not_found" in resp_data:
-            raise MethodNotFoundException(resp_data.get("__zerror__function_not_found"))
+        check_response(resp_data)
 
         return resp_data
 
@@ -320,3 +318,11 @@ class AsyncZeroClient:
                 await self.peer1.send(b"")
             except Exception as exc:  # pylint: disable=broad-except
                 logging.error("Error while polling data: %s", exc)
+
+
+def check_response(resp_data):
+    if isinstance(resp_data, dict):
+        if exc := resp_data.get("__zerror__function_not_found"):
+            raise MethodNotFoundException(exc)
+        if exc := resp_data.get("__zerror__server_exception"):
+            raise RemoteException(exc)
