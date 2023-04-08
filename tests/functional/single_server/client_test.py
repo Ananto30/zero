@@ -52,16 +52,17 @@ def test_server_error():
 
 def test_multiple_errors():
     client = ZeroClient(server.HOST, server.PORT)
-    msg = client.call("error", "some error")
-    assert msg is None
-    msg = client.call("error", "some error")
-    assert msg is None
-    msg = client.call("error", "some error")
-    assert msg is None
-    msg = client.call("error", "some error")
-    assert msg is None
-    msg = client.call("error", "some error")
-    assert msg is None
+    with pytest.raises(zero.error.RemoteException):
+        msg = client.call("error", "some error")
+        assert msg is None
+        msg = client.call("error", "some error")
+        assert msg is None
+        msg = client.call("error", "some error")
+        assert msg is None
+        msg = client.call("error", "some error")
+        assert msg is None
+        msg = client.call("error", "some error")
+        assert msg is None
 
     msg = client.call("divide", (10, 2))
     assert msg == 5
