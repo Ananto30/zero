@@ -12,3 +12,6 @@ class TimeoutException(ZeroException):
 
 class ConnectionException(ZeroException):
     pass
+
+class RemoteException(Exception):
+    pass

@@ -4,11 +4,17 @@ from typing import Any, Dict, Optional, Union
 
 from zero import config
 from zero.encoder import Encoder, get_encoder
-from zero.error import MethodNotFoundException, TimeoutException
+from zero.error import MethodNotFoundException, TimeoutException, RemoteException
 from zero.utils.util import current_time_us, unique_id
 from zero.zero_mq import AsyncZeroMQClient, ZeroMQClient, get_async_client, get_client
 from zero.zero_mq.helpers import zpipe_async
 
+def check_response(resp_data):
+    if isinstance(resp_data, dict):
+        if e := resp_data.get("__zerror__method_not_found"):
+            raise MethodNotFoundException(e)
+        if e := resp_data.get("__zerror__server_exception"):
+            raise RemoteException(e)
 
 class ZeroClient:
     def __init__(
@@ -101,8 +107,7 @@ class ZeroClient:
         while resp_id != req_id:
             resp_id, resp_data = _poll_data()
 
-        if isinstance(resp_data, dict) and "__zerror__method_not_found" in resp_data:
-            raise MethodNotFoundException(resp_data.get("__zerror__method_not_found"))
+        check_response(resp_data)
 
         return resp_data
 
@@ -237,7 +242,6 @@ class AsyncZeroClient:
 
         resp_data = self._resp_map.pop(req_id)
 
-        if isinstance(resp_data, dict) and "__zerror__method_not_found" in resp_data:
-            raise MethodNotFoundException(resp_data.get("__zerror__method_not_found"))
+        check_response(resp_data)
 
         return resp_data
