@@ -1,7 +1,6 @@
 import inspect
 
 # from pydantic import BaseModel
-from zero.utils.type_util import is_pydantic
 
 
 class CodeGen:
@@ -77,10 +76,9 @@ class RpcClient:
         params = def_line.split("(")[1].split(")")[0]
         return params.split(":")[0].strip()
 
-    def generate_data_classes(self):  # pragma: no cover
-        # TODO: next target, add pydantic support
-        code = ""
-        for func_name in self._rpc_input_type_map:
-            input_class = self._rpc_input_type_map[func_name]
-            if input_class and is_pydantic(input_class):
-                code += inspect.getsource(input_class)
+    # def generate_data_classes(self):
+    #     code = ""
+    #     for func_name in self._rpc_input_type_map:
+    #         input_class = self._rpc_input_type_map[func_name]
+    #         if input_class and is_pydantic(input_class):
+    #             code += inspect.getsource(input_class)

@@ -4,6 +4,6 @@ from .protocols import Encoder
 
 def get_encoder(name: str) -> Encoder:
     if name == "msgpack":
-        return MsgPackEncoder()  # type: ignore
+        return MsgPackEncoder()
 
     raise ValueError(f"unknown encoder: {name}")

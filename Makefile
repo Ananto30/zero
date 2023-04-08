@@ -5,7 +5,7 @@ setup:
 	source venv/bin/activate && ( \
 		pip install -r requirements.txt; \
 		pip install -r tests/requirements.txt; \
-		pip install black isort flake8 pylint; \
+		pip install black isort flake8 pylint pytype; \
 		)
 
 test:
@@ -16,6 +16,8 @@ format:
 	black .
 	flake8 ./zero
 	pylint ./zero
+	pytype ./zero
+	mypy ./zero
 
 build-package:
 	pip install -U setuptools wheel

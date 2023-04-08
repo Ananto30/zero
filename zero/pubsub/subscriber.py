@@ -1,30 +1,27 @@
 import asyncio
 import logging
 import sys
-import typing
 from multiprocessing import Process
+from typing import Callable, Dict
 
 import msgpack
 import zmq
 import zmq.asyncio
 
-logging.basicConfig(
-    format="%(asctime)s | %(threadName)s | %(process)d | %(module)s : %(message)s",
-    datefmt="%d-%b-%y %H:%M:%S",
-    level=logging.INFO,
-)
-
 
 class ZeroSubscriber:  # pragma: no cover
     def __init__(self, host: str = "127.0.0.1", port: int = 5558):
-        self.__topic_map = {}
-        self.__host = host
-        self.__port = port
+        self._host = host
+        self._port = port
 
-    def register_listener(self, topic: str, func: typing.Callable):
-        if not isinstance(func, typing.Callable):
+        self._ctx = zmq.Context.instance()
+        self._topic_map: Dict[str, Callable] = {}
+
+    def register_listener(self, topic: str, func: Callable):
+        if not isinstance(func, Callable):  # type: ignore
             raise ValueError(f"topic should listen to function not {type(func)}")
-        self.__topic_map[topic] = func
+        self._topic_map[topic] = func
+        return func
 
     def run(self):
         processes = []
@@ -34,7 +31,7 @@ class ZeroSubscriber:  # pragma: no cover
                     target=Listener.spawn_listener_worker,
                     args=(topic, func),
                 )
-                for topic, func in self.__topic_map.items()
+                for topic, func in self._topic_map.items()
             ]
             for prcs in processes:
                 prcs.start()
@@ -51,16 +48,17 @@ class ZeroSubscriber:  # pragma: no cover
             prcs.join()
 
     def _create_zmq_device(self):
-        try:
-            ctx = zmq.Context()
+        gateway: zmq.Socket = None
+        backend: zmq.Socket = None
 
-            gateway = ctx.socket(zmq.SUB)
-            gateway.bind(f"tcp://*:{self.__port}")
+        try:
+            gateway = self._ctx.socket(zmq.SUB)
+            gateway.bind(f"tcp://*:{self._port}")
             gateway.setsockopt_string(zmq.SUBSCRIBE, "")
 
-            logging.info("Starting server at %d", self.__port)
+            logging.info("Starting server at %d", self._port)
 
-            backend = ctx.socket(zmq.PUB)
+            backend = self._ctx.socket(zmq.PUB)
             if sys.platform == "posix":
                 backend.bind("ipc://backendworker")
             else:
@@ -68,13 +66,13 @@ class ZeroSubscriber:  # pragma: no cover
 
             zmq.device(zmq.FORWARDER, gateway, backend)
 
-        except Exception as exc:
+        except Exception as exc:  # pylint: disable=broad-except
             logging.error(exc)
             logging.error("bringing down zmq device")
         finally:
             gateway.close()
             backend.close()
-            ctx.term()
+            self._ctx.term()
 
 
 class Listener:  # pragma: no cover
@@ -84,8 +82,8 @@ class Listener:  # pragma: no cover
         asyncio.run(worker._create_worker())
 
     def __init__(self, topic, func):
-        self.__topic = topic
-        self.__func = func
+        self._topic = topic
+        self._func = func
 
     async def _create_worker(self):
         ctx = zmq.asyncio.Context()
@@ -96,18 +94,15 @@ class Listener:  # pragma: no cover
         else:
             socket.connect("tcp://127.0.0.1:6667")
 
-        socket.setsockopt_string(zmq.SUBSCRIBE, self.__topic)
-        logging.info("Starting listener for: %s", self.__topic)
+        socket.setsockopt_string(zmq.SUBSCRIBE, self._topic)
+        logging.info("Starting listener for: %s", self._topic)
 
         while True:
             topic, msg = await socket.recv_multipart()
-            try:
-                await self._handle_msg(msgpack.unpackb(msg))
-            except Exception as exc:
-                logging.error(exc)
+            if topic.decode() != self._topic:
+                continue
 
-    async def _handle_msg(self, msg):
-        try:
-            return await self.__func(msg)
-        except Exception as exc:
-            logging.exception(exc)
+            try:
+                await self._func(msgpack.unpackb(msg))
+            except Exception as exc:  # pylint: disable=broad-except
+                logging.error(exc)
