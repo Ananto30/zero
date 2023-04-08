@@ -6,7 +6,7 @@ from functools import partial
 from multiprocessing.pool import Pool
 from typing import Callable, Dict, Optional
 
-import zero.config as config
+from zero import config
 from zero.client_server.worker import _Worker
 from zero.encoder import Encoder, get_encoder
 from zero.utils.type import (
@@ -25,10 +25,10 @@ from zero.zero_mq import get_broker
 
 class ZeroServer:
     def __init__(
-        self,
-        host: str = "0.0.0.0",
-        port: int = 5559,
-        encoder: Optional[Encoder] = None,
+            self,
+            host: str = "0.0.0.0",
+            port: int = 5559,
+            encoder: Optional[Encoder] = None,
     ):
         """
         ZeroServer registers rpc methods that are called from a ZeroClient.
@@ -52,8 +52,13 @@ class ZeroServer:
             If any other encoder is used, the client should use the same encoder.
             Implement your own encoder by inheriting from `zero.encoder.Encoder`.
         """
-        self._port = port
+        self._broker = None  # type: ignore
+        self._device_comm_channel = None  # type: ignore
+        self._pool = None  # type: ignore
+        self._device_ipc = None  # type: ignore
+
         self._host = host
+        self._port = port
         self._address = f"tcp://{self._host}:{self._port}"
 
         # to encode/decode messages from/to client
@@ -94,9 +99,14 @@ class ZeroServer:
         if not isinstance(func, Callable):
             raise ValueError(f"register function; not {type(func)}")
         if func.__name__ in self._rpc_router:
-            raise ValueError(f"cannot have two RPC function same name: `{func.__name__}`")
+            raise ValueError(
+                f"cannot have two RPC function same name: `{func.__name__}`"
+            )
         if func.__name__ in config.RESERVED_FUNCTIONS:
-            raise ValueError(f"{func.__name__} is a reserved function; cannot have `{func.__name__}` as a RPC function")
+            raise ValueError(
+                f"{func.__name__} is a reserved function; cannot have `{func.__name__}` "
+                "as a RPC function"
+            )
 
     def run(self, cores: int = os.cpu_count() or 1):
         """
@@ -136,13 +146,14 @@ class ZeroServer:
             # blocking
             self._broker.listen(self._address, self._device_comm_channel)
 
-            # TODO: by default we start the device with processes, but we need support to run only router
+            # TODO: by default we start the device with processes,
+            #  but we need support to run only router
             # asyncio.run(self._start_router())
 
         except KeyboardInterrupt:
             logging.error("Caught KeyboardInterrupt, terminating workers")
-        except Exception as e:
-            logging.exception(e)
+        except Exception as exc:
+            logging.exception(exc)
         finally:
             self._terminate_server()
 
@@ -156,17 +167,17 @@ class ZeroServer:
         return f"tcp://127.0.0.1:{get_next_available_port(6666)}"
 
     def _sig_handler(self, signum, frame):
-        logging.warning(f"{signal.Signals(signum).name} signal called")
+        logging.warning("%s signal called", signal.Signals(signum).name)
         self._terminate_server()
 
     def _terminate_server(self):
-        logging.warning(f"Terminating server at {self._port}")
+        logging.warning("Terminating server at %d", self._port)
         try:
             self._broker.close()
             self._pool.terminate()
             self._pool.join()
             self._pool.close()
             os.remove(self._device_ipc)
-        except Exception as e:
-            logging.exception(e)
+        except Exception as exc:
+            logging.exception(exc)
         sys.exit(1)

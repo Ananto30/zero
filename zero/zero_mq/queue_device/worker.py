@@ -17,16 +17,18 @@ class ZeroMQWorker:
         self.poller = zmq.Poller()
         self.poller.register(self.socket, zmq.POLLIN)
 
-    def listen(self, address: str, msg_handler: Callable[[bytes], Optional[bytes]]) -> None:
+    def listen(
+            self, address: str, msg_handler: Callable[[bytes], Optional[bytes]]
+    ) -> None:
         self.socket.connect(address)
-        logging.info(f"Starting worker {self.worker_id}")
+        logging.info("Starting worker %d", self.worker_id)
 
         while True:
             socks = dict(self.poller.poll(1000))
             if self.socket in socks:
                 frames = self.socket.recv_multipart()
                 if len(frames) != 2:
-                    logging.error(f"invalid message received: {frames}")
+                    logging.error("invalid message received: %s", frames)
                     continue
 
                 ident, message = frames

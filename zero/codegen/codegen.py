@@ -26,34 +26,34 @@ class RpcClient:
         self._zero_client = zero_client
 """
 
-        for f in self._rpc_router:
+        for func_name in self._rpc_router:
             code += f"""
-    {self.get_function_str(f)}
-        return self._zero_client.call("{f}", {
-            None if self._rpc_input_type_map[f] is None
-        else self.get_function_input_param_name(f)
+    {self.get_function_str(func_name)}
+        return self._zero_client.call("{func_name}", {
+            None if self._rpc_input_type_map[func_name] is None
+        else self.get_function_input_param_name(func_name)
         })
 """
         # self.generate_data_classes()  TODO: next feature
         return code
 
     def get_imports(self):
-        return f"from typing import {', '.join([i for i in self._typing_imports])}"
+        return f"from typing import {', '.join(i for i in self._typing_imports)}"
 
     def get_input_type_str(self, func_name: str):  # pragma: no cover
         if self._rpc_input_type_map[func_name] is None:
             return ""
         if self._rpc_input_type_map[func_name].__module__ == "typing":
-            n = self._rpc_input_type_map[func_name]._name
-            self._typing_imports.add(n)
-            return ": " + n
+            type_name = self._rpc_input_type_map[func_name]._name
+            self._typing_imports.add(type_name)
+            return ": " + type_name
         return ": " + self._rpc_input_type_map[func_name].__name__
 
     def get_return_type_str(self, func_name: str):  # pragma: no cover
         if self._rpc_return_type_map[func_name].__module__ == "typing":
-            n = self._rpc_return_type_map[func_name]._name
-            self._typing_imports.add(n)
-            return n
+            type_name = self._rpc_return_type_map[func_name]._name
+            self._typing_imports.add(type_name)
+            return type_name
         return self._rpc_return_type_map[func_name].__name__
 
     def get_function_str(self, func_name: str):
@@ -61,7 +61,9 @@ class RpcClient:
         def_line = [line for line in func_lines if "def" in line][0]
 
         # put self after the first (
-        def_line = def_line.replace(f"{func_name}(", f"{func_name}(self").replace("async ", "")
+        def_line = def_line.replace(f"{func_name}(", f"{func_name}(self").replace(
+            "async ", ""
+        )
 
         # if there is input, add comma after self
         if self._rpc_input_type_map[func_name]:
@@ -78,7 +80,7 @@ class RpcClient:
     def generate_data_classes(self):  # pragma: no cover
         # TODO: next target, add pydantic support
         code = ""
-        for f in self._rpc_input_type_map:
-            input_class = self._rpc_input_type_map[f]
+        for func_name in self._rpc_input_type_map:
+            input_class = self._rpc_input_type_map[func_name]
             if input_class and is_pydantic(input_class):
                 code += inspect.getsource(input_class)
