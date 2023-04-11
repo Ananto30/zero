@@ -1,14 +1,13 @@
 import sys
 import unittest
+from dataclasses import dataclass
 from typing import Any, Tuple
 from unittest.mock import patch
 
 import zmq
-from attr import dataclass
 
 from zero import ZeroServer
 from zero.encoder.protocols import Encoder
-from zero.error import ZeroException
 from zero.zero_mq.protocols import ZeroMQBroker
 
 DEFAULT_PORT = 5559
