@@ -2,7 +2,7 @@ import msgpack
 import zmq
 import zmq.asyncio
 
-from zero.utils.type import verify_allowed_type
+from zero.utils.type_util import verify_allowed_type
 
 
 class ZeroPublisher:  # pragma: no cover

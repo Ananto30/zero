@@ -13,9 +13,9 @@ class ZeroMQBroker:
     def listen(self, address: str, channel: str) -> None:
         self.gateway.bind(f"{address}")
         self.backend.bind(f"{channel}")
-        logging.info(f"Starting server at {address}")
+        logging.info("Starting server at %s", address)
 
-        zmq.device(zmq.QUEUE, self.gateway, self.backend)
+        zmq.proxy(self.gateway, self.backend)
 
     def close(self) -> None:
         self.gateway.close()

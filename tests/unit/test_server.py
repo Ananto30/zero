@@ -1,14 +1,13 @@
 import sys
 import unittest
+from dataclasses import dataclass
 from typing import Any, Tuple
 from unittest.mock import patch
 
 import zmq
-from attr import dataclass
 
 from zero import ZeroServer
 from zero.encoder.protocols import Encoder
-from zero.error import ZeroException
 from zero.zero_mq.protocols import ZeroMQBroker
 
 DEFAULT_PORT = 5559
@@ -239,6 +238,6 @@ class TestServer(unittest.TestCase):
         def add(msg: Tuple[int, int]) -> int:
             return msg[0] + msg[1]
 
-        with patch.object(server, "_get_comm_channel", side_effect=KeyboardInterrupt):
+        with patch.object(server, "_start_server", side_effect=KeyboardInterrupt):
             with self.assertRaises(SystemExit):
                 server.run()

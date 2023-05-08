@@ -32,7 +32,9 @@ async def order(request):
 
 
 async def async_order(request):
-    resp = await async_client.call("save_order", {"user_id": "1", "items": ["apple", "python"]})
+    resp = await async_client.call(
+        "save_order", {"user_id": "1", "items": ["apple", "python"]}
+    )
     return web.json_response(resp)
 
 

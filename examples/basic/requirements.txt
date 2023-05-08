@@ -1,3 +1,2 @@
-pyzmq
-msgpack
+zeroapi
 PyJWT

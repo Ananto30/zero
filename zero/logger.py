@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 
+import zmq
 import zmq.asyncio
 
 
@@ -10,9 +11,11 @@ class _AsyncLogger:  # pragma: no cover
     *We don't have any support for async logger now.*
 
     The idea is to have a push pull based logger to reduce io time in main process.
-    Logger will serve the methods like info, warn, error, exception and push to the desired tcp or ipc.
+    Logger will serve the methods like info, warn, error, exception
+        and push to the desired tcp or ipc.
 
-    The problem is, as the server runs in several processes, the logger makes each instance in each process.
+    The problem is, as the server runs in several processes,
+        the logger makes each instance in each process.
     If we run two servers, we cannot connect to the same ipc or tcp.
     So our logger's tcp or ipc should be dynamic.
     But as we got several instances of the logger,
@@ -48,18 +51,20 @@ class _AsyncLogger:  # pragma: no cover
 
         if os.name == "posix":
             log_listener.bind(f"ipc://{_AsyncLogger.ipc}")
-            logging.info(f"Async logger starting at ipc://{_AsyncLogger.ipc}")
+            logging.info("Async logger starting at ipc://%s", _AsyncLogger.ipc)
         else:
             log_listener.bind(f"tcp://127.0.0.1:{_AsyncLogger.port}")
-            logging.info(f"Async logger starting at tcp://127.0.0.1:{_AsyncLogger.port}")
+            logging.info(
+                "Async logger starting at tcp://127.0.0.1:%s", _AsyncLogger.port
+            )
         try:
             while True:
                 log = log_listener.recv_string()
                 logging.info(log)
         except KeyboardInterrupt:
             print("Caught KeyboardInterrupt, terminating async logger")
-        except Exception as e:
-            print(e)
+        except Exception as exc:
+            print(exc)
         finally:
             log_listener.close()
             sys.exit()

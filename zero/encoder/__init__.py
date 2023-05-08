@@ -1,2 +1,2 @@
-from .factory import get_encoder  # noqa
-from .protocols import Encoder  # noqa
+from .factory import get_encoder
+from .protocols import Encoder

@@ -1,3 +1,4 @@
+import logging
 import signal
 import socket
 import sys
@@ -22,17 +23,17 @@ def get_next_available_port(port: int) -> int:
 
     """
 
-    def is_port_available(port: int) -> bool:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    def is_port_available() -> bool:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            s.bind(("localhost", port))
+            sock.bind(("localhost", port))
             return True
         except socket.error:
             return False
         finally:
-            s.close()
+            sock.close()
 
-    while not is_port_available(port):
+    while not is_port_available():
         port += 1
 
     return port
@@ -86,3 +87,18 @@ def register_signal_term(sigterm_handler: Callable):
     else:
         signal.signal(signal.SIGQUIT, sigterm_handler)
         signal.signal(signal.SIGHUP, sigterm_handler)
+
+
+def log_error(func):
+    """
+    Decorator to log errors.
+    """
+
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as exc:  # pylint: disable=broad-except
+            logging.exception(exc)
+            return None
+
+    return wrapper
