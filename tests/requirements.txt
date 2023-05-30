@@ -1,5 +1,5 @@
 pyzmq
-msgpack
+msgspec
 pytest
 pytest-cov
 PyJWT

@@ -1,7 +1,7 @@
 import msgpack
 
 
-class MsgPackEncoder:
+class MsgpackEncoder:
     def __init__(self):
         pass
 

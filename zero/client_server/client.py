@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from zero import config
 from zero.encoder import Encoder, get_encoder
@@ -48,7 +48,7 @@ class ZeroClient:
         """
         self._address = f"tcp://{host}:{port}"
         self._default_timeout = default_timeout
-        self.encdr = encoder or get_encoder(config.ENCODER)
+        self._encoder = encoder or get_encoder(config.ENCODER)
 
         self.zmqc: ZeroMQClient = None  # type: ignore
 
@@ -57,6 +57,7 @@ class ZeroClient:
         rpc_func_name: str,
         msg: Union[int, float, str, dict, list, tuple, None],
         timeout: Optional[int] = None,
+        parse_type: Optional[type] = None,
     ) -> Any:
         """
         Call the rpc function resides on the ZeroServer.
@@ -104,12 +105,16 @@ class ZeroClient:
                     f"Timeout while sending message at {self._address}"
                 )
 
-            resp_id, resp_data = self.encdr.decode(self.zmqc.recv())
+            resp_id, resp_data = (
+                self._encoder.decode(self.zmqc.recv())
+                if parse_type is None
+                else self._encoder.decode_type(self.zmqc.recv(), Tuple[str, parse_type])
+            )
             return resp_id, resp_data
 
         req_id = util.unique_id()
         frames = [req_id, rpc_func_name, "" if msg is None else msg]
-        self.zmqc.send(self.encdr.encode(frames))
+        self.zmqc.send(self._encoder.encode(frames))
 
         resp_id, resp_data = None, None
         # as the client is synchronous, we know that the response will be available any next poll
@@ -141,8 +146,8 @@ class ZeroClient:
 
     def _try_connect(self):
         frames = [util.unique_id(), "connect", ""]
-        self.zmqc.send(self.encdr.encode(frames))
-        self.encdr.decode(self.zmqc.recv())
+        self.zmqc.send(self._encoder.encode(frames))
+        self._encoder.decode(self.zmqc.recv())
         logging.info("Connected to server at %s", self._address)
 
 
@@ -198,6 +203,7 @@ class AsyncZeroClient:
         rpc_func_name: str,
         msg: Union[int, float, str, dict, list, tuple, None],
         timeout: Optional[int] = None,
+        parse_type: Optional[type] = None,
     ) -> Any:
         """
         Call the rpc function resides on the ZeroServer.
@@ -246,7 +252,11 @@ class AsyncZeroClient:
             #     raise TimeoutException(f"Timeout while sending message at {self._address}")
 
             resp = await self.zmqc.recv()
-            resp_id, resp_data = self._encoder.decode(resp)
+            resp_id, resp_data = (
+                self._encoder.decode(resp)
+                if parse_type is None
+                else self._encoder.decode_type(resp, Tuple[str, parse_type])
+            )
             self._resp_map[resp_id] = resp_data
 
             # TODO try to use pipe instead of sleep
