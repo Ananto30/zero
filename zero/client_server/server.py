@@ -39,7 +39,7 @@ class ZeroServer:
             Port of the ZeroServer.
         encoder: Optional[Encoder]
             Encoder to encode/decode messages from/to client.
-            Default is msgpack.
+            Default is msgspec.
             If any other encoder is used, the client should use the same encoder.
             Implement custom encoder by inheriting from `zero.encoder.Encoder`.
         """

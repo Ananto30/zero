@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, Optional, Tuple, Union
 
 from zero import config
 from zero.encoder import Encoder, get_encoder
@@ -42,7 +42,7 @@ class ZeroClient:
 
         encoder: Optional[Encoder]
             Encoder to encode/decode messages from/to client.
-            Default is msgpack.
+            Default is msgspec.
             If any other encoder is used, the server should use the same encoder.
             Implement custom encoder by inheriting from `zero.encoder.Encoder`.
         """
@@ -186,7 +186,7 @@ class AsyncZeroClient:
 
         encoder: Optional[Encoder]
             Encoder to encode/decode messages from/to client.
-            Default is msgpack.
+            Default is msgspec.
             If any other encoder is used, the server should use the same encoder.
             Implement custom encoder by inheriting from `zero.encoder.Encoder`.
         """

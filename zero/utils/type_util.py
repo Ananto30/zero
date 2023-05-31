@@ -113,8 +113,8 @@ def verify_function_input_type(func: Callable):
     if origin_type is not None and origin_type in allowed_types:
         return
 
-    for t in msgspec_types:
-        if issubclass(input_type, t):
+    for mtype in msgspec_types:
+        if input_type is not None and issubclass(input_type, mtype):
             return
 
     raise TypeError(

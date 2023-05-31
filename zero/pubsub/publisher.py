@@ -1,4 +1,4 @@
-import msgpack
+import msgspec
 import zmq
 import zmq.asyncio
 
@@ -33,8 +33,10 @@ class ZeroPublisher:  # pragma: no cover
 
     def publish(self, topic, msg):
         verify_allowed_type(msg)
-        self.__socket.send_multipart([topic.encode(), msgpack.packb(msg)])
+        self.__socket.send_multipart([topic.encode(), msgspec.msgpack.encode(msg)])
 
     async def publish_async(self, topic, msg):
         verify_allowed_type(msg)
-        await self.__socket.send_multipart([topic.encode(), msgpack.packb(msg)])
+        await self.__socket.send_multipart(
+            [topic.encode(), msgspec.msgpack.encode(msg)]
+        )
