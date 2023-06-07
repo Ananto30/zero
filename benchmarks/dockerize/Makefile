@@ -36,6 +36,8 @@ benchmark-sanic:
 		)
 
 benchmark-zero:
+		rm -rf ./zero/zero && \
+		cp -r ../../zero ./zero/zero && \
 		cd zero && ( \
 		docker-compose up -d --build gateway server redis; \
 		sleep 2; \

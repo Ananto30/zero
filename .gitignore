@@ -4,6 +4,7 @@ venv/
 venv-pypy/
 .pytest_cache
 .idea
+.pytype
 
 
 build

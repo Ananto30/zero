@@ -183,7 +183,11 @@ class ZeroServer:
 
     @util.log_error
     def _remove_ipc(self):
-        if os.name == "posix":
+        if (
+            os.name == "posix"
+            and self._device_ipc is not None
+            and os.path.exists(self._device_ipc)
+        ):
             os.remove(self._device_ipc)
 
     @util.log_error

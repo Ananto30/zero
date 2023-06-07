@@ -1,9 +1,10 @@
-zeroapi
+pyzmq
+msgspec
 PyJWT
 aioredis
 uvloop
-msgpack
 aiohttp
 gunicorn
 redis
 sanic
+msgpack
