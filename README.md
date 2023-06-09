@@ -64,16 +64,15 @@ Let's get started!
         app.run()
     ```
 
-* The **RPC functions only support one argument** (`msg`) for now.
+*   The **RPC functions only support one argument** (`msg`) for now.
 
-* Also note that server **RPC functions are type hinted**. Type hint is **must** in Zero server.
-
-* Supported types can be found [here](/zero/utils/type_util.py#L11).
+*   Also note that server **RPC functions are type hinted**. Type hint is **must** in Zero server. Supported types can be found [here](/zero/utils/type_util.py#L11).
 
 *   Run the server
-    ```
+    ```shell
     python -m server
     ```
+
 *   Call the rpc methods
 
     ```python
@@ -95,7 +94,7 @@ Let's get started!
         hello()
     ```
 
-* Or using async client -
+*   Or using async client -
 
     ```python
     import asyncio
@@ -119,9 +118,14 @@ Let's get started!
         loop.run_until_complete(hello())
     ```
 
-# Serialization
+# Serialization 📦
+
+## Default serializer
+
 [Msgspec](https://jcristharif.com/msgspec/) is the default serializer. So `msgspec.Struct` (for high performance) or `dataclass` or any [supported types](https://jcristharif.com/msgspec/supported-types.html) can be used easily to pass complex arguments, i.e.
+
 ```python
+from dataclasses import dataclass
 from msgspec import Struct
 from zero import ZeroServer
 
@@ -132,13 +136,39 @@ class Person(Struct):
     age: int
     dob: datetime
 
+@dataclass
+class Order:
+    id: int
+    amount: float
+    created_at: datetime
+
 @app.register_rpc
 def save_person(person: Person) -> None:
     # save person to db
     ...
+
+@app.register_rpc
+def save_order(order: Order) -> None:
+    # save order to db
+    ...
 ```
 
-# Code Generation! 🙌
+## Return type
+
+The return type of the RPC function can be any of the [supported types](https://jcristharif.com/msgspec/supported-types.html). If `return_type` is set in the client `call` method, then the return type will be converted to that type.
+
+```python
+@dataclass
+class Order:
+    id: int
+    amount: float
+    created_at: datetime
+
+def get_order(id: str) -> Order:
+    return zero_client.call("get_order", id, return_type=Order)
+```
+
+# Code Generation 🤖
 
 Easy to use code generation tool is also provided!
 
@@ -191,11 +221,11 @@ Currently, the code generation tool supports only `ZeroClient` and not `AsyncZer
 # Important notes 📝
 
 *   `ZeroServer` should always be run under `if __name__ == "__main__":`, as it uses multiprocessing.
-*   The methods which are under `register_rpc()` in `ZeroServer` should have **type hinting**, like `def echo(msg: str):`
+*   The methods which are under `register_rpc()` in `ZeroServer` should have **type hinting**, like `def echo(msg: str) -> str:`
 
-# Let's do some benchmarking 🤘
+# Let's do some benchmarking! 🏎
 
-Zero is talking about inter service communication. In most real life scenarios, we need to call another microservice.
+Zero is all about inter service communication. In most real life scenarios, we need to call another microservice.
 
 So we will be testing a gateway calling another server for some data. Check the [benchmark/dockerize](https://github.com/Ananto30/zero/tree/main/benchmarks/dockerize) folder for details.
 
@@ -223,9 +253,9 @@ zero(async) | 22716.84              | 5.61             | 17446.19           | 7.
 
 # Roadmap 🗺
 
-*   \[ ] Make msgspec as default serializer
-*   \[ ] Add support for async server (currently the sync server runs async functions in the eventloop, which is blocking)
-*   \[ ] Add pub/sub support
+*   [x] Make msgspec as default serializer
+*   [ ] Add support for async server (currently the sync server runs async functions in the eventloop, which is blocking)
+*   [ ] Add pub/sub support
 
 # Contribution
 

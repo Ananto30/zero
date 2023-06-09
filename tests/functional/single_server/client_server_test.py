@@ -97,6 +97,6 @@ async def test_echo_wrong_type_input_async():
 def test_msgspec_struct():
     now = datetime.datetime.now()
     zero_client = ZeroClient(server.HOST, server.PORT)
-    msg = zero_client.call("msgspec_struct", now, parse_type=Message)
+    msg = zero_client.call("msgspec_struct", now, return_type=Message)
     assert msg.msg == "hello world"
     assert msg.start_time == now

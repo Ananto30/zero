@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any, Dict, Optional, Tuple, Type, TypeVar, Union
 
 from zero import config
 from zero.encoder import Encoder, get_encoder
@@ -8,6 +8,8 @@ from zero.error import MethodNotFoundException, RemoteException, TimeoutExceptio
 from zero.utils import util
 from zero.zero_mq import AsyncZeroMQClient, ZeroMQClient, get_async_client, get_client
 from zero.zero_mq.helpers import zpipe_async
+
+T = TypeVar("T")
 
 
 class ZeroClient:
@@ -57,8 +59,8 @@ class ZeroClient:
         rpc_func_name: str,
         msg: Union[int, float, str, dict, list, tuple, None],
         timeout: Optional[int] = None,
-        parse_type: Optional[type] = None,
-    ) -> Any:
+        return_type: Optional[Type[T]] = None,
+    ) -> T:
         """
         Call the rpc function resides on the ZeroServer.
 
@@ -75,6 +77,10 @@ class ZeroClient:
         timeout: Optional[int]
             Timeout for the call. In milliseconds.
             Default is 2000 milliseconds.
+
+        return_type: Optional[Type[T]]
+            The return type of the rpc function.
+            If return_type is set, the response will be parsed to the return_type.
 
         Returns
         -------
@@ -107,8 +113,10 @@ class ZeroClient:
 
             resp_id, resp_data = (
                 self._encoder.decode(self.zmqc.recv())
-                if parse_type is None
-                else self._encoder.decode_type(self.zmqc.recv(), Tuple[str, parse_type])
+                if return_type is None
+                else self._encoder.decode_type(
+                    self.zmqc.recv(), Tuple[str, return_type]
+                )
             )
             return resp_id, resp_data
 
@@ -126,7 +134,7 @@ class ZeroClient:
 
         check_response(resp_data)
 
-        return resp_data
+        return resp_data  # type: ignore
 
     def close(self):
         if self.zmqc is not None:
@@ -203,8 +211,8 @@ class AsyncZeroClient:
         rpc_func_name: str,
         msg: Union[int, float, str, dict, list, tuple, None],
         timeout: Optional[int] = None,
-        parse_type: Optional[type] = None,
-    ) -> Any:
+        return_type: Optional[Type[T]] = None,
+    ) -> T:
         """
         Call the rpc function resides on the ZeroServer.
 
@@ -222,10 +230,15 @@ class AsyncZeroClient:
             Timeout for the call. In milliseconds.
             Default is 2000 milliseconds.
 
+        return_type: Optional[Type[T]]
+            The return type of the rpc function.
+            If return_type is set, the response will be parsed to the return_type.
+
         Returns
         -------
-        Any
+        T
             The return value of the rpc function.
+            If return_type is set, the response will be parsed to the return_type.
 
         Raises
         ------
@@ -254,8 +267,8 @@ class AsyncZeroClient:
             resp = await self.zmqc.recv()
             resp_id, resp_data = (
                 self._encoder.decode(resp)
-                if parse_type is None
-                else self._encoder.decode_type(resp, Tuple[str, parse_type])
+                if return_type is None
+                else self._encoder.decode_type(resp, Tuple[str, return_type])
             )
             self._resp_map[resp_id] = resp_data
 
