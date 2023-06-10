@@ -25,13 +25,13 @@
 
 *   Zero provides **faster communication** (see [benchmarks](https://github.com/Ananto30/zero#benchmarks-)) between the microservices using [zeromq](https://zeromq.org/) under the hood.
 *   Zero uses messages for communication and traditional **client-server** or **request-reply** pattern is supported.
-*   Support for both **Async** and **sync**.
+*   Support for both **async** and **sync**.
 *   The base server (ZeroServer) **utilizes all cpu cores**.
 *   **Code generation**! See [example](https://github.com/Ananto30/zero#code-generation-) 👇
 
 **Philosophy** behind Zero:
 
-*   **Zero learning curve**: The learning curve is tends to zero. You just add your functions and spin up a server, literally that's it! The framework hides the complexity of messaging pattern that enables faster communication.
+*   **Zero learning curve**: The learning curve is tends to zero. Just add functions and spin up a server, literally that's it! The framework hides the complexity of messaging pattern that enables faster communication.
 *   **ZeroMQ**: An awesome messaging library enables the power of Zero.
 
 Let's get started!
@@ -46,86 +46,135 @@ Let's get started!
 
 *   Create a `server.py`
 
-```python
-from zero import ZeroServer
+    ```python
+    from zero import ZeroServer
 
-app = ZeroServer(port=5559)
+    app = ZeroServer(port=5559)
 
-@app.register_rpc
-def echo(msg: str) -> str:
-    return msg
+    @app.register_rpc
+    def echo(msg: str) -> str:
+        return msg
 
-@app.register_rpc
-async def hello_world() -> str:
-    return "hello world"
+    @app.register_rpc
+    async def hello_world() -> str:
+        return "hello world"
 
 
-if __name__ == "__main__":
-    app.run()
-```
+    if __name__ == "__main__":
+        app.run()
+    ```
 
-Please note that server **RPC methods are type hinted**. Type hint is **must** in Zero server.
+*   The **RPC functions only support one argument** (`msg`) for now.
 
-*See the method type async or sync, doesn't matter.* 😃
+*   Also note that server **RPC functions are type hinted**. Type hint is **must** in Zero server. Supported types can be found [here](/zero/utils/type_util.py#L11).
 
-*   Run it
-
-<!---->
-
+*   Run the server
+    ```shell
     python -m server
+    ```
 
 *   Call the rpc methods
 
+    ```python
+    from zero import ZeroClient
+
+    zero_client = ZeroClient("localhost", 5559)
+
+    def echo():
+        resp = zero_client.call("echo", "Hi there!")
+        print(resp)
+
+    def hello():
+        resp = zero_client.call("hello_world", None)
+        print(resp)
+
+
+    if __name__ == "__main__":
+        echo()
+        hello()
+    ```
+
+*   Or using async client -
+
+    ```python
+    import asyncio
+
+    from zero import AsyncZeroClient
+
+    zero_client = AsyncZeroClient("localhost", 5559)
+
+    async def echo():
+        resp = await zero_client.call("echo", "Hi there!")
+        print(resp)
+
+    async def hello():
+        resp = await zero_client.call("hello_world", None)
+        print(resp)
+
+
+    if __name__ == "__main__":
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(echo())
+        loop.run_until_complete(hello())
+    ```
+
+# Serialization 📦
+
+## Default serializer
+
+[Msgspec](https://jcristharif.com/msgspec/) is the default serializer. So `msgspec.Struct` (for high performance) or `dataclass` or any [supported types](https://jcristharif.com/msgspec/supported-types.html) can be used easily to pass complex arguments, i.e.
+
 ```python
-from zero import ZeroClient
+from dataclasses import dataclass
+from msgspec import Struct
+from zero import ZeroServer
 
-zero_client = ZeroClient("localhost", 5559)
+app = ZeroServer()
 
-def echo():
-    resp = zero_client.call("echo", "Hi there!")
-    print(resp)
+class Person(Struct):
+    name: str
+    age: int
+    dob: datetime
 
-def hello():
-    resp = zero_client.call("hello_world", None)
-    print(resp)
+@dataclass
+class Order:
+    id: int
+    amount: float
+    created_at: datetime
 
+@app.register_rpc
+def save_person(person: Person) -> None:
+    # save person to db
+    ...
 
-if __name__ == "__main__":
-    echo()
-    hello()
+@app.register_rpc
+def save_order(order: Order) -> None:
+    # save order to db
+    ...
 ```
 
-Or using async client -
+## Return type
+
+The return type of the RPC function can be any of the [supported types](https://jcristharif.com/msgspec/supported-types.html). If `return_type` is set in the client `call` method, then the return type will be converted to that type.
 
 ```python
-import asyncio
+@dataclass
+class Order:
+    id: int
+    amount: float
+    created_at: datetime
 
-from zero import AsyncZeroClient
-
-zero_client = AsyncZeroClient("localhost", 5559)
-
-async def echo():
-    resp = await zero_client.call("echo", "Hi there!")
-    print(resp)
-
-async def hello():
-    resp = await zero_client.call("hello_world", None)
-    print(resp)
-
-
-if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(echo())
-    loop.run_until_complete(hello())
+def get_order(id: str) -> Order:
+    return zero_client.call("get_order", id, return_type=Order)
 ```
 
-# Code Generation! 🙌
+# Code Generation 🤖
 
-You can also use our code generation tool to generate Python client code!
+Easy to use code generation tool is also provided!
 
-After running the server, like above, you can call the server to get the client code.
+After running the server, like above, call the server to get the client code. This makes it easy to know what functions are available in the local or remote server.
 
-Using `zero.generate_client` you can generate client code for even remote servers using the `--host` and `--port` options. You don't need access to the code 😃
+Using `zero.generate_client` generate client code for even remote servers using the `--host` and `--port` options.
 
 ```shell
 python -m zero.generate_client --host localhost --port 5559 --overwrite-dir ./my_client
@@ -167,14 +216,16 @@ if __name__ == "__main__":
 
 Currently, the code generation tool supports only `ZeroClient` and not `AsyncZeroClient`.
 
+*WIP - Generate models from server code.*
+
 # Important notes 📝
 
 *   `ZeroServer` should always be run under `if __name__ == "__main__":`, as it uses multiprocessing.
-*   The methods which are under `register_rpc()` in `ZeroServer` should have **type hinting**, like `def echo(msg: str):`
+*   The methods which are under `register_rpc()` in `ZeroServer` should have **type hinting**, like `def echo(msg: str) -> str:`
 
-# Let's do some benchmarking 🤘
+# Let's do some benchmarking! 🏎
 
-Zero is talking about inter service communication. In most real life scenarios, we need to call another microservice.
+Zero is all about inter service communication. In most real life scenarios, we need to call another microservice.
 
 So we will be testing a gateway calling another server for some data. Check the [benchmark/dockerize](https://github.com/Ananto30/zero/tree/main/benchmarks/dockerize) folder for details.
 
@@ -202,9 +253,9 @@ zero(async) | 22716.84              | 5.61             | 17446.19           | 7.
 
 # Roadmap 🗺
 
-*   \[ ] Make msgspec as default serializer
-*   \[ ] Add support for async server (currently the sync server runs async functions in the eventloop, which is blocking)
-*   \[ ] Add pub/sub support
+*   [x] Make msgspec as default serializer
+*   [ ] Add support for async server (currently the sync server runs async functions in the eventloop, which is blocking)
+*   [ ] Add pub/sub support
 
 # Contribution
 

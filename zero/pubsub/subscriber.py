@@ -4,7 +4,7 @@ import sys
 from multiprocessing import Process
 from typing import Callable, Dict
 
-import msgpack
+import msgspec
 import zmq
 import zmq.asyncio
 
@@ -103,6 +103,6 @@ class Listener:  # pragma: no cover
                 continue
 
             try:
-                await self._func(msgpack.unpackb(msg))
+                await self._func(msgspec.msgpack.decode(msg))
             except Exception as exc:  # pylint: disable=broad-except
                 logging.error(exc)

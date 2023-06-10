@@ -1,9 +1,9 @@
-from .msgpk import MsgPackEncoder
+from .msgspc import MsgspecEncoder
 from .protocols import Encoder
 
 
 def get_encoder(name: str) -> Encoder:
-    if name == "msgpack":
-        return MsgPackEncoder()
+    if name == "msgspec":
+        return MsgspecEncoder()
 
     raise ValueError(f"unknown encoder: {name}")

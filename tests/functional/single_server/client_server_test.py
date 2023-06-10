@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+import datetime
 
 import pytest
 
@@ -6,6 +6,7 @@ import zero.error
 from zero import AsyncZeroClient, ZeroClient
 
 from . import server
+from .server import Message
 
 
 def test_hello_world():
@@ -84,7 +85,6 @@ async def test_echo_wrong_port_async():
 
 @pytest.mark.asyncio
 async def test_echo_wrong_type_input_async():
-    @dataclass
     class Example:
         msg: str
 
@@ -92,3 +92,11 @@ async def test_echo_wrong_type_input_async():
     with pytest.raises(TypeError):
         msg = await zero_client.call("echo", Example(msg="hello"))  # type: ignore
         assert msg is None
+
+
+def test_msgspec_struct():
+    now = datetime.datetime.now()
+    zero_client = ZeroClient(server.HOST, server.PORT)
+    msg = zero_client.call("msgspec_struct", now, return_type=Message)
+    assert msg.msg == "hello world"
+    assert msg.start_time == now

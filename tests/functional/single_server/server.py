@@ -1,8 +1,10 @@
 import asyncio
+import datetime
 import time
 import typing
 
 import jwt
+import msgspec
 
 from zero import ZeroServer
 
@@ -65,6 +67,16 @@ async def sleep_async(msec: int) -> str:
 @app.register_rpc
 def error(msg: str) -> str:
     raise RuntimeError(msg)
+
+
+class Message(msgspec.Struct):
+    msg: str
+    start_time: datetime.datetime
+
+
+@app.register_rpc
+def msgspec_struct(start: datetime.datetime) -> Message:
+    return Message(msg="hello world", start_time=start)
 
 
 def run(port):

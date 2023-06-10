@@ -1,6 +1,5 @@
 import sys
 import unittest
-from dataclasses import dataclass
 from typing import Any, Tuple
 from unittest.mock import patch
 
@@ -71,6 +70,9 @@ class TestServer(unittest.TestCase):
             def decode(self, message: bytes) -> Any:
                 return message
 
+            def decode_type(self, message: bytes, typ: Any) -> Any:
+                return message
+
         encoder = CustomEncoder()
 
         server = ZeroServer(encoder=encoder)
@@ -89,6 +91,9 @@ class TestServer(unittest.TestCase):
                 return message
 
             def decode(self, message: bytes) -> Any:
+                return message
+
+            def decode_type(self, message: bytes, typ: Any) -> Any:
                 return message
 
         encoder = CustomEncoder()
@@ -112,6 +117,9 @@ class TestServer(unittest.TestCase):
             def decode(self, message: bytes) -> Any:
                 return message
 
+            def decode_type(self, message: bytes, typ: Any) -> Any:
+                return message
+
         encoder = CustomEncoder()
         host = "123.0.0.123"
 
@@ -131,6 +139,9 @@ class TestServer(unittest.TestCase):
                 return message
 
             def decode(self, message: bytes) -> Any:
+                return message
+
+            def decode_type(self, message: bytes, typ: Any) -> Any:
                 return message
 
         encoder = CustomEncoder()
@@ -174,7 +185,6 @@ class TestServer(unittest.TestCase):
     def test_register_rpc_with_invalid_input_type(self):
         server = ZeroServer()
 
-        @dataclass
         class Message:
             msg: str
 
@@ -187,7 +197,6 @@ class TestServer(unittest.TestCase):
     def test_register_rpc_with_invalid_return_type(self):
         server = ZeroServer()
 
-        @dataclass
         class Message:
             msg: str
 
@@ -200,7 +209,6 @@ class TestServer(unittest.TestCase):
     def test_register_rpc_with_invalid_input_type_and_return_type(self):
         server = ZeroServer()
 
-        @dataclass
         class Message:
             msg: str
 

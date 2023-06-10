@@ -8,4 +8,4 @@ logging.basicConfig(
 
 RESERVED_FUNCTIONS = ["get_rpc_contract", "connect"]
 ZEROMQ_PATTERN = "proxy"
-ENCODER = "msgpack"
+ENCODER = "msgspec"

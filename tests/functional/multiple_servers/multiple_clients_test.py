@@ -1,13 +1,12 @@
 import pytest
 
+from tests import constants
 from zero import AsyncZeroClient, ZeroClient
-
-from .config import Config
 
 
 @pytest.mark.asyncio
 async def test_multiple_clients(server1, server2):  # pylint: disable=unused-argument
-    server2_port = Config.SERVER2_PORT
+    server2_port = constants.MULTIPLE_SERVERS_PORT2
 
     client1 = ZeroClient("localhost", server2_port)
     assert client1.call("echo", "Hello") == "Server1: Hello"
