@@ -41,6 +41,9 @@ class RpcClient:
     def msgspec_struct(self, start: datetime.datetime) -> Message:
         return self._zero_client.call("msgspec_struct", start)
 
+    def send_bytes(self, msg: bytes) -> bytes:
+        return self._zero_client.call("send_bytes", msg)
+
     def echo(self, msg: str) -> str:
         return self._zero_client.call("echo", msg)
 
