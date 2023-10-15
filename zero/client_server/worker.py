@@ -34,12 +34,14 @@ class _Worker:
             self._rpc_return_type_map,
         )
 
-    def start_dealer_worker(self, worker_id):
-        def process_message(data: bytes) -> Optional[bytes]:
+    async def start_dealer_worker(self, worker_id):
+        worker = get_worker(config.ZEROMQ_PATTERN, worker_id)
+
+        async def process_message(data: bytes) -> Optional[bytes]:
             try:
                 decoded = self._encoder.decode(data)
                 req_id, func_name, msg = decoded
-                response = self.handle_msg(func_name, msg)
+                response = await self.handle_msg(func_name, msg)
                 return self._encoder.encode([req_id, response])
             except (
                 Exception
@@ -49,9 +51,8 @@ class _Worker:
                     ["", {"__zerror__server_exception": SERVER_PROCESSING_ERROR}]
                 )
 
-        worker = get_worker(config.ZEROMQ_PATTERN, worker_id)
         try:
-            worker.listen(self._device_comm_channel, process_message)
+            await worker.listen(self._device_comm_channel, process_message)
         except KeyboardInterrupt:
             logging.warning(
                 "Caught KeyboardInterrupt, terminating worker %d", worker_id
@@ -62,7 +63,7 @@ class _Worker:
             logging.warning("Closing worker %d", worker_id)
             worker.close()
 
-    def handle_msg(self, rpc, msg):
+    async def handle_msg(self, rpc, msg):
         if rpc == "get_rpc_contract":
             return self.generate_rpc_contract(msg)
 
@@ -77,10 +78,12 @@ class _Worker:
         ret = None
 
         try:
-            # TODO: is this a bottleneck
             if inspect.iscoroutinefunction(func):
                 # this is blocking
-                ret = self._loop.run_until_complete(func(msg) if msg else func())
+                if msg:
+                    ret = await func(msg)
+                else:
+                    ret = await func()
             else:
                 ret = func(msg) if msg else func()
 
@@ -123,4 +126,6 @@ class _Worker:
             rpc_input_type_map,
             rpc_return_type_map,
         )
-        worker.start_dealer_worker(worker_id)
+        loop = asyncio.new_event_loop() or asyncio.get_event_loop()
+        loop.run_until_complete(worker.start_dealer_worker(worker_id))
+        loop.close()

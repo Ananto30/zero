@@ -24,16 +24,16 @@ class TestWorker(unittest.TestCase):
         self.assertEqual(worker.context.closed, True)
 
     @pytest.mark.skip(reason="hard to test infinite loop")
-    def test_listen_timeout(self):
+    async def test_listen_timeout(self):
         worker = ZeroMQWorker(1)
         mock_msg_handler = Mock(return_value=b"response")
         with (
             patch.object(worker.socket, "connect", return_value=None),
             patch.object(worker, "_recv_and_process", side_effect=zmq.error.Again),
         ):
-            worker.listen("tcp://example.com:5555", mock_msg_handler)
+            await worker.listen("tcp://example.com:5555", mock_msg_handler)
 
-    def test_recv_and_process(self):
+    async def test_recv_and_process(self):
         worker = ZeroMQWorker(1)
         mock_msg_handler = Mock(return_value=b"response")
         with patch.object(
@@ -41,12 +41,12 @@ class TestWorker(unittest.TestCase):
         ) as mock_recv_multipart, patch.object(
             worker.socket, "send_multipart", return_value=None
         ) as mock_send_multipart:
-            worker._recv_and_process(mock_msg_handler)
+            await worker._recv_and_process(mock_msg_handler)
             mock_msg_handler.assert_called_once()
             mock_recv_multipart.assert_called_once()
             mock_send_multipart.assert_called_once()
 
-    def test_recv_and_process_invalid_message(self):
+    async def test_recv_and_process_invalid_message(self):
         worker = ZeroMQWorker(1)
         mock_msg_handler = Mock(return_value=b"response")
         with patch.object(
@@ -54,7 +54,7 @@ class TestWorker(unittest.TestCase):
         ) as mock_recv_multipart, patch.object(
             worker.socket, "send_multipart", return_value=None
         ) as mock_send_multipart:
-            worker._recv_and_process(mock_msg_handler)
+            await worker._recv_and_process(mock_msg_handler)
             mock_msg_handler.assert_not_called()
             mock_send_multipart.assert_not_called()
             mock_recv_multipart.assert_called_once()

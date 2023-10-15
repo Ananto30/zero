@@ -7,8 +7,8 @@ benchmark-zero:
 		docker-compose up -d --build gateway server redis; \
 		sleep 2; \
 		docker-compose up wrk-hello; \
-		docker-compose up wrk-order; \
+		# docker-compose up wrk-order; \
 		docker-compose up wrk-hello-async; \
-		docker-compose up wrk-order-async; \
+		# docker-compose up wrk-order-async; \
 		docker-compose down; \
 		)
