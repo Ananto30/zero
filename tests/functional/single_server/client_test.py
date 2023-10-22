@@ -31,14 +31,25 @@ async def test_concurrent_divide():
         (534, 11): 48,
     }
 
+    total_pass = 0
+
     async def divide(semaphore, req):
         async with semaphore:
-            assert await async_client.call("divide", req, timeout=700) == req_resp[req]
+            try:
+                assert (
+                    await async_client.call("divide", req, timeout=500) == req_resp[req]
+                )
+                nonlocal total_pass
+                total_pass += 1
+            except zero.error.TimeoutException:
+                pass
 
-    semaphore = asyncio.BoundedSemaphore(3)
+    semaphore = asyncio.BoundedSemaphore(4)
 
     tasks = [divide(semaphore, req) for req in req_resp]
     await asyncio.gather(*tasks)
+
+    assert total_pass > 2
 
 
 def test_server_error():

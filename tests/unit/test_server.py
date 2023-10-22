@@ -3,6 +3,7 @@ import unittest
 from typing import Any, Tuple
 from unittest.mock import patch
 
+# import pytest
 import zmq
 
 from zero import ZeroServer
@@ -177,10 +178,7 @@ class TestServer(unittest.TestCase):
             return msg[0] + msg[1]
 
         with self.assertRaises(ValueError):
-
-            @server.register_rpc
-            def add(msg: Tuple[int, int]) -> int:
-                return msg[0] + msg[1]
+            server.register_rpc(add)
 
     def test_register_rpc_with_invalid_input_type(self):
         server = ZeroServer()
@@ -216,7 +214,7 @@ class TestServer(unittest.TestCase):
 
             @server.register_rpc
             def add(msg: Message) -> Message:
-                return Message("1")
+                return Message()
 
     def test_server_run(self):
         server = ZeroServer()
@@ -239,6 +237,8 @@ class TestServer(unittest.TestCase):
                     server._broker.backend,  # type: ignore
                 )
 
+    # @pytest.mark.skipif(sys.platform == "win32", reason="Does not run on windows")
+    # @pytest.mark.skip
     def test_server_run_keyboard_interrupt(self):
         server = ZeroServer()
 

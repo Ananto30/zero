@@ -1,4 +1,6 @@
-SERVER_PROCESSING_ERROR = "server cannot process message, check server logs for more details"
+SERVER_PROCESSING_ERROR = (
+    "server cannot process message, check server logs for more details"
+)
 
 
 class ZeroException(Exception):

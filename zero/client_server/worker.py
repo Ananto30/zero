@@ -41,7 +41,9 @@ class _Worker:
                 req_id, func_name, msg = decoded
                 response = self.handle_msg(func_name, msg)
                 return self._encoder.encode([req_id, response])
-            except Exception as inner_exc:  # pylint: disable=broad-except
+            except (
+                Exception
+            ) as inner_exc:  # pragma: no cover pylint: disable=broad-except
                 logging.exception(inner_exc)
                 return self._encoder.encode(
                     ["", {"__zerror__server_exception": SERVER_PROCESSING_ERROR}]
@@ -51,7 +53,9 @@ class _Worker:
         try:
             worker.listen(self._device_comm_channel, process_message)
         except KeyboardInterrupt:
-            logging.warning("Caught KeyboardInterrupt, terminating worker %d", worker_id)
+            logging.warning(
+                "Caught KeyboardInterrupt, terminating worker %d", worker_id
+            )
         except Exception as exc:  # pylint: disable=broad-except
             logging.exception(exc)
         finally:
