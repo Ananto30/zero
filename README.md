@@ -143,12 +143,12 @@ class Order:
     created_at: datetime
 
 @app.register_rpc
-def save_person(person: Person) -> None:
+def save_person(person: Person) -> bool:
     # save person to db
     ...
 
 @app.register_rpc
-def save_order(order: Order) -> None:
+def save_order(order: Order) -> bool:
     # save order to db
     ...
 ```
