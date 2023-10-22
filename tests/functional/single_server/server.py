@@ -79,6 +79,11 @@ def msgspec_struct(start: datetime.datetime) -> Message:
     return Message(msg="hello world", start_time=start)
 
 
+@app.register_rpc
+def send_bytes(msg: bytes) -> bytes:
+    return msg
+
+
 def run(port):
     print("Starting server on port", port)
     app.register_rpc(echo)

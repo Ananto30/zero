@@ -7,6 +7,7 @@ from typing import Optional
 from zero import config
 from zero.codegen.codegen import CodeGen
 from zero.encoder.protocols import Encoder
+from zero.error import SERVER_PROCESSING_ERROR
 from zero.zero_mq.factory import get_worker
 
 
@@ -40,10 +41,13 @@ class _Worker:
                 req_id, func_name, msg = decoded
                 response = self.handle_msg(func_name, msg)
                 return self._encoder.encode([req_id, response])
-            except Exception as inner_exc:  # pylint: disable=broad-except
+            except (
+                Exception
+            ) as inner_exc:  # pragma: no cover pylint: disable=broad-except
                 logging.exception(inner_exc)
-                # TODO what to return
-                return None
+                return self._encoder.encode(
+                    ["", {"__zerror__server_exception": SERVER_PROCESSING_ERROR}]
+                )
 
         worker = get_worker(config.ZEROMQ_PATTERN, worker_id)
         try:

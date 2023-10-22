@@ -1,6 +1,7 @@
 import datetime
 
 import pytest
+import requests
 
 import zero.error
 from zero import AsyncZeroClient, ZeroClient
@@ -100,3 +101,30 @@ def test_msgspec_struct():
     msg = zero_client.call("msgspec_struct", now, return_type=Message)
     assert msg.msg == "hello world"
     assert msg.start_time == now
+
+
+def test_send_bytes():
+    zero_client = ZeroClient(server.HOST, server.PORT)
+    msg = zero_client.call("send_bytes", b"hello")
+    assert msg == b"hello"
+
+
+def test_send_http_request():
+    with pytest.raises(requests.exceptions.ReadTimeout):
+        requests.get(f"http://{server.HOST}:{server.PORT}", timeout=2)
+
+
+def test_server_works_after_multiple_http_requests():
+    """Because of this issue https://github.com/Ananto30/zero/issues/41"""
+    try:
+        requests.get(f"http://{server.HOST}:{server.PORT}", timeout=2)
+        requests.get(f"http://{server.HOST}:{server.PORT}", timeout=2)
+        requests.get(f"http://{server.HOST}:{server.PORT}", timeout=2)
+        requests.get(f"http://{server.HOST}:{server.PORT}", timeout=2)
+        requests.get(f"http://{server.HOST}:{server.PORT}", timeout=2)
+        requests.get(f"http://{server.HOST}:{server.PORT}", timeout=2)
+    except requests.exceptions.ReadTimeout:
+        pass
+    zero_client = ZeroClient(server.HOST, server.PORT)
+    msg = zero_client.call("hello_world", "")
+    assert msg == "hello world"
