@@ -3,7 +3,7 @@ import os
 import signal
 import sys
 from functools import partial
-from multiprocessing.pool import Pool
+from multiprocessing.pool import Pool, ThreadPool
 from typing import Callable, Dict, Optional
 
 import zmq.utils.win32
@@ -24,6 +24,7 @@ class ZeroServer:
         host: str = "0.0.0.0",
         port: int = 5559,
         encoder: Optional[Encoder] = None,
+        use_threads: bool = True,
     ):
         """
         ZeroServer registers and exposes rpc functions that can be called from a ZeroClient.
@@ -51,6 +52,7 @@ class ZeroServer:
         self._host = host
         self._port = port
         self._address = f"tcp://{self._host}:{self._port}"
+        self._use_threads = use_threads
 
         # to encode/decode messages from/to client
         self._encoder = encoder or get_encoder(config.ENCODER)
@@ -134,7 +136,10 @@ class ZeroServer:
             self._terminate_server()
 
     def _start_server(self, workers: int, spawn_worker: Callable):
-        self._pool = Pool(workers)
+        if self._use_threads:
+            self._pool = ThreadPool(workers)
+        else:
+            self._pool = Pool(workers)
 
         # process termination signals
         util.register_signal_term(self._sig_handler)
@@ -148,6 +153,10 @@ class ZeroServer:
             self._broker.listen(self._address, self._device_comm_channel)
 
     def _get_comm_channel(self) -> str:
+        if self._use_threads:
+            inproc_id = util.unique_id()
+            return f"inproc://{inproc_id}"
+
         if os.name == "posix":
             ipc_id = util.unique_id()
             self._device_ipc = f"{ipc_id}.ipc"

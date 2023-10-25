@@ -36,6 +36,7 @@ benchmark-sanic:
 		)
 
 benchmark-zero:
+		export BUILDKIT_PROGRESS=plain && \
 		cd zero && ( \
 		docker-compose up -d --build gateway server redis; \
 		sleep 2; \

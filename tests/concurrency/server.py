@@ -3,7 +3,7 @@ import time
 
 from zero import ZeroServer
 
-app = ZeroServer(port=5559)
+app = ZeroServer(port=5559, use_threads=True)
 
 
 @app.register_rpc

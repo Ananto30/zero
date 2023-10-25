@@ -114,7 +114,7 @@ class _Worker:
         The class method is used to avoid pickling the class instance (which can lead to errors).
         """
         # give some time for the broker to start
-        time.sleep(0.2)
+        time.sleep(0.5)
 
         worker = _Worker(
             rpc_router,
