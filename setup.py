@@ -5,12 +5,12 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="zeroapi",
-    version="0.4.1",
+    version="0.5.0",
     author="Azizul Haque Ananto",
     author_email="azizulhaq.ananto@gmail.com",
     license="MIT",
     url="https://github.com/Ananto30/zero",
-    description="Zero is a RPC framework to build fast and high performance Python microservices",
+    description="Zero is a simple and fast Python RPC framework",
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(),
