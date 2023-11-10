@@ -12,3 +12,13 @@ benchmark-zero:
 		docker-compose up wrk-order-async; \
 		docker-compose down; \
 		)
+
+benchmark-zero-sync:
+		rm -rf ./zero/zero && \
+		cp -r ../../zero ./zero/zero && \
+		cd zero && ( \
+		python zero_server.py & \
+		sleep 2; \
+		python zero_sync_client.py; \
+		kill -9 $(shell ps aux | grep '[p]ython zero_server.py' | awk '{print $$2}'); \
+		)
