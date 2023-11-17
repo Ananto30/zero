@@ -1,0 +1,7 @@
+blacksheep
+uvicorn
+PyJWT
+aioredis
+uvloop
+msgpack
+redis

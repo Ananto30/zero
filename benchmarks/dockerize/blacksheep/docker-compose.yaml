@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+  gateway:
+    build: .
+    container_name: gateway
+    command: uvicorn gateway:app --host 0.0.0.0 --port 8000 --workers 8 --log-level warning
+    ports:
+      - "8000:8000"
+    depends_on:
+      - server
+      - redis
+  server:
+    build: .
+    container_name: server
+    command: uvicorn server:app --host 0.0.0.0 --port 8011 --workers 8 --log-level warning
+    ports:
+      - "8011:8011"
+    # cpus: '0.50'
+    # mem_limit: 256m
+  redis:
+    image: eqalpha/keydb:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+  wrk-hello:
+    image: skandyla/wrk
+    command: -t 8 -c 64 -d 15s --latency http://gateway:8000/hello
+    depends_on:
+      - gateway
+  wrk-order:
+    image: skandyla/wrk
+    command: -t 8 -c 64 -d 15s --latency http://gateway:8000/order
+    depends_on:
+      - gateway

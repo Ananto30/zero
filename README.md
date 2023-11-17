@@ -249,12 +249,15 @@ Compare the results! 👇
 
 Framework   | "hello world" (req/s) | 99% latency (ms) | redis save (req/s) | 99% latency (ms)
 ----------- | --------------------- | ---------------- | ------------------ | ----------------
-aiohttp     | 14391.38              | 10.96            | 9470.74            | 12.94
-aiozmq      | 15121.86              | 9.42             | 5904.84            | 21.57
-fastApi     | 9590.96               | 18.31            | 6669.81            | 24.41
-sanic       | 18790.49              | 8.69             | 12259.29           | 13.52
-zero(sync)  | 27842.80              | 4.34             | 18401.14           | 6.58
-zero(async) | 27958.60              | 3.55             | 20131.83           | 6.21
+aiohttp     | 14949.57              | 8.91             | 9753.87            | 13.75
+aiozmq      | 13844.67              | 9.55             | 5239.14            | 30.92
+blacksheep  | 32967.27              | 3.03             | 18010.67           | 6.79
+fastApi     | 13154.96              | 9.07             | 8369.87            | 15.91
+sanic       | 18793.08              | 5.88             | 12739.37           | 8.78
+zero(sync)  | 28471.47              | 4.12             | 18114.84           | 6.69
+zero(async) | 29012.03              | 3.43             | 20956.48           | 5.80
+
+Seems like blacksheep is the aster on hello world, but in more complex operations like saving to redis, zero is the winner! 🏆
 
 # Roadmap 🗺
 
