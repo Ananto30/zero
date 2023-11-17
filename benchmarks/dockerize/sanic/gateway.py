@@ -21,7 +21,7 @@ app = Sanic("gateway")
 
 
 @app.route("/hello")
-async def test(request):
+async def hello(request):
     global session
     if session is None:
         session = ClientSession()
@@ -31,7 +31,7 @@ async def test(request):
 
 
 @app.route("/order")
-async def test(request):
+async def order(request):
     global session
     if session is None:
         session = ClientSession()

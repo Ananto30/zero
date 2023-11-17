@@ -1,7 +1,7 @@
 version: '3'
 
 services:
-  # aiohttp gateway
+  # # aiohttp gateway
   # gateway:
   #   build: .
   #   container_name: gateway
@@ -22,6 +22,17 @@ services:
     depends_on:
       - server
       - redis
+
+  # # blacksheep gateway
+  # gateway:
+  #   build: .
+  #   container_name: gateway
+  #   command: uvicorn gateway_blacksheep:app --host 0.0.0.0 --port 8000 --workers 8 --log-level warning
+  #   ports:
+  #     - "8000:8000"
+  #   depends_on:
+  #     - server
+  #     - redis
 
   server:
     build: .
