@@ -8,3 +8,5 @@ gunicorn
 redis
 sanic
 msgpack
+blacksheep
+uvicorn

@@ -1,6 +1,17 @@
 version: '3'
 
 services:
+  # blacksheep gateway
+  gateway:
+    build: .
+    container_name: gateway
+    command: uvicorn gateway_blacksheep:app --host 0.0.0.0 --port 8000 --workers 8 --no-access-log
+    ports:
+      - "8000:8000"
+    depends_on:
+      - server
+      - redis
+
   # aiohttp gateway
   # gateway:
   #   build: .
@@ -13,15 +24,15 @@ services:
   #     - redis
 
   # sanic gateway
-  gateway:
-    build: .
-    container_name: gateway
-    command: sanic gateway_sanic:app --host 0.0.0.0 --port 8000 --workers 8 --no-access-logs
-    ports:
-      - "8000:8000"
-    depends_on:
-      - server
-      - redis
+  # gateway:
+  #   build: .
+  #   container_name: gateway
+  #   command: gunicorn gateway_aiohttp:app --bind 0.0.0.0:8000 --worker-class aiohttp.worker.GunicornWebWorker --workers 8 --log-level  warning
+  #   ports:
+  #     - "8000:8000"
+  #   depends_on:
+  #     - server
+  #     - redis
 
   server:
     build: .
