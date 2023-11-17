@@ -8,6 +8,15 @@ benchmark-aiohttp:
 		docker-compose down; \
 		)
 
+benchmark-blacksheep:
+		cd blacksheep && ( \
+		docker-compose up -d gateway server redis; \
+		sleep 2; \
+		docker-compose up wrk-hello; \
+		docker-compose up wrk-order; \
+		docker-compose down; \
+		)
+
 benchmark-aiozmq:
 		cd aiozmq && ( \
 		docker-compose up -d gateway server redis; \
