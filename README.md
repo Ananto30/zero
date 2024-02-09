@@ -222,9 +222,10 @@ Currently, the code generation tool supports only `ZeroClient` and not `AsyncZer
 
 *WIP - Generate models from server code.*
 
-# Important notes 📝
+# Important notes! 📝
 
 *   `ZeroServer` should always be run under `if __name__ == "__main__":`, as it uses multiprocessing.
+*   `ZeroServer` creates the workers in different processes, so anything global in your code will be instantiated N times where N is the number of workers. So if you want to initiate them once, put them under `if __name__ == "__main__":`. But recommended to not use global vars. And Databases, Redis, other clients, creating them N times in different processes is fine and preferred. 
 *   The methods which are under `register_rpc()` in `ZeroServer` should have **type hinting**, like `def echo(msg: str) -> str:`
 
 # Let's do some benchmarking! 🏎
