@@ -8,7 +8,7 @@ from zero import ZeroClient
 client = ZeroClient("localhost", 5559)
 
 
-func = partial(client.call, "sleep")
+func = partial(client.call, "sleep_async")
 
 
 def get_and_print(msg):

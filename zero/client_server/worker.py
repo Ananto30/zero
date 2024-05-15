@@ -8,6 +8,7 @@ from zero import config
 from zero.codegen.codegen import CodeGen
 from zero.encoder.protocols import Encoder
 from zero.error import SERVER_PROCESSING_ERROR
+from zero.utils.async_to_sync import async_to_sync
 from zero.zero_mq.factory import get_worker
 
 
@@ -80,7 +81,8 @@ class _Worker:
             # TODO: is this a bottleneck
             if inspect.iscoroutinefunction(func):
                 # this is blocking
-                ret = self._loop.run_until_complete(func(msg) if msg else func())
+                # ret = self._loop.run_until_complete(func(msg) if msg else func())
+                ret = async_to_sync(func)(msg) if msg else async_to_sync(func)()
             else:
                 ret = func(msg) if msg else func()
 
