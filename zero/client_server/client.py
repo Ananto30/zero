@@ -112,6 +112,7 @@ class ZeroClient:
         _timeout = self._default_timeout if timeout is None else timeout
 
         def _poll_data():
+            # TODO poll is slow, need to find a better way
             if not zmqc.poll(_timeout):
                 raise TimeoutException(
                     f"Timeout while sending message at {self._address}"
@@ -249,7 +250,7 @@ class AsyncZeroClient:
 
         async def _poll_data():
             # TODO async has issue with poller, after 3-4 calls, it returns empty
-            # if not await self.zmq_client.poll(_timeout):
+            # if not await zmqc.poll(_timeout):
             #     raise TimeoutException(f"Timeout while sending message at {self._address}")
 
             resp = await zmqc.recv()
@@ -322,6 +323,7 @@ class ZeroMQClientPool:
     def get(self) -> ZeroMQClient:
         thread_id = threading.get_ident()
         if thread_id not in self._pool:
+            logging.debug("No connection found in current thread, creating new one")
             self._pool[thread_id] = get_client(config.ZEROMQ_PATTERN, self._timeout)
             self._pool[thread_id].connect(self._address)
             self._try_connect_ping(self._pool[thread_id])
@@ -360,6 +362,7 @@ class AsyncZeroMQClientPool:
     async def get(self) -> AsyncZeroMQClient:
         thread_id = threading.get_ident()
         if thread_id not in self._pool:
+            logging.debug("No connection found in current thread, creating new one")
             self._pool[thread_id] = get_async_client(
                 config.ZEROMQ_PATTERN, self._timeout
             )

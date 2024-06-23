@@ -1,3 +1,8 @@
+"""
+This test ensures that the sync client can handle multiple requests concurrently.
+And it doesn't mix up the responses.
+"""
+
 import random
 import time
 from functools import partial
@@ -19,7 +24,7 @@ def get_and_print(msg):
 
 
 if __name__ == "__main__":
-    process_no = 10
+    process_no = 32
     pool = Pool(process_no)
 
     sleep_times = []
