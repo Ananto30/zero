@@ -48,9 +48,8 @@ class ZeroSubscriber:  # pragma: no cover
             prcs.join()
 
     def _create_zmq_device(self):
-        gateway: zmq.Socket = None
-        backend: zmq.Socket = None
-
+        gateway = None
+        backend = None
         try:
             gateway = self._ctx.socket(zmq.SUB)
             gateway.bind(f"tcp://*:{self._port}")
@@ -70,8 +69,10 @@ class ZeroSubscriber:  # pragma: no cover
             logging.error(exc)
             logging.error("bringing down zmq device")
         finally:
-            gateway.close()
-            backend.close()
+            if gateway is not None:
+                gateway.close()
+            if backend is not None:
+                backend.close()
             self._ctx.term()
 
 

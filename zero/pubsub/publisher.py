@@ -17,13 +17,13 @@ class ZeroPublisher:  # pragma: no cover
 
     def _init_sync_socket(self):
         ctx = zmq.Context()
-        self.__socket: zmq.Socket = ctx.socket(zmq.PUB)
+        self.__socket = ctx.socket(zmq.PUB)
         self._set_socket_opt()
         self.__socket.connect(f"tcp://{self.__host}:{self.__port}")
 
     def _init_async_socket(self):
         ctx = zmq.asyncio.Context()
-        self.__socket: zmq.Socket = ctx.socket(zmq.PUB)
+        self.__socket = ctx.socket(zmq.PUB)
         self._set_socket_opt()
         self.__socket.connect(f"tcp://{self.__host}:{self.__port}")
 

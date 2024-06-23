@@ -15,7 +15,7 @@ class ZeroMQClient:
         self._default_timeout = default_timeout
         self._context = zmq.Context.instance()
 
-        self.socket: zmq.Socket = self._context.socket(zmq.DEALER)
+        self.socket = self._context.socket(zmq.DEALER)
         self.socket.setsockopt(zmq.LINGER, 0)  # dont buffer messages
         self.socket.setsockopt(zmq.RCVTIMEO, default_timeout)
         self.socket.setsockopt(zmq.SNDTIMEO, default_timeout)
@@ -109,7 +109,7 @@ class AsyncZeroMQClient:
 
     async def recv(self) -> bytes:
         try:
-            return await self.socket.recv()  # type: ignore
+            return await self.socket.recv()
         except zmqerr.Again as exc:
             raise ConnectionException(
                 f"Connection error for recv at {self._address}"
