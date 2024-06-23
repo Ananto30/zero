@@ -36,6 +36,8 @@ class ZeroMQWorker:
 
         ident, message = frames
         response = msg_handler(message)
+
+        # TODO send is slow, need to find a way to make it faster
         self.socket.send_multipart([ident, response], zmq.NOBLOCK)
 
     def close(self) -> None:

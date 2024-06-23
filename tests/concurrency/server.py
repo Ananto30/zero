@@ -22,5 +22,15 @@ async def sleep_async(msg: int) -> str:
     return f"slept for {msg} msecs"
 
 
+@app.register_rpc
+def sum_sync(msg: list) -> int:
+    return sum(msg)
+
+
+@app.register_rpc
+async def sum_async(msg: list) -> int:
+    return sum(msg)
+
+
 if __name__ == "__main__":
-    app.run(workers=8)
+    app.run(workers=4)

@@ -3,7 +3,8 @@ import sys
 from typing import Optional
 
 import zmq
-import zmq.asyncio
+import zmq.asyncio as zmqasync
+import zmq.error as zmqerr
 
 from zero.error import ConnectionException, TimeoutException
 
@@ -36,7 +37,7 @@ class ZeroMQClient:
     def send(self, message: bytes) -> None:
         try:
             self.socket.send(message, zmq.DONTWAIT)
-        except zmq.error.Again as exc:
+        except zmqerr.Again as exc:
             raise ConnectionException(
                 f"Connection error for send at {self._address}"
             ) from exc
@@ -48,7 +49,7 @@ class ZeroMQClient:
     def recv(self) -> bytes:
         try:
             return self.socket.recv()
-        except zmq.error.Again as exc:
+        except zmqerr.Again as exc:
             raise ConnectionException(
                 f"Connection error for recv at {self._address}"
             ) from exc
@@ -59,7 +60,7 @@ class ZeroMQClient:
             if self.poll(timeout or self._default_timeout):
                 return self.recv()
             raise TimeoutException(f"Timeout waiting for response from {self._address}")
-        except zmq.error.Again as exc:
+        except zmqerr.Again as exc:
             raise ConnectionException(
                 f"Connection error for request at {self._address}"
             ) from exc
@@ -73,14 +74,14 @@ class AsyncZeroMQClient:
 
         self._address: str = None  # type: ignore
         self._default_timeout = default_timeout
-        self._context = zmq.asyncio.Context.instance()
+        self._context = zmqasync.Context.instance()
 
-        self.socket: zmq.asyncio.Socket = self._context.socket(zmq.DEALER)
+        self.socket: zmqasync.Socket = self._context.socket(zmq.DEALER)
         self.socket.setsockopt(zmq.LINGER, 0)  # dont buffer messages
         self.socket.setsockopt(zmq.RCVTIMEO, default_timeout)
         self.socket.setsockopt(zmq.SNDTIMEO, default_timeout)
 
-        self.poller = zmq.asyncio.Poller()
+        self.poller = zmqasync.Poller()
         self.poller.register(self.socket, zmq.POLLIN)
 
     @property
@@ -97,7 +98,7 @@ class AsyncZeroMQClient:
     async def send(self, message: bytes) -> None:
         try:
             await self.socket.send(message, zmq.DONTWAIT)
-        except zmq.error.Again as exc:
+        except zmqerr.Again as exc:
             raise ConnectionException(
                 f"Connection error for send at {self._address}"
             ) from exc
@@ -109,7 +110,7 @@ class AsyncZeroMQClient:
     async def recv(self) -> bytes:
         try:
             return await self.socket.recv()  # type: ignore
-        except zmq.error.Again as exc:
+        except zmqerr.Again as exc:
             raise ConnectionException(
                 f"Connection error for recv at {self._address}"
             ) from exc
@@ -120,7 +121,7 @@ class AsyncZeroMQClient:
             # TODO async has issue with poller, after 3-4 calls, it returns empty
             # await self.poll(timeout or self._default_timeout)
             return await self.recv()
-        except zmq.error.Again as exc:
+        except zmqerr.Again as exc:
             raise ConnectionException(
                 f"Conection error for request at {self._address}"
             ) from exc
