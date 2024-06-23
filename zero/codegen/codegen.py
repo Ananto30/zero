@@ -56,7 +56,8 @@ class RpcClient:
         return self._rpc_return_type_map[func_name].__name__
 
     def get_function_str(self, func_name: str):
-        func_lines = inspect.getsourcelines(self._rpc_router[func_name])[0]
+        func = self._rpc_router[func_name][0]
+        func_lines = inspect.getsourcelines(func)[0]
         def_line = [line for line in func_lines if "def" in line][0]
 
         # put self after the first (
@@ -71,7 +72,8 @@ class RpcClient:
         return def_line.replace("\n", "")
 
     def get_function_input_param_name(self, func_name: str):
-        func_lines = inspect.getsourcelines(self._rpc_router[func_name])[0]
+        func = self._rpc_router[func_name][0]
+        func_lines = inspect.getsourcelines(func)[0]
         def_line = [line for line in func_lines if "def" in line][0]
         params = def_line.split("(")[1].split(")")[0]
         return params.split(":")[0].strip()

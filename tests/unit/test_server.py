@@ -166,7 +166,7 @@ class TestServer(unittest.TestCase):
         def add(msg: Tuple[int, int]) -> int:
             return msg[0] + msg[1]
 
-        self.assertEqual(server._rpc_router, {"add": add})
+        self.assertEqual(server._rpc_router, {"add": (add, False)})
         self.assertEqual(server._rpc_input_type_map, {"add": Tuple[int, int]})
         self.assertEqual(server._rpc_return_type_map, {"add": int})
 
