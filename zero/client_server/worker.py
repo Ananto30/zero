@@ -1,5 +1,4 @@
 import asyncio
-import inspect
 import logging
 import time
 from typing import Optional
@@ -74,14 +73,11 @@ class _Worker:
             logging.error("Function `%s` not found!", rpc)
             return {"__zerror__function_not_found": f"Function `{rpc}` not found!"}
 
-        func = self._rpc_router[rpc]
+        func, is_coro = self._rpc_router[rpc]
         ret = None
 
         try:
-            # TODO: is this a bottleneck
-            if inspect.iscoroutinefunction(func):
-                # this is blocking
-                # ret = self._loop.run_until_complete(func(msg) if msg else func())
+            if is_coro:
                 ret = async_to_sync(func)(msg) if msg else async_to_sync(func)()
             else:
                 ret = func(msg) if msg else func()

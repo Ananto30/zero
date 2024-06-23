@@ -2,9 +2,10 @@ import logging
 import os
 import signal
 import sys
+from asyncio import iscoroutinefunction
 from functools import partial
 from multiprocessing.pool import Pool
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict, Optional, Tuple
 
 import zmq.utils.win32
 
@@ -56,7 +57,8 @@ class ZeroServer:
         self._encoder = encoder or get_encoder(config.ENCODER)
 
         # Stores rpc functions against their names
-        self._rpc_router: Dict[str, Callable] = {}
+        # and if they are coroutines
+        self._rpc_router: Dict[str, Tuple[Callable, bool]] = {}
 
         # Stores rpc functions `msg` types
         self._rpc_input_type_map: Dict[str, Optional[type]] = {}
@@ -88,7 +90,7 @@ class ZeroServer:
             func
         )
 
-        self._rpc_router[func.__name__] = func
+        self._rpc_router[func.__name__] = (func, iscoroutinefunction(func))
         return func
 
     def run(self, workers: int = os.cpu_count() or 1):
