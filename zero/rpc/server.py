@@ -1,20 +1,14 @@
 import logging
 import os
-import signal
-import sys
 from asyncio import iscoroutinefunction
-from functools import partial
-from multiprocessing.pool import Pool
-from typing import Callable, Dict, Optional, Tuple
-
-import zmq.utils.win32
+from typing import TYPE_CHECKING, Callable, Dict, Optional, Tuple, Type
 
 from zero import config
 from zero.encoder import Encoder, get_encoder
-from zero.utils import type_util, util
-from zero.zero_mq import ZeroMQBroker, get_broker
+from zero.utils import type_util
 
-from .worker import _Worker
+if TYPE_CHECKING:
+    from .protocols import ZeroServerProtocol
 
 # import uvloop
 
@@ -25,12 +19,12 @@ class ZeroServer:
         host: str = "0.0.0.0",
         port: int = 5559,
         encoder: Optional[Encoder] = None,
+        protocol: str = "zeromq",
     ):
         """
         ZeroServer registers and exposes rpc functions that can be called from a ZeroClient.
 
         By default ZeroServer uses all of the cores for best performance possible.
-        A "zmq proxy" load balances the requests and runs on the main thread.
 
         Parameters
         ----------
@@ -43,12 +37,11 @@ class ZeroServer:
             Default is msgspec.
             If any other encoder is used, the client should use the same encoder.
             Implement custom encoder by inheriting from `zero.encoder.Encoder`.
+        protocol: str
+            Protocol to use for communication.
+            Default is zeromq.
+            If any other protocol is used, the client should use the same protocol.
         """
-        self._broker: ZeroMQBroker = None  # type: ignore
-        self._device_comm_channel: str = None  # type: ignore
-        self._pool: Pool = None  # type: ignore
-        self._device_ipc: str = None  # type: ignore
-
         self._host = host
         self._port = port
         self._address = f"tcp://{self._host}:{self._port}"
@@ -63,6 +56,28 @@ class ZeroServer:
         # Stores rpc functions `msg` types
         self._rpc_input_type_map: Dict[str, Optional[type]] = {}
         self._rpc_return_type_map: Dict[str, Optional[type]] = {}
+
+        self._server_inst: "ZeroServerProtocol" = self._determine_server_cls(protocol)(
+            self._address,
+            self._rpc_router,
+            self._rpc_input_type_map,
+            self._rpc_return_type_map,
+            self._encoder,
+        )
+
+    def _determine_server_cls(self, protocol: str) -> Type["ZeroServerProtocol"]:
+        if protocol not in config.SUPPORTED_PROTOCOLS:
+            raise ValueError(
+                f"Protocol {protocol} is not supported. "
+                f"Supported protocols are {config.SUPPORTED_PROTOCOLS}"
+            )
+        server_cls = config.SUPPORTED_PROTOCOLS.get(protocol, {}).get("server")
+        if not server_cls:
+            raise ValueError(
+                f"Protocol {protocol} is not supported. "
+                f"Supported protocols are {config.SUPPORTED_PROTOCOLS}"
+            )
+        return server_cls
 
     def register_rpc(self, func: Callable):
         """
@@ -102,61 +117,20 @@ class ZeroServer:
         `if __name__ == "__main__":`
         As the server runs on multiple processes.
 
-        It starts a zmq proxy on the main process and spawns workers on the background.
-        It uses a pool of processes to spawn workers. Each worker is a zmq router.
-        A proxy device is used to load balance the requests.
-
         Parameters
         ----------
         workers: int
             Number of workers to spawn.
             Each worker is a zmq router and runs on a separate process.
         """
-        self._broker = get_broker(config.ZEROMQ_PATTERN)
-
-        # for device-worker communication
-        self._device_comm_channel = self._get_comm_channel()
-
-        spawn_worker = partial(
-            _Worker.spawn_worker,
-            self._rpc_router,
-            self._device_comm_channel,
-            self._encoder,
-            self._rpc_input_type_map,
-            self._rpc_return_type_map,
-        )
-
         try:
-            self._start_server(workers, spawn_worker)
+            self._server_inst.start(workers)
         except KeyboardInterrupt:
             logging.warning("Caught KeyboardInterrupt, terminating server")
         except Exception as exc:  # pylint: disable=broad-except
             logging.exception(exc)
         finally:
-            self._terminate_server()
-
-    def _start_server(self, workers: int, spawn_worker: Callable):
-        self._pool = Pool(workers)
-
-        # process termination signals
-        util.register_signal_term(self._sig_handler)
-
-        # TODO: by default we start the workers with processes,
-        # but we need support to run only router, without workers
-        self._pool.map_async(spawn_worker, list(range(1, workers + 1)))
-
-        # blocking
-        with zmq.utils.win32.allow_interrupt(self._terminate_server):
-            self._broker.listen(self._address, self._device_comm_channel)
-
-    def _get_comm_channel(self) -> str:
-        if os.name == "posix":
-            ipc_id = util.unique_id()
-            self._device_ipc = f"{ipc_id}.ipc"
-            return f"ipc://{ipc_id}.ipc"
-
-        # device port is used for non-posix env
-        return f"tcp://127.0.0.1:{util.get_next_available_port(6666)}"
+            self._server_inst.stop()
 
     def _verify_function_name(self, func):
         if not isinstance(func, Callable):
@@ -170,30 +144,3 @@ class ZeroServer:
                 f"{func.__name__} is a reserved function; cannot have `{func.__name__}` "
                 "as a RPC function"
             )
-
-    def _sig_handler(self, signum, frame):  # pylint: disable=unused-argument
-        logging.warning("%s signal called", signal.Signals(signum).name)
-        self._terminate_server()
-
-    def _terminate_server(self):
-        logging.warning("Terminating server at %d", self._port)
-        if self._broker is not None:
-            self._broker.close()
-        self._terminate_pool()
-        self._remove_ipc()
-        sys.exit(0)
-
-    @util.log_error
-    def _remove_ipc(self):
-        if (
-            os.name == "posix"
-            and self._device_ipc is not None
-            and os.path.exists(self._device_ipc)
-        ):
-            os.remove(self._device_ipc)
-
-    @util.log_error
-    def _terminate_pool(self):
-        self._pool.terminate()
-        self._pool.close()
-        self._pool.join()
