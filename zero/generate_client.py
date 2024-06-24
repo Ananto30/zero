@@ -1,7 +1,7 @@
 import argparse
 import os
 
-from .client_server.client import ZeroClient
+from .rpc.client import ZeroClient
 
 
 def generate_client_code_and_save(host, port, directory, overwrite_dir=False):

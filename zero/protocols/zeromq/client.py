@@ -5,18 +5,17 @@ from typing import Any, Dict, Optional, Tuple, Type, TypeVar, Union
 
 from zero import config
 from zero.encoder import Encoder, get_encoder
-from zero.error import MethodNotFoundException, RemoteException, TimeoutException
+from zero.error import TimeoutException
 from zero.utils import util
 from zero.zero_mq import AsyncZeroMQClient, ZeroMQClient, get_async_client, get_client
 
 T = TypeVar("T")
 
 
-class ZeroClient:
+class ZMQClient:
     def __init__(
         self,
-        host: str,
-        port: int,
+        address: str,
         default_timeout: int = 2000,
         encoder: Optional[Encoder] = None,
     ):
@@ -49,7 +48,7 @@ class ZeroClient:
             If any other encoder is used, make sure the server should use the same encoder.
             Implement custom encoder by inheriting from `zero.encoder.Encoder`.
         """
-        self._address = f"tcp://{host}:{port}"
+        self._address = address
         self._default_timeout = default_timeout
         self._encoder = encoder or get_encoder(config.ENCODER)
 
@@ -137,19 +136,16 @@ class ZeroClient:
         while resp_id != req_id:
             resp_id, resp_data = _poll_data()
 
-        check_response(resp_data)
-
         return resp_data  # type: ignore
 
     def close(self):
         self.client_pool.close()
 
 
-class AsyncZeroClient:
+class AsyncZMQClient:
     def __init__(
         self,
-        host: str,
-        port: int,
+        address: str,
         default_timeout: int = 2000,
         encoder: Optional[Encoder] = None,
     ):
@@ -184,7 +180,7 @@ class AsyncZeroClient:
             If any other encoder is used, the server should use the same encoder.
             Implement custom encoder by inheriting from `zero.encoder.Encoder`.
         """
-        self._address = f"tcp://{host}:{port}"
+        self._address = address
         self._default_timeout = default_timeout
         self._encoder = encoder or get_encoder(config.ENCODER)
         self._resp_map: Dict[str, Any] = {}
@@ -285,21 +281,11 @@ class AsyncZeroClient:
 
         resp_data = self._resp_map.pop(req_id)
 
-        check_response(resp_data)
-
         return resp_data
 
     def close(self):
         self.client_pool.close()
         self._resp_map = {}
-
-
-def check_response(resp_data):
-    if isinstance(resp_data, dict):
-        if exc := resp_data.get("__zerror__function_not_found"):
-            raise MethodNotFoundException(exc)
-        if exc := resp_data.get("__zerror__server_exception"):
-            raise RemoteException(exc)
 
 
 class ZeroMQClientPool:
