@@ -66,15 +66,14 @@ class ZMQServer:
 
         self._start_server(workers, spawn_worker)
 
-    def _start_server(self, workers: int, spawn_worker: Callable):
+    def _start_server(self, workers: int, spawn_worker: Callable[[int], None]):
         self._pool = Pool(workers)
 
         # process termination signals
         util.register_signal_term(self._sig_handler)
 
-        # TODO: by default we start the workers with processes,
-        # but we need support to run only router, without workers
-        self._pool.map_async(spawn_worker, list(range(1, workers + 1)))
+        worker_ids = list(range(1, workers + 1))
+        self._pool.map_async(spawn_worker, worker_ids)
 
         # blocking
         with zmq.utils.win32.allow_interrupt(self.stop):

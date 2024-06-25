@@ -257,7 +257,7 @@ sanic       | 18793.08              | 5.88             | 12739.37           | 8.
 zero(sync)  | 28471.47              | 4.12             | 18114.84           | 6.69
 zero(async) | 29012.03              | 3.43             | 20956.48           | 5.80
 
-Seems like blacksheep is the aster on hello world, but in more complex operations like saving to redis, zero is the winner! 🏆
+Seems like blacksheep is faster on hello world, but in more complex operations like saving to redis, zero is the winner! 🏆
 
 # Roadmap 🗺
 

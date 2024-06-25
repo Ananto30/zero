@@ -11,7 +11,7 @@ async_client = AsyncZeroClient("localhost", 5559)
 async def task(semaphore, items):
     async with semaphore:
         try:
-            await async_client.call("sum_async", items)
+            await async_client.call("sum_sync", items)
             # res = await async_client.call("sum_async", items)
             # print(res)
         except Exception as e:

@@ -8,7 +8,7 @@ import zmq
 
 from zero import ZeroServer
 from zero.encoder.protocols import Encoder
-from zero.zeromq_patterns.protocols import ZeroMQBroker
+from zero.zeromq_patterns.interfaces import ZeroMQBroker
 
 DEFAULT_PORT = 5559
 DEFAULT_HOST = "0.0.0.0"
@@ -215,6 +215,17 @@ class TestServer(unittest.TestCase):
             @server.register_rpc
             def add(msg: Message) -> Message:
                 return Message()
+
+    def test_register_rpc_with_long_name(self):
+        server = ZeroServer()
+
+        with self.assertRaises(ValueError):
+
+            @server.register_rpc
+            def add_this_is_a_very_long_name_for_a_function_more_than_120_characters_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff(
+                msg: Tuple[int, int]
+            ) -> int:
+                return msg[0] + msg[1]
 
     def test_server_run(self):
         server = ZeroServer()

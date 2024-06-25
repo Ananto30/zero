@@ -1,12 +1,15 @@
 import asyncio
+import logging
 import sys
-from typing import Optional
+from asyncio import Event
+from typing import Dict, Optional
 
 import zmq
 import zmq.asyncio as zmqasync
 import zmq.error as zmqerr
 
 from zero.error import ConnectionException, TimeoutException
+from zero.utils import util
 
 
 class ZeroMQClient:
@@ -23,62 +26,67 @@ class ZeroMQClient:
         self.poller = zmq.Poller()
         self.poller.register(self.socket, zmq.POLLIN)
 
-    @property
-    def context(self):
-        return self._context
-
     def connect(self, address: str) -> None:
         self._address = address
         self.socket.connect(address)
+        self._send(util.unique_id().encode() + b"connect" + b"")
+        self._recv()
+        logging.info("Connected to server at %s", self._address)
+
+    def request(self, message: bytes, timeout: Optional[int] = None) -> bytes:
+        _timeout = self._default_timeout if timeout is None else timeout
+
+        def _poll_data():
+            # poll is slow, need to find a better way
+            if not self._poll(_timeout):
+                raise TimeoutException(
+                    f"Timeout while sending message at {self._address}"
+                )
+
+            rcv_data = self._recv()
+
+            # first 32 bytes as response id
+            resp_id = rcv_data[:32].decode()
+
+            # the rest is response data
+            resp_data = rcv_data[32:]
+
+            return resp_id, resp_data
+
+        req_id = util.unique_id()
+        self._send(req_id.encode() + message)
+
+        resp_id, resp_data = None, None
+        # as the client is synchronous, we know that the response will be available any next poll
+        # we try to get the response until timeout because a previous call might be timed out
+        # and the response is still in the socket,
+        # so we poll until we get the response for this call
+        while resp_id != req_id:
+            resp_id, resp_data = _poll_data()
+
+        return resp_data  # type: ignore
 
     def close(self) -> None:
         self.socket.close()
 
-    def send(self, message: bytes) -> None:
+    def _send(self, message: bytes) -> None:
         try:
-            self.socket.send(message, zmq.DONTWAIT)
+            self.socket.send(message, zmq.NOBLOCK)
         except zmqerr.Again as exc:
             raise ConnectionException(
                 f"Connection error for send at {self._address}"
             ) from exc
 
-    def send_multipart(self, message: list) -> None:
-        try:
-            self.socket.send_multipart(message, copy=False)
-        except zmqerr.Again as exc:
-            raise ConnectionException(
-                f"Connection error for send at {self._address}"
-            ) from exc
-
-    def poll(self, timeout: int) -> bool:
+    def _poll(self, timeout: int) -> bool:
         socks = dict(self.poller.poll(timeout))
         return self.socket in socks
 
-    def recv(self) -> bytes:
+    def _recv(self) -> bytes:
         try:
             return self.socket.recv()
         except zmqerr.Again as exc:
             raise ConnectionException(
                 f"Connection error for recv at {self._address}"
-            ) from exc
-
-    def recv_multipart(self) -> list:
-        try:
-            return self.socket.recv_multipart()
-        except zmqerr.Again as exc:
-            raise ConnectionException(
-                f"Connection error for recv at {self._address}"
-            ) from exc
-
-    def request(self, message: bytes, timeout: Optional[int] = None) -> bytes:
-        try:
-            self.send(message)
-            if self.poll(timeout or self._default_timeout):
-                return self.recv()
-            raise TimeoutException(f"Timeout waiting for response from {self._address}")
-        except zmqerr.Again as exc:
-            raise ConnectionException(
-                f"Connection error for request at {self._address}"
             ) from exc
 
 
@@ -100,60 +108,94 @@ class AsyncZeroMQClient:
         self.poller = zmqasync.Poller()
         self.poller.register(self.socket, zmq.POLLIN)
 
-    @property
-    def context(self):
-        return self._context
+        self._resp_map: Dict[str, bytes] = {}
 
-    def connect(self, address: str) -> None:
+        # self.peer1, self.peer2 = zpipe_async(self._context)
+
+    async def connect(self, address: str) -> None:
         self._address = address
         self.socket.connect(address)
+        await self._send(util.unique_id().encode() + b"connect" + b"")
+        await self._recv()
+        logging.info("Connected to server at %s", self._address)
+
+    async def request(self, message: bytes, timeout: Optional[int] = None) -> bytes:
+        _timeout = self._default_timeout if timeout is None else timeout
+        expire_at = util.current_time_us() + (_timeout * 1000)
+
+        is_data = Event()
+
+        async def _poll_data():
+            # async has issue with poller, after 3-4 calls, it returns empty
+            # if not await self._poll(_timeout):
+            #     raise TimeoutException(f"Timeout while sending message at {self._address}")
+
+            resp = await self._recv()
+
+            # first 32 bytes as response id
+            resp_id = resp[:32].decode()
+
+            # the rest is response data
+            resp_data = resp[32:]
+            self._resp_map[resp_id] = resp_data
+
+            # pipe is a good way to notify the main event loop that there is a response
+            # but pipe is actually slower than sleep, because it is a zmq socket
+            # yes it uses inproc, but still slower than asyncio.sleep
+            # try:
+            #     await self.peer1.send(b"")
+            # except zmqerr.Again:
+            #     # if the pipe is full, just pass
+            #     pass
+
+            is_data.set()
+
+        req_id = util.unique_id()
+        await self._send(req_id.encode() + message)
+
+        # poll can get response of a different call
+        # so we poll until we get the response of this call or timeout
+        await _poll_data()
+
+        while req_id not in self._resp_map:
+            if util.current_time_us() > expire_at:
+                raise TimeoutException(
+                    f"Timeout while waiting for response at {self._address}"
+                )
+
+            # await asyncio.sleep(1e-6)
+            await asyncio.wait_for(is_data.wait(), timeout=_timeout)
+
+            # try:
+            #     await self.peer2.recv()
+            # except zmqerr.Again:
+            #     # if the pipe is empty, just pass
+            #     pass
+
+        resp_data = self._resp_map.pop(req_id)
+
+        return resp_data
 
     def close(self) -> None:
         self.socket.close()
+        self._resp_map.clear()
 
-    async def send(self, message: bytes) -> None:
+    async def _send(self, message: bytes) -> None:
         try:
-            await self.socket.send(message, zmq.DONTWAIT)
+            await self.socket.send(message, zmq.NOBLOCK)
         except zmqerr.Again as exc:
             raise ConnectionException(
                 f"Connection error for send at {self._address}"
             ) from exc
 
-    async def send_multipart(self, message: list) -> None:
-        try:
-            await self.socket.send_multipart(message, copy=False)
-        except zmqerr.Again as exc:
-            raise ConnectionException(
-                f"Connection error for send at {self._address}"
-            ) from exc
-
-    async def poll(self, timeout: int) -> bool:
+    async def _poll(self, timeout: int) -> bool:
         socks = dict(await self.poller.poll(timeout))
         return self.socket in socks
 
-    async def recv(self) -> bytes:
+    async def _recv(self) -> bytes:
         try:
             return await self.socket.recv()
         except zmqerr.Again as exc:
             raise ConnectionException(
                 f"Connection error for recv at {self._address}"
-            ) from exc
-
-    async def recv_multipart(self) -> list:
-        try:
-            return await self.socket.recv_multipart()
-        except zmqerr.Again as exc:
-            raise ConnectionException(
-                f"Connection error for recv at {self._address}"
-            ) from exc
-
-    async def request(self, message: bytes, timeout: Optional[int] = None) -> bytes:
-        try:
-            await self.send(message)
-            # TODO async has issue with poller, after 3-4 calls, it returns empty
-            # await self.poll(timeout or self._default_timeout)
-            return await self.recv()
-        except zmqerr.Again as exc:
-            raise ConnectionException(
-                f"Conection error for request at {self._address}"
             ) from exc

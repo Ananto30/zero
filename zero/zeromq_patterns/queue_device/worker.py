@@ -41,18 +41,19 @@ class ZeroMQWorker:
 
         # first 32 bytes is request id
         req_id = data[:32]
+        data = data[32:]
 
-        # then 120 bytes is function name
-        func_name = data[32:152].strip()
+        # then 80 bytes is function name
+        func_name = data[:80].strip()
 
         # the rest is message
-        message = data[152:]
+        message = data[80:]
 
         response = msg_handler(func_name, message)
 
-        # TODO send is slow, need to find a way to make it faster
+        # send is slow, need to find a way to make it faster
         self.socket.send_multipart(
-            [ident, req_id + response if response else b""], copy=False
+            [ident, req_id + response if response else b""], zmq.NOBLOCK
         )
 
     def close(self) -> None:

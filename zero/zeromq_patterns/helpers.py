@@ -7,7 +7,7 @@ from zero.utils import util
 
 
 def zpipe_async(
-    ctx: zmq.asyncio.Context, timeout: int = 1000
+    ctx: zmq.asyncio.Context,
 ) -> Tuple[zmq.asyncio.Socket, zmq.asyncio.Socket]:  # pragma: no cover
     """
     Build inproc pipe for talking to threads
@@ -20,8 +20,8 @@ def zpipe_async(
     sock_b = ctx.socket(zmq.PAIR)
     sock_a.linger = sock_b.linger = 0
     sock_a.hwm = sock_b.hwm = 1
-    sock_a.sndtimeo = sock_b.sndtimeo = timeout
-    sock_a.rcvtimeo = sock_b.rcvtimeo = timeout
+    sock_a.sndtimeo = sock_b.sndtimeo = 0
+    sock_a.rcvtimeo = sock_b.rcvtimeo = 0
     iface = f"inproc://{util.unique_id()}"
     sock_a.bind(iface)
     sock_b.connect(iface)
