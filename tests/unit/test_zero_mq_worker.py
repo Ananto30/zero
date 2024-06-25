@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 import pytest
 import zmq
 
-from zero.zero_mq.queue_device.worker import ZeroMQWorker
+from zero.zeromq_patterns.queue_device.worker import ZeroMQWorker
 
 
 class TestWorker(unittest.TestCase):

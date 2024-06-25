@@ -19,5 +19,9 @@ class ConnectionException(ZeroException):
     pass
 
 
-class RemoteException(Exception):
+class RemoteException(ZeroException):
+    pass
+
+
+class ValidationException(ZeroException):
     pass

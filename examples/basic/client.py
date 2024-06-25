@@ -5,6 +5,8 @@ import jwt
 from zero import AsyncZeroClient
 from zero.error import ZeroException
 
+from .schema import User
+
 zero_client = AsyncZeroClient("localhost", 5559)
 
 
@@ -37,6 +39,37 @@ async def two_rets():
     print(resp)
 
 
+async def hello_user():
+    resp = await zero_client.call(
+        "hello_user",
+        User(
+            name="John",
+            age=25,
+            emails=["hello@hello.com"],
+        ),
+    )
+    print(resp)
+
+
+async def hello_users():
+    resp = await zero_client.call(
+        "hello_users",
+        [
+            User(
+                name="John",
+                age=25,
+                emails=["hello@hello.com"],
+            ),
+            User(
+                name="Jane",
+                age=30,
+                emails=["hello@hello.com"],
+            ),
+        ],
+    )
+    print(resp)
+
+
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(echo())
@@ -44,3 +77,6 @@ if __name__ == "__main__":
     loop.run_until_complete(sum_list())
     loop.run_until_complete(necho())
     loop.run_until_complete(two_rets())
+    loop.run_until_complete(hello_user())
+    loop.run_until_complete(hello_users())
+    loop.close()
