@@ -11,7 +11,7 @@ import zmq.utils.win32
 from zero import config
 from zero.encoder import Encoder
 from zero.utils import util
-from zero.zero_mq import ZeroMQBroker, get_broker
+from zero.zeromq_patterns import ZeroMQBroker, get_broker
 
 from .worker import _Worker
 

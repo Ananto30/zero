@@ -3,12 +3,14 @@ import logging
 import time
 from typing import Optional
 
+from msgspec import ValidationError
+
 from zero import config
 from zero.codegen.codegen import CodeGen
 from zero.encoder.protocols import Encoder
 from zero.error import SERVER_PROCESSING_ERROR
 from zero.utils.async_to_sync import async_to_sync
-from zero.zero_mq.factory import get_worker
+from zero.zeromq_patterns.factory import get_worker
 
 
 class _Worker:
@@ -35,18 +37,29 @@ class _Worker:
         )
 
     def start_dealer_worker(self, worker_id):
-        def process_message(data: bytes) -> Optional[bytes]:
+        def process_message(func_name_encoded: bytes, data: bytes) -> Optional[bytes]:
             try:
-                decoded = self._encoder.decode(data)
-                req_id, func_name, msg = decoded
+                func_name = func_name_encoded.decode()
+                input_type = self._rpc_input_type_map.get(func_name)
+
+                msg = ""
+                if data:
+                    if input_type:
+                        msg = self._encoder.decode_type(data, input_type)
+                    else:
+                        msg = self._encoder.decode(data)
+
                 response = self.handle_msg(func_name, msg)
-                return self._encoder.encode([req_id, response])
+                return self._encoder.encode(response)
+            except ValidationError as exc:
+                logging.exception(exc)
+                return self._encoder.encode({"__zerror__validation_error": str(exc)})
             except (
                 Exception
             ) as inner_exc:  # pragma: no cover pylint: disable=broad-except
                 logging.exception(inner_exc)
                 return self._encoder.encode(
-                    ["", {"__zerror__server_exception": SERVER_PROCESSING_ERROR}]
+                    {"__zerror__server_exception": SERVER_PROCESSING_ERROR}
                 )
 
         worker = get_worker(config.ZEROMQ_PATTERN, worker_id)

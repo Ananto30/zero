@@ -2,7 +2,7 @@ from typing import Any, Protocol, runtime_checkable
 
 
 @runtime_checkable
-class Encoder(Protocol):
+class Encoder(Protocol):  # pragma: no cover
     def encode(self, data: Any) -> bytes:
         ...
 
