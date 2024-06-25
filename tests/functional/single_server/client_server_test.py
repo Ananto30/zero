@@ -5,6 +5,7 @@ import requests
 
 import zero.error
 from zero import AsyncZeroClient, ZeroClient
+from zero.error import ValidationException
 
 from . import server
 from .server import Message
@@ -38,8 +39,17 @@ def test_sum_list():
 
 def test_echo_dict():
     zero_client = ZeroClient(server.HOST, server.PORT)
-    msg = zero_client.call("echo_dict", {"a": "b"})
-    assert msg == {"a": "b"}
+    msg = zero_client.call("echo_dict", {1: "b"})
+    assert msg == {1: "b"}
+
+
+def test_echo_dict_validation_error():
+    zero_client = ZeroClient(server.HOST, server.PORT)
+    with pytest.raises(ValidationException):
+        msg = zero_client.call("echo_dict", {"a": "b"})
+        assert msg == {
+            "__zerror__validation_error": "Expected `int`, got `str` - at `key` in `$`"
+        }
 
 
 def test_echo_tuple():

@@ -42,6 +42,14 @@ class ZeroMQClient:
                 f"Connection error for send at {self._address}"
             ) from exc
 
+    def send_multipart(self, message: list) -> None:
+        try:
+            self.socket.send_multipart(message, copy=False)
+        except zmqerr.Again as exc:
+            raise ConnectionException(
+                f"Connection error for send at {self._address}"
+            ) from exc
+
     def poll(self, timeout: int) -> bool:
         socks = dict(self.poller.poll(timeout))
         return self.socket in socks
@@ -49,6 +57,14 @@ class ZeroMQClient:
     def recv(self) -> bytes:
         try:
             return self.socket.recv()
+        except zmqerr.Again as exc:
+            raise ConnectionException(
+                f"Connection error for recv at {self._address}"
+            ) from exc
+
+    def recv_multipart(self) -> list:
+        try:
+            return self.socket.recv_multipart()
         except zmqerr.Again as exc:
             raise ConnectionException(
                 f"Connection error for recv at {self._address}"
@@ -103,6 +119,14 @@ class AsyncZeroMQClient:
                 f"Connection error for send at {self._address}"
             ) from exc
 
+    async def send_multipart(self, message: list) -> None:
+        try:
+            await self.socket.send_multipart(message, copy=False)
+        except zmqerr.Again as exc:
+            raise ConnectionException(
+                f"Connection error for send at {self._address}"
+            ) from exc
+
     async def poll(self, timeout: int) -> bool:
         socks = dict(await self.poller.poll(timeout))
         return self.socket in socks
@@ -110,6 +134,14 @@ class AsyncZeroMQClient:
     async def recv(self) -> bytes:
         try:
             return await self.socket.recv()
+        except zmqerr.Again as exc:
+            raise ConnectionException(
+                f"Connection error for recv at {self._address}"
+            ) from exc
+
+    async def recv_multipart(self) -> list:
+        try:
+            return await self.socket.recv_multipart()
         except zmqerr.Again as exc:
             raise ConnectionException(
                 f"Connection error for recv at {self._address}"

@@ -1,4 +1,4 @@
-from zero.zero_mq import queue_device
+from zero.zeromq_patterns import queue_device
 
 from .protocols import AsyncZeroMQClient, ZeroMQBroker, ZeroMQClient, ZeroMQWorker
 

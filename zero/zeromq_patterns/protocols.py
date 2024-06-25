@@ -19,10 +19,16 @@ class ZeroMQClient(Protocol):  # pragma: no cover
     def send(self, message: bytes) -> None:
         ...
 
+    def send_multipart(self, message: list) -> None:
+        ...
+
     def poll(self, timeout: int) -> bool:
         ...
 
     def recv(self) -> bytes:
+        ...
+
+    def recv_multipart(self) -> list:
         ...
 
     def request(self, message: bytes) -> Any:
@@ -44,10 +50,16 @@ class AsyncZeroMQClient(Protocol):  # pragma: no cover
     async def send(self, message: bytes) -> None:
         ...
 
+    async def send_multipart(self, message: list) -> None:
+        ...
+
     async def poll(self, timeout: int) -> bool:
         ...
 
     async def recv(self) -> bytes:
+        ...
+
+    async def recv_multipart(self) -> list:
         ...
 
     async def request(self, message: bytes) -> Any:
@@ -66,7 +78,7 @@ class ZeroMQBroker(Protocol):  # pragma: no cover
 @runtime_checkable
 class ZeroMQWorker(Protocol):  # pragma: no cover
     def listen(
-        self, address: str, msg_handler: Callable[[bytes], Optional[bytes]]
+        self, address: str, msg_handler: Callable[[bytes, bytes], Optional[bytes]]
     ) -> None:
         ...
 

@@ -12,7 +12,8 @@ sum_func = partial(client.call, "sum_sync")
 
 
 def get_and_sum(msg):
-    resp = sum_func(msg)
+    sum_func(msg)
+    # resp = sum_func(msg)
     # print(resp)
 
 

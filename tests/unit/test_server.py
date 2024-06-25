@@ -8,7 +8,7 @@ import zmq
 
 from zero import ZeroServer
 from zero.encoder.protocols import Encoder
-from zero.zero_mq.protocols import ZeroMQBroker
+from zero.zeromq_patterns.protocols import ZeroMQBroker
 
 DEFAULT_PORT = 5559
 DEFAULT_HOST = "0.0.0.0"

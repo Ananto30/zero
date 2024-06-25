@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Optional, Type, TypeVar, Union
 
 from zero import config
 from zero.encoder import Encoder, get_encoder
-from zero.error import MethodNotFoundException, RemoteException
+from zero.error import MethodNotFoundException, RemoteException, ValidationException
 
 if TYPE_CHECKING:
     from zero.rpc.protocols import AsyncZeroClientProtocol, ZeroClientProtocol
@@ -260,3 +260,5 @@ def check_response(resp_data):
             raise MethodNotFoundException(exc)
         if exc := resp_data.get("__zerror__server_exception"):
             raise RemoteException(exc)
+        if exc := resp_data.get("__zerror__validation_error"):
+            raise ValidationException(exc)
