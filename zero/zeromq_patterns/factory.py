@@ -1,6 +1,6 @@
 from zero.zeromq_patterns import queue_device
 
-from .protocols import AsyncZeroMQClient, ZeroMQBroker, ZeroMQClient, ZeroMQWorker
+from .interfaces import AsyncZeroMQClient, ZeroMQBroker, ZeroMQClient, ZeroMQWorker
 
 
 def get_client(pattern: str, default_timeout: int = 2000) -> ZeroMQClient:
