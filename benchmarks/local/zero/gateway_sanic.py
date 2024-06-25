@@ -36,7 +36,7 @@ async def async_hello(request):
 @app.route("/order")
 async def order(request):
     resp = client.call("save_order", {"user_id": "1", "items": ["apple", "python"]})
-    return json(await resp.json())
+    return json(resp)
 
 
 @app.route("/async_order")
@@ -44,7 +44,7 @@ async def async_order(request):
     resp = await async_client.call(
         "save_order", {"user_id": "1", "items": ["apple", "python"]}
     )
-    return json(await resp.json())
+    return json(resp)
 
 
 @app.route("/jwt")
