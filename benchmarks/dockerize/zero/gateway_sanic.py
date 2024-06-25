@@ -36,7 +36,7 @@ async def async_hello(request):
 @app.route("/order")
 async def order(request):
     resp = client.call("save_order", {"user_id": "1", "items": ["apple", "python"]})
-    return json(await resp.json())
+    return json(resp)
 
 
 @app.route("/async_order")
@@ -44,17 +44,17 @@ async def async_order(request):
     resp = await async_client.call(
         "save_order", {"user_id": "1", "items": ["apple", "python"]}
     )
-    return json(await resp.json())
+    return json(resp)
 
 
 @app.route("/jwt")
 async def enc_dec_jwt(request):
     resp = await async_client.call("decode_jwt", {"user_id": "a1b2c3"})
-    return json(await resp.json())
+    return json(resp)
 
 
 @app.route("/echo")
 async def echo(request):
     big_list = ["hello world" for i in range(100_000)]
     resp = await async_client.call("echo", big_list)
-    return text(await resp.text())
+    return text(resp)
