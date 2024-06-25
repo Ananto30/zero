@@ -54,9 +54,7 @@ class _Worker:
             except ValidationError as exc:
                 logging.exception(exc)
                 return self._encoder.encode({"__zerror__validation_error": str(exc)})
-            except (
-                Exception
-            ) as inner_exc:  # pragma: no cover pylint: disable=broad-except
+            except Exception as inner_exc:  # pylint: disable=broad-except
                 logging.exception(inner_exc)
                 return self._encoder.encode(
                     {"__zerror__server_exception": SERVER_PROCESSING_ERROR}

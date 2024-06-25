@@ -1,7 +1,7 @@
 import logging
 
 import zmq
-from zmq import proxy
+from zmq.backend import proxy
 
 
 class ZeroMQBroker:

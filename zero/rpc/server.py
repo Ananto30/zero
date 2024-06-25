@@ -85,8 +85,6 @@ class ZeroServer:
         Function should have a single argument.
         Argument and return should have a type hint.
 
-        If the function got exception, client will get None as return value.
-
         Parameters
         ----------
         func: Callable
@@ -135,6 +133,10 @@ class ZeroServer:
     def _verify_function_name(self, func):
         if not isinstance(func, Callable):
             raise ValueError(f"register function; not {type(func)}")
+        if len(func.__name__) > 80:
+            raise ValueError(
+                "function name can be at max 80" f" characters; {func.__name__}"
+            )
         if func.__name__ in self._rpc_router:
             raise ValueError(
                 f"cannot have two RPC function same name: `{func.__name__}`"

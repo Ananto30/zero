@@ -132,8 +132,8 @@ def verify_function_return_type(func: Callable):
     if origin_type is not None and origin_type in allowed_types:
         return
 
-    for t in msgspec_types:
-        if issubclass(return_type, t):
+    for typ in msgspec_types:
+        if issubclass(return_type, typ):
             return
 
     raise TypeError(
