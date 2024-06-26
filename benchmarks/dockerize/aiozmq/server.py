@@ -3,8 +3,13 @@ import uuid
 from datetime import datetime
 
 import aiozmq.rpc
-from shared import CreateOrderReq, Order, OrderResp, OrderStatus, async_save_order
-from shared import save_order as saveOrder
+from shared import (
+    CreateOrderReq,
+    Order,
+    OrderResp,
+    OrderStatus,
+    async_save_order,
+)
 
 
 class ServerHandler(aiozmq.rpc.AttrHandler):

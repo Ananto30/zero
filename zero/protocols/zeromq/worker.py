@@ -64,9 +64,7 @@ class _Worker:
         try:
             worker.listen(self._device_comm_channel, process_message)
         except KeyboardInterrupt:
-            logging.warning(
-                "Caught KeyboardInterrupt, terminating worker %d", worker_id
-            )
+            logging.warning("Caught KeyboardInterrupt, terminating worker %d", worker_id)
         except Exception as exc:  # pylint: disable=broad-except
             logging.exception(exc)
         finally:

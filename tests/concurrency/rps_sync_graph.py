@@ -19,9 +19,7 @@ def get_and_sum(msg):
 if __name__ == "__main__":
 
     def run_task(process_no):
-        sum_items = [
-            [random.randint(50, 500) for _ in range(10)] for _ in range(100000)
-        ]
+        sum_items = [[random.randint(50, 500) for _ in range(10)] for _ in range(100000)]
 
         start = time.time()
         with Pool(process_no) as pool:

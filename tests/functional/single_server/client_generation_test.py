@@ -80,9 +80,7 @@ def test_connection_fail_in_code_generation():
 
 
 def test_generate_code_in_different_directory():
-    generate_client_code_and_save(
-        server.HOST, server.PORT, "./test_codegen", overwrite_dir=True
-    )
+    generate_client_code_and_save(server.HOST, server.PORT, "./test_codegen", overwrite_dir=True)
     assert os.path.isfile("./test_codegen/rpc_client.py")
 
     os.remove("./test_codegen/rpc_client.py")
@@ -90,18 +88,12 @@ def test_generate_code_in_different_directory():
 
 
 def test_overwrite_dir_false(monkeypatch):
-    generate_client_code_and_save(
-        server.HOST, server.PORT, "./test_codegen", overwrite_dir=True
-    )
+    generate_client_code_and_save(server.HOST, server.PORT, "./test_codegen", overwrite_dir=True)
     file_hash = hash(open("./test_codegen/rpc_client.py", encoding="utf-8").read())
 
     monkeypatch.setattr("builtins.input", lambda _: "N")
-    generate_client_code_and_save(
-        server.HOST, server.PORT, "./test_codegen", overwrite_dir=False
-    )
-    assert file_hash == hash(
-        open("./test_codegen/rpc_client.py", encoding="utf-8").read()
-    )
+    generate_client_code_and_save(server.HOST, server.PORT, "./test_codegen", overwrite_dir=False)
+    assert file_hash == hash(open("./test_codegen/rpc_client.py", encoding="utf-8").read())
 
     os.remove("./test_codegen/rpc_client.py")
     os.rmdir("./test_codegen")

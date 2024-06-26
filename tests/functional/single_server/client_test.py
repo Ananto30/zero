@@ -36,9 +36,7 @@ async def test_concurrent_divide():
     async def divide(semaphore, req):
         async with semaphore:
             try:
-                assert (
-                    await async_client.call("divide", req, timeout=500) == req_resp[req]
-                )
+                assert await async_client.call("divide", req, timeout=500) == req_resp[req]
                 nonlocal total_pass
                 total_pass += 1
             except zero.error.TimeoutException:

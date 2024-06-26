@@ -23,8 +23,7 @@ docker-test:
 	docker rmi zero-test
 
 format:
-	isort . --profile black -l 99
-	black .
+	ruff format
 
 install-lint:
 	python -m pip install --upgrade pip
@@ -32,10 +31,7 @@ install-lint:
 	pip install black isort flake8 pylint pytype mypy
 
 lint:
-	flake8 ./zero
-	pylint ./zero
-	pytype ./zero
-	mypy ./zero
+	ruff check
 
 build-package:
 	pip install -U setuptools wheel

@@ -108,9 +108,7 @@ class ZMQClientPool:
 
     __slots__ = ["_pool", "_address", "_timeout", "_encoder"]
 
-    def __init__(
-        self, address: str, timeout: int = 2000, encoder: Optional[Encoder] = None
-    ):
+    def __init__(self, address: str, timeout: int = 2000, encoder: Optional[Encoder] = None):
         self._pool: Dict[int, ZeroMQClient] = {}
         self._address = address
         self._timeout = timeout
@@ -140,9 +138,7 @@ class AsyncZMQClientPool:
 
     __slots__ = ["_pool", "_address", "_timeout", "_encoder"]
 
-    def __init__(
-        self, address: str, timeout: int = 2000, encoder: Optional[Encoder] = None
-    ):
+    def __init__(self, address: str, timeout: int = 2000, encoder: Optional[Encoder] = None):
         self._pool: Dict[int, AsyncZeroMQClient] = {}
         self._address = address
         self._timeout = timeout
@@ -152,9 +148,7 @@ class AsyncZMQClientPool:
         thread_id = threading.get_ident()
         if thread_id not in self._pool:
             logging.debug("No connection found in current thread, creating new one")
-            self._pool[thread_id] = get_async_client(
-                config.ZEROMQ_PATTERN, self._timeout
-            )
+            self._pool[thread_id] = get_async_client(config.ZEROMQ_PATTERN, self._timeout)
             await self._pool[thread_id].connect(self._address)
         return self._pool[thread_id]
 

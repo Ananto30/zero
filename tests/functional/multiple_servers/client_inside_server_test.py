@@ -13,9 +13,7 @@ def test_client_inside_server(server1, server2):  # pylint: disable=unused-argum
 
 
 @pytest.mark.asyncio
-async def test_client_inside_server_async(
-    server1, server2
-):  # pylint: disable=unused-argument
+async def test_client_inside_server_async(server1, server2):  # pylint: disable=unused-argument
     async_client = AsyncZeroClient("localhost", constants.MULTIPLE_SERVERS_PORT2)
     assert await async_client.call("echo", "Hello") == "Server1: Hello"
     assert await async_client.call("hello", None) == "Hello from server1"

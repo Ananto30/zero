@@ -32,9 +32,7 @@ async def get_order(request):
     )
 
     resp = OrderResp(saved_order.id, saved_order.status, saved_order.items)
-    return web.json_response(
-        {"id": resp.order_id, "status": resp.status, "items": resp.items}
-    )
+    return web.json_response({"id": resp.order_id, "status": resp.status, "items": resp.items})
 
 
 async def order(request):
@@ -50,9 +48,7 @@ async def order(request):
     )
 
     resp = OrderResp(saved_order.id, saved_order.status, saved_order.items)
-    return web.json_response(
-        {"id": resp.order_id, "status": resp.status, "items": resp.items}
-    )
+    return web.json_response({"id": resp.order_id, "status": resp.status, "items": resp.items})
 
 
 app = web.Application()

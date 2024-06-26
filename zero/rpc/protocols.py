@@ -24,14 +24,11 @@ class ZeroServerProtocol(Protocol):  # pragma: no cover
         rpc_input_type_map: Dict[str, Optional[type]],
         rpc_return_type_map: Dict[str, Optional[type]],
         encoder: Encoder,
-    ):
-        ...
+    ): ...
 
-    def start(self, workers: int):
-        ...
+    def start(self, workers: int): ...
 
-    def stop(self):
-        ...
+    def stop(self): ...
 
 
 @runtime_checkable
@@ -41,8 +38,7 @@ class ZeroClientProtocol(Protocol):  # pragma: no cover
         address: str,
         default_timeout: int,
         encoder: Encoder,
-    ):
-        ...
+    ): ...
 
     def call(
         self,
@@ -50,11 +46,9 @@ class ZeroClientProtocol(Protocol):  # pragma: no cover
         msg: Union[int, float, str, dict, list, tuple, None],
         timeout: Optional[int] = None,
         return_type: Optional[Type[T]] = None,
-    ) -> Optional[T]:
-        ...
+    ) -> Optional[T]: ...
 
-    def close(self):
-        ...
+    def close(self): ...
 
 
 @runtime_checkable
@@ -64,8 +58,7 @@ class AsyncZeroClientProtocol(Protocol):  # pragma: no cover
         address: str,
         default_timeout: int,
         encoder: Encoder,
-    ):
-        ...
+    ): ...
 
     async def call(
         self,
@@ -73,8 +66,6 @@ class AsyncZeroClientProtocol(Protocol):  # pragma: no cover
         msg: Union[int, float, str, dict, list, tuple, None],
         timeout: Optional[int] = None,
         return_type: Optional[Type[T]] = None,
-    ) -> Optional[T]:
-        ...
+    ) -> Optional[T]: ...
 
-    async def close(self):
-        ...
+    async def close(self): ...

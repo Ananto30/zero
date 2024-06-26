@@ -1,7 +1,6 @@
 import logging
-from typing import Optional
 
-from aiohttp import ClientSession, web
+from aiohttp import web
 
 from zero import AsyncZeroClient
 

@@ -1,8 +1,6 @@
 import logging
 
-from blacksheep import Application
-from blacksheep import json as json_resp
-from blacksheep import text
+from blacksheep import Application, json as json_resp, text
 
 from zero import AsyncZeroClient, ZeroClient
 
@@ -43,7 +41,5 @@ async def order():
 
 @get("/async_order")
 async def async_order():
-    resp = await async_client.call(
-        "save_order", {"user_id": "1", "items": ["apple", "python"]}
-    )
+    resp = await async_client.call("save_order", {"user_id": "1", "items": ["apple", "python"]})
     return json_resp(resp)

@@ -39,9 +39,7 @@ class ZeroMQClient:
         def _poll_data():
             # poll is slow, need to find a better way
             if not self._poll(_timeout):
-                raise TimeoutException(
-                    f"Timeout while sending message at {self._address}"
-                )
+                raise TimeoutException(f"Timeout while sending message at {self._address}")
 
             rcv_data = self._recv()
 
@@ -73,9 +71,7 @@ class ZeroMQClient:
         try:
             self.socket.send(message, zmq.NOBLOCK)
         except zmqerr.Again as exc:
-            raise ConnectionException(
-                f"Connection error for send at {self._address}"
-            ) from exc
+            raise ConnectionException(f"Connection error for send at {self._address}") from exc
 
     def _poll(self, timeout: int) -> bool:
         socks = dict(self.poller.poll(timeout))
@@ -85,9 +81,7 @@ class ZeroMQClient:
         try:
             return self.socket.recv()
         except zmqerr.Again as exc:
-            raise ConnectionException(
-                f"Connection error for recv at {self._address}"
-            ) from exc
+            raise ConnectionException(f"Connection error for recv at {self._address}") from exc
 
 
 class AsyncZeroMQClient:
@@ -159,9 +153,7 @@ class AsyncZeroMQClient:
 
         while req_id not in self._resp_map:
             if util.current_time_us() > expire_at:
-                raise TimeoutException(
-                    f"Timeout while waiting for response at {self._address}"
-                )
+                raise TimeoutException(f"Timeout while waiting for response at {self._address}")
 
             # await asyncio.sleep(1e-6)
             await asyncio.wait_for(is_data.wait(), timeout=_timeout)
@@ -184,9 +176,7 @@ class AsyncZeroMQClient:
         try:
             await self.socket.send(message, zmq.NOBLOCK)
         except zmqerr.Again as exc:
-            raise ConnectionException(
-                f"Connection error for send at {self._address}"
-            ) from exc
+            raise ConnectionException(f"Connection error for send at {self._address}") from exc
 
     async def _poll(self, timeout: int) -> bool:
         socks = dict(await self.poller.poll(timeout))
@@ -196,6 +186,4 @@ class AsyncZeroMQClient:
         try:
             return await self.socket.recv()
         except zmqerr.Again as exc:
-            raise ConnectionException(
-                f"Connection error for recv at {self._address}"
-            ) from exc
+            raise ConnectionException(f"Connection error for recv at {self._address}") from exc

@@ -35,9 +35,7 @@ async def get_user_by_username(username: str) -> Optional[User]:
             return row2dict(res)
 
 
-async def get_user_by_username_and_password(
-    username: str, password: str
-) -> Optional[User]:
+async def get_user_by_username_and_password(username: str, password: str) -> Optional[User]:
     async with async_session() as session:
         row = await session.execute(
             select(User).filter(User.username == username, User.password == password)

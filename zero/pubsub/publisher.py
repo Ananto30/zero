@@ -37,6 +37,4 @@ class ZeroPublisher:  # pragma: no cover
 
     async def publish_async(self, topic, msg):
         verify_allowed_type(msg)
-        await self.__socket.send_multipart(
-            [topic.encode(), msgspec.msgpack.encode(msg)]
-        )
+        await self.__socket.send_multipart([topic.encode(), msgspec.msgpack.encode(msg)])

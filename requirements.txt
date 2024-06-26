@@ -1,2 +1,2 @@
-pyzmq
-msgspec
+pyzmq==26.0.3
+msgspec==0.18.6

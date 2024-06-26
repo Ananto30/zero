@@ -3,7 +3,7 @@ from typing import List
 
 from src.store import create_order, get_order_by_id, get_orders_by_user_id
 
-from zero import AsyncZeroClient, ZeroServer
+from zero import ZeroServer
 
 log = logging.getLogger("OrderService")
 

@@ -113,10 +113,7 @@ def test_register_same_function_twice():
     app.register_rpc(function_with_no_args)
     with pytest.raises(ValueError) as e:
         app.register_rpc(function_with_no_args)
-    assert (
-        str(e.value)
-        == "cannot have two RPC function same name: `function_with_no_args`"
-    )
+    assert str(e.value) == "cannot have two RPC function same name: `function_with_no_args`"
 
 
 def test_register_reserved_function_name():
@@ -131,6 +128,5 @@ def test_register_reserved_function_name():
     with pytest.raises(ValueError) as e:
         app.register_rpc(connect)
     assert (
-        str(e.value)
-        == "connect is a reserved function; cannot have `connect` as a RPC function"
+        str(e.value) == "connect is a reserved function; cannot have `connect` as a RPC function"
     )

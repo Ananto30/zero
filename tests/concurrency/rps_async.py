@@ -39,9 +39,7 @@ if __name__ == "__main__":
 
     # Split sum_items into chunks for each process
     chunk_size = len(sum_items) // process_no
-    items_chunks = [
-        sum_items[i : i + chunk_size] for i in range(0, len(sum_items), chunk_size)
-    ]
+    items_chunks = [sum_items[i : i + chunk_size] for i in range(0, len(sum_items), chunk_size)]
 
     print("Running...")
 

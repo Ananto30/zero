@@ -41,9 +41,7 @@ async def order(request):
 
 @app.route("/async_order")
 async def async_order(request):
-    resp = await async_client.call(
-        "save_order", {"user_id": "1", "items": ["apple", "python"]}
-    )
+    resp = await async_client.call("save_order", {"user_id": "1", "items": ["apple", "python"]})
     return json(resp)
 
 

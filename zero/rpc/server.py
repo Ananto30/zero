@@ -96,12 +96,8 @@ class ZeroServer:
         type_util.verify_function_return(func)
         type_util.verify_function_return_type(func)
 
-        self._rpc_input_type_map[func.__name__] = type_util.get_function_input_class(
-            func
-        )
-        self._rpc_return_type_map[func.__name__] = type_util.get_function_return_class(
-            func
-        )
+        self._rpc_input_type_map[func.__name__] = type_util.get_function_input_class(func)
+        self._rpc_return_type_map[func.__name__] = type_util.get_function_return_class(func)
 
         self._rpc_router[func.__name__] = (func, iscoroutinefunction(func))
         return func
@@ -134,13 +130,9 @@ class ZeroServer:
         if not isinstance(func, Callable):
             raise ValueError(f"register function; not {type(func)}")
         if len(func.__name__) > 80:
-            raise ValueError(
-                "function name can be at max 80" f" characters; {func.__name__}"
-            )
+            raise ValueError("function name can be at max 80" f" characters; {func.__name__}")
         if func.__name__ in self._rpc_router:
-            raise ValueError(
-                f"cannot have two RPC function same name: `{func.__name__}`"
-            )
+            raise ValueError(f"cannot have two RPC function same name: `{func.__name__}`")
         if func.__name__ in config.RESERVED_FUNCTIONS:
             raise ValueError(
                 f"{func.__name__} is a reserved function; cannot have `{func.__name__}` "

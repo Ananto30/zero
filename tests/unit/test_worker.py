@@ -90,9 +90,7 @@ class TestWorker(unittest.TestCase):
         )
 
         response = worker.handle_msg("failing_function", "msg")
-        self.assertEqual(
-            response, {"__zerror__server_exception": "Exception('RPC Exception')"}
-        )
+        self.assertEqual(response, {"__zerror__server_exception": "Exception('RPC Exception')"})
 
     def test_handle_msg_connect(self):
         worker = _Worker(
@@ -135,9 +133,7 @@ class TestWorker(unittest.TestCase):
             self.rpc_return_type_map,
         )
         msg = "some_message"
-        expected_response = {
-            "__zerror__server_exception": "Exception('Exception occurred')"
-        }
+        expected_response = {"__zerror__server_exception": "Exception('Exception occurred')"}
 
         with patch(
             "zero.protocols.zeromq.worker.async_to_sync",

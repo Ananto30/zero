@@ -47,9 +47,7 @@ def test_echo_dict_validation_error():
     zero_client = ZeroClient(server.HOST, server.PORT)
     with pytest.raises(ValidationException):
         msg = zero_client.call("echo_dict", {"a": "b"})
-        assert msg == {
-            "__zerror__validation_error": "Expected `int`, got `str` - at `key` in `$`"
-        }
+        assert msg == {"__zerror__validation_error": "Expected `int`, got `str` - at `key` in `$`"}
 
 
 def test_echo_tuple():

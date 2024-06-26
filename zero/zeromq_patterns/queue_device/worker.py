@@ -16,9 +16,7 @@ class ZeroMQWorker:
         # self.socket.setsockopt(zmq.RCVTIMEO, 2000)
         self.socket.setsockopt(zmq.SNDTIMEO, 2000)
 
-    def listen(
-        self, address: str, msg_handler: Callable[[bytes, bytes], Optional[bytes]]
-    ) -> None:
+    def listen(self, address: str, msg_handler: Callable[[bytes, bytes], Optional[bytes]]) -> None:
         self.socket.connect(address)
         logging.info("Starting worker %d", self.worker_id)
 
@@ -52,9 +50,7 @@ class ZeroMQWorker:
         response = msg_handler(func_name, message)
 
         # send is slow, need to find a way to make it faster
-        self.socket.send_multipart(
-            [ident, req_id + response if response else b""], zmq.NOBLOCK
-        )
+        self.socket.send_multipart([ident, req_id + response if response else b""], zmq.NOBLOCK)
 
     def close(self) -> None:
         self.socket.close()

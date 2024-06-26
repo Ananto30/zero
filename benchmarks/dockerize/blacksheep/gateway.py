@@ -1,9 +1,7 @@
 import logging
 from typing import Optional
 
-from blacksheep import Application, JSONContent
-from blacksheep import json as json_resp
-from blacksheep import text
+from blacksheep import Application, JSONContent, json as json_resp, text
 from blacksheep.client import ClientSession
 
 app = Application()

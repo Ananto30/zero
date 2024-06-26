@@ -174,9 +174,7 @@ class AsyncZeroClient:
         self._address = f"tcp://{host}:{port}"
         self._default_timeout = default_timeout
         self._encoder = encoder or get_encoder(config.ENCODER)
-        self._client_inst: "AsyncZeroClientProtocol" = self._determine_client_cls(
-            "zeromq"
-        )(
+        self._client_inst: "AsyncZeroClientProtocol" = self._determine_client_cls("zeromq")(
             self._address,
             self._default_timeout,
             self._encoder,
@@ -244,9 +242,7 @@ class AsyncZeroClient:
             Or zeromq cannot receive the response from the server.
             Mainly represents zmq.error.Again exception.
         """
-        resp_data = await self._client_inst.call(
-            rpc_func_name, msg, timeout, return_type
-        )
+        resp_data = await self._client_inst.call(rpc_func_name, msg, timeout, return_type)
         check_response(resp_data)
         return resp_data
 

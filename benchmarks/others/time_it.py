@@ -1,7 +1,6 @@
 import asyncio
 import socket
 from functools import partial, wraps
-from multiprocessing import Pool
 
 import msgpack
 import requests

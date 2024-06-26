@@ -223,7 +223,7 @@ class TestServer(unittest.TestCase):
 
             @server.register_rpc
             def add_this_is_a_very_long_name_for_a_function_more_than_120_characters_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff(
-                msg: Tuple[int, int]
+                msg: Tuple[int, int],
             ) -> int:
                 return msg[0] + msg[1]
 

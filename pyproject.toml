@@ -1,0 +1,24 @@
+[tool.ruff.lint]
+ignore = [
+    "E721", # Comparing types instead of isinstance
+    "E741", # Ambiguous variable names
+    "T201"
+]
+select = [
+    "E", # PEP8 Errors
+    "F", # Pyflakes
+    "W", # PEP8 Warnings
+    "C", # Complexity
+    "B", # Bugbear
+    "T", # Type annotations
+    "I", # Import order
+]
+
+[tool.ruff]
+line-length = 99
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+
+[tool.ruff.format]
+docstring-code-line-length = 99

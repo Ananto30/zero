@@ -10,9 +10,7 @@ def start_async_loop():
     global _LOOP, _THRD  # pylint: disable=global-statement
     if _LOOP is None or _THRD is None or not _THRD.is_alive():
         _LOOP = asyncio.new_event_loop()
-        _THRD = threading.Thread(
-            target=_LOOP.run_forever, name="Async Runner", daemon=True
-        )
+        _THRD = threading.Thread(target=_LOOP.run_forever, name="Async Runner", daemon=True)
         _THRD.start()
 
 
