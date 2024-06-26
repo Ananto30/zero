@@ -39,25 +39,34 @@ services:
       - "6379:6379"
 
   wrk-hello:
-    image: skandyla/wrk
-    command: -t 8 -c 64 -d 15s --latency http://gateway:8000/hello
+    build:
+      context: .
+      dockerfile: wrk.Dockerfile
+    container_name: zero-wrk-hello
+    command: wrk -t 8 -c 64 -d 15s --latency http://gateway:8000/hello
     depends_on:
       - gateway
 
   wrk-order:
-    image: skandyla/wrk
-    command: -t 8 -c 64 -d 15s --latency http://gateway:8000/order
+    build:
+      context: .
+      dockerfile: wrk.Dockerfile
+    command: wrk -t 8 -c 64 -d 15s --latency http://gateway:8000/order
     depends_on:
       - gateway
 
   wrk-hello-async:
-    image: skandyla/wrk
-    command: -t 8 -c 64 -d 15s --latency http://gateway:8000/async_hello
+    build:
+      context: .
+      dockerfile: wrk.Dockerfile
+    command: wrk -t 8 -c 64 -d 15s --latency http://gateway:8000/async_hello
     depends_on:
       - gateway
 
   wrk-order-async:
-    image: skandyla/wrk
-    command: -t 8 -c 64 -d 15s --latency http://gateway:8000/async_order
+    build:
+      context: .
+      dockerfile: wrk.Dockerfile
+    command: wrk -t 8 -c 64 -d 15s --latency http://gateway:8000/async_order
     depends_on:
       - gateway
