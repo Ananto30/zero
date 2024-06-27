@@ -6,17 +6,17 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
-    Union,
     runtime_checkable,
 )
 
 from zero.encoder import Encoder
+from zero.utils.type_util import AllowedType
 
 T = TypeVar("T")
 
 
 @runtime_checkable
-class ZeroServerProtocol(Protocol):  # pragma: no cover
+class ZeroServerProtocol(Protocol):
     def __init__(
         self,
         address: str,
@@ -35,7 +35,7 @@ class ZeroServerProtocol(Protocol):  # pragma: no cover
 
 
 @runtime_checkable
-class ZeroClientProtocol(Protocol):  # pragma: no cover
+class ZeroClientProtocol(Protocol):
     def __init__(
         self,
         address: str,
@@ -47,7 +47,7 @@ class ZeroClientProtocol(Protocol):  # pragma: no cover
     def call(
         self,
         rpc_func_name: str,
-        msg: Union[int, float, str, dict, list, tuple, None],
+        msg: AllowedType,
         timeout: Optional[int] = None,
         return_type: Optional[Type[T]] = None,
     ) -> Optional[T]:
@@ -58,7 +58,7 @@ class ZeroClientProtocol(Protocol):  # pragma: no cover
 
 
 @runtime_checkable
-class AsyncZeroClientProtocol(Protocol):  # pragma: no cover
+class AsyncZeroClientProtocol(Protocol):
     def __init__(
         self,
         address: str,
@@ -70,7 +70,7 @@ class AsyncZeroClientProtocol(Protocol):  # pragma: no cover
     async def call(
         self,
         rpc_func_name: str,
-        msg: Union[int, float, str, dict, list, tuple, None],
+        msg: AllowedType,
         timeout: Optional[int] = None,
         return_type: Optional[Type[T]] = None,
     ) -> Optional[T]:

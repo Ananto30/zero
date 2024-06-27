@@ -1,9 +1,0 @@
-FROM python:3.10-slim
-
-COPY tests/requirements.txt .
-RUN pip install -r requirements.txt
-
-COPY zero ./zero
-COPY tests ./tests
-
-CMD ["pytest", "tests", "--cov=zero", "--cov-report=term-missing", "-vv"]

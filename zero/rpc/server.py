@@ -1,13 +1,24 @@
 import logging
 import os
 from asyncio import iscoroutinefunction
-from typing import TYPE_CHECKING, Callable, Dict, Optional, Tuple, Type
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Coroutine,
+    Dict,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+)
 
 from zero import config
-from zero.encoder import Encoder, get_encoder
+from zero.encoder import Encoder
+from zero.encoder.msgspc import MsgspecEncoder
 from zero.utils import type_util
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from .protocols import ZeroServerProtocol
 
 # import uvloop
@@ -47,7 +58,11 @@ class ZeroServer:
         self._address = f"tcp://{self._host}:{self._port}"
 
         # to encode/decode messages from/to client
-        self._encoder = encoder or get_encoder(config.ENCODER)
+        if encoder and not isinstance(encoder, Encoder):
+            raise TypeError(
+                f"encoder should be an instance of Encoder; not {type(encoder)}"
+            )
+        self._encoder = encoder or MsgspecEncoder()
 
         # Stores rpc functions against their names
         # and if they are coroutines
@@ -79,7 +94,7 @@ class ZeroServer:
             )
         return server_cls
 
-    def register_rpc(self, func: Callable):
+    def register_rpc(self, func: Callable[..., Union[Any, Coroutine]]):
         """
         Register a function available for clients.
         Function should have a single argument.

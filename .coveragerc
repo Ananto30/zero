@@ -1,0 +1,6 @@
+[run]
+omit =
+    zero/zeromq_patterns/factory.py
+    zero/zeromq_patterns/helpers.py
+    zero/logger.py
+    zero/rpc/protocols.py

@@ -11,7 +11,6 @@ logging.basicConfig(
 
 RESERVED_FUNCTIONS = ["get_rpc_contract", "connect", "__server_info__"]
 ZEROMQ_PATTERN = "proxy"
-ENCODER = "msgspec"
 SUPPORTED_PROTOCOLS = {
     "zeromq": {
         "server": ZMQServer,

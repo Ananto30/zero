@@ -1,9 +1,11 @@
 import logging
 import threading
-from typing import Dict, Optional, Type, TypeVar, Union
+from typing import Dict, Optional, Type, TypeVar
 
 from zero import config
-from zero.encoder import Encoder, get_encoder
+from zero.encoder import Encoder
+from zero.encoder.msgspc import MsgspecEncoder
+from zero.utils.type_util import AllowedType
 from zero.zeromq_patterns import (
     AsyncZeroMQClient,
     ZeroMQClient,
@@ -23,7 +25,7 @@ class ZMQClient:
     ):
         self._address = address
         self._default_timeout = default_timeout
-        self._encoder = encoder or get_encoder(config.ENCODER)
+        self._encoder = encoder or MsgspecEncoder()
 
         self.client_pool = ZMQClientPool(
             self._address,
@@ -34,7 +36,7 @@ class ZMQClient:
     def call(
         self,
         rpc_func_name: str,
-        msg: Union[int, float, str, dict, list, tuple, None],
+        msg: AllowedType,
         timeout: Optional[int] = None,
         return_type: Optional[Type[T]] = None,
     ) -> T:
@@ -65,7 +67,7 @@ class AsyncZMQClient:
     ):
         self._address = address
         self._default_timeout = default_timeout
-        self._encoder = encoder or get_encoder(config.ENCODER)
+        self._encoder = encoder or MsgspecEncoder()
 
         self.client_pool = AsyncZMQClientPool(
             self._address,
@@ -76,7 +78,7 @@ class AsyncZMQClient:
     async def call(
         self,
         rpc_func_name: str,
-        msg: Union[int, float, str, dict, list, tuple, None],
+        msg: AllowedType,
         timeout: Optional[int] = None,
         return_type: Optional[Type[T]] = None,
     ) -> T:
@@ -114,7 +116,7 @@ class ZMQClientPool:
         self._pool: Dict[int, ZeroMQClient] = {}
         self._address = address
         self._timeout = timeout
-        self._encoder = encoder or get_encoder(config.ENCODER)
+        self._encoder = encoder or MsgspecEncoder()
 
     def get(self) -> ZeroMQClient:
         thread_id = threading.get_ident()
@@ -146,7 +148,7 @@ class AsyncZMQClientPool:
         self._pool: Dict[int, AsyncZeroMQClient] = {}
         self._address = address
         self._timeout = timeout
-        self._encoder = encoder or get_encoder(config.ENCODER)
+        self._encoder = encoder or MsgspecEncoder()
 
     async def get(self) -> AsyncZeroMQClient:
         thread_id = threading.get_ident()
