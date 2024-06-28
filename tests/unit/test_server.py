@@ -159,6 +159,19 @@ class TestServer(unittest.TestCase):
         self.assertEqual(server._rpc_input_type_map, {})
         self.assertEqual(server._rpc_return_type_map, {})
 
+    def test_create_server_with_invalid_encoder(self):
+        with self.assertRaises(TypeError):
+            ZeroServer(encoder="encoder")
+
+    def test_create_server_with_invalid_protocol(self):
+        with self.assertRaises(ValueError):
+            ZeroServer(protocol="invalid_protocol")
+
+    def test_create_server_with_protocol_with_no_server(self):
+        with patch("zero.rpc.server.config.SUPPORTED_PROTOCOLS", {"redis": {}}):
+            with self.assertRaises(ValueError):
+                ZeroServer(protocol="redis")
+
     def test_register_rpc(self):
         server = ZeroServer()
 
@@ -248,16 +261,17 @@ class TestServer(unittest.TestCase):
                     server._broker.backend,  # type: ignore
                 )
 
-    # TODO fix
-    # # @pytest.mark.skipif(sys.platform == "win32", reason="Does not run on windows")
-    # # @pytest.mark.skip
-    # def test_server_run_keyboard_interrupt(self):
-    #     server = ZeroServer()
+    def test_server_run_keyboard_interrupt(self):
+        server = ZeroServer()
 
-    #     @server.register_rpc
-    #     def add(msg: Tuple[int, int]) -> int:
-    #         return msg[0] + msg[1]
+        @server.register_rpc
+        def add(msg: Tuple[int, int]) -> int:
+            return msg[0] + msg[1]
 
-    #     with patch.object(server, "_start_server", side_effect=KeyboardInterrupt):
-    #         with self.assertRaises(SystemExit):
-    #             server.run()
+        with patch.object(server, "_server_inst") as mock_server_inst:
+            mock_server_inst.start.side_effect = KeyboardInterrupt
+            with patch("logging.warning") as mock_warning:
+                server.run()
+                mock_warning.assert_called_with(
+                    "Caught KeyboardInterrupt, terminating server"
+                )

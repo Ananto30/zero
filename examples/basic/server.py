@@ -5,7 +5,7 @@ import jwt
 
 from zero import ZeroServer
 
-from .schema import User
+from .schema import Student, Teacher, User
 
 app = ZeroServer(port=5559)
 
@@ -40,6 +40,17 @@ def hello_user(user: User) -> str:
 @app.register_rpc
 def hello_users(users: typing.List[User]) -> str:
     return f"Hello {', '.join([user.name for user in users])}! Your emails are {', '.join([email for user in users for email in user.emails])}!"
+
+
+teachers = [
+    Teacher(name="Teacher1"),
+    Teacher(name="Teacher2"),
+]
+
+
+@app.register_rpc
+def hello_student(student: Student) -> str:
+    return f"Hello {student.name}! You are {student.age} years old. Your email is {student.emails[0]}! Your roll no. is {student.roll_no} and your marks are {student.marks}!"
 
 
 if __name__ == "__main__":

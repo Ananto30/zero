@@ -52,7 +52,6 @@ I have used 2x cpu threads so `-t 16` and 16x25 = 400 connections.
 | sanic     | 13195.99              | 20.04            | 7226.72            | 25.24            |
 | zero      | 18867.00              | 11.48            | 12293.81           | 11.68            |
 
-
 ## Old benchmark results
 
 Intel Core i3 10100, 4 cores, 8 threads, 16GB RAM, with docker limits **cpu 40% and memory 256m**
@@ -67,7 +66,6 @@ Intel Core i3 10100, 4 cores, 8 threads, 16GB RAM, with docker limits **cpu 40% 
 | sanic     | 3,085.80 req/s        | 547.02 req/s       |
 | zero      | 5,000.77 req/s        | 784.51 req/s       |
 
-
 MacBook Pro (13-inch, M1, 2020), Apple M1, 8 cores (4 performance and 4 efficiency), 8 GB RAM
 
 *(Sorted alphabetically)*
@@ -81,7 +79,6 @@ MacBook Pro (13-inch, M1, 2020), Apple M1, 8 cores (4 performance and 4 efficien
 
 More about MacBook benchmarks [here](https://github.com/Ananto30/zero/blob/main/benchmarks/others/mac-results.md)
 
-
-### Note!
+### Note
 
 Please note that sometimes just `docker-compose up` will not run the `wrk`. Because you know about the docker `depends_on` only ensures the service is up, not running or healthy. So you may need to run wrk service after other services are up and running.

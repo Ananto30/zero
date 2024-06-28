@@ -1,10 +1,12 @@
-from typing import TYPE_CHECKING, Optional, Type, TypeVar, Union
+from typing import TYPE_CHECKING, Optional, Type, TypeVar
 
 from zero import config
-from zero.encoder import Encoder, get_encoder
+from zero.encoder import Encoder
+from zero.encoder.msgspc import MsgspecEncoder
 from zero.error import MethodNotFoundException, RemoteException, ValidationException
+from zero.utils.type_util import AllowedType
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from zero.rpc.protocols import AsyncZeroClientProtocol, ZeroClientProtocol
 
 T = TypeVar("T")
@@ -55,7 +57,7 @@ class ZeroClient:
         """
         self._address = f"tcp://{host}:{port}"
         self._default_timeout = default_timeout
-        self._encoder = encoder or get_encoder(config.ENCODER)
+        self._encoder = encoder or MsgspecEncoder()
         self._client_inst: "ZeroClientProtocol" = self._determine_client_cls(protocol)(
             self._address,
             self._default_timeout,
@@ -79,7 +81,7 @@ class ZeroClient:
     def call(
         self,
         rpc_func_name: str,
-        msg: Union[int, float, str, dict, list, tuple, None],
+        msg: AllowedType,
         timeout: Optional[int] = None,
         return_type: Optional[Type[T]] = None,
     ) -> T:
@@ -173,7 +175,7 @@ class AsyncZeroClient:
         """
         self._address = f"tcp://{host}:{port}"
         self._default_timeout = default_timeout
-        self._encoder = encoder or get_encoder(config.ENCODER)
+        self._encoder = encoder or MsgspecEncoder()
         self._client_inst: "AsyncZeroClientProtocol" = self._determine_client_cls(
             "zeromq"
         )(
@@ -199,7 +201,7 @@ class AsyncZeroClient:
     async def call(
         self,
         rpc_func_name: str,
-        msg: Union[int, float, str, dict, list, tuple, None],
+        msg: AllowedType,
         timeout: Optional[int] = None,
         return_type: Optional[Type[T]] = None,
     ) -> Optional[T]:

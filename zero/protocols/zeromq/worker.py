@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import time
-from typing import Optional
+from typing import Any, Optional
 
 from msgspec import ValidationError
 
@@ -37,43 +37,48 @@ class _Worker:
         )
 
     def start_dealer_worker(self, worker_id):
-        def process_message(func_name_encoded: bytes, data: bytes) -> Optional[bytes]:
-            try:
-                func_name = func_name_encoded.decode()
-                input_type = self._rpc_input_type_map.get(func_name)
-
-                msg = ""
-                if data:
-                    if input_type:
-                        msg = self._encoder.decode_type(data, input_type)
-                    else:
-                        msg = self._encoder.decode(data)
-
-                response = self.handle_msg(func_name, msg)
-                return self._encoder.encode(response)
-            except ValidationError as exc:
-                logging.exception(exc)
-                return self._encoder.encode({"__zerror__validation_error": str(exc)})
-            except Exception as inner_exc:  # pylint: disable=broad-except
-                logging.exception(inner_exc)
-                return self._encoder.encode(
-                    {"__zerror__server_exception": SERVER_PROCESSING_ERROR}
-                )
-
         worker = get_worker(config.ZEROMQ_PATTERN, worker_id)
         try:
-            worker.listen(self._device_comm_channel, process_message)
+            worker.listen(self._device_comm_channel, self.handle_msg)
+
         except KeyboardInterrupt:
             logging.warning(
                 "Caught KeyboardInterrupt, terminating worker %d", worker_id
             )
+
         except Exception as exc:  # pylint: disable=broad-except
             logging.exception(exc)
+
         finally:
             logging.warning("Closing worker %d", worker_id)
             worker.close()
 
-    def handle_msg(self, rpc, msg):
+    def handle_msg(self, func_name_encoded: bytes, data: bytes) -> Optional[bytes]:
+        try:
+            func_name = func_name_encoded.decode()
+            input_type = self._rpc_input_type_map.get(func_name)
+
+            msg = ""
+            if data:
+                if input_type:
+                    msg = self._encoder.decode_type(data, input_type)
+                else:
+                    msg = self._encoder.decode(data)
+
+            response = self.execute_rpc(func_name, msg)
+            return self._encoder.encode(response)
+
+        except ValidationError as exc:
+            logging.exception(exc)
+            return self._encoder.encode({"__zerror__validation_error": str(exc)})
+
+        except Exception as inner_exc:  # pylint: disable=broad-except
+            logging.exception(inner_exc)
+            return self._encoder.encode(
+                {"__zerror__server_exception": SERVER_PROCESSING_ERROR}
+            )
+
+    def execute_rpc(self, rpc: str, msg: Any):
         if rpc == "get_rpc_contract":
             return self.generate_rpc_contract(msg)
 
@@ -88,10 +93,11 @@ class _Worker:
         ret = None
 
         try:
-            if is_coro:
-                ret = async_to_sync(func)(msg) if msg else async_to_sync(func)()
+            func_to_call = async_to_sync(func) if is_coro else func
+            if self._rpc_input_type_map.get(rpc):
+                ret = func_to_call(msg)
             else:
-                ret = func(msg) if msg else func()
+                ret = func_to_call()
 
         except Exception as exc:  # pylint: disable=broad-except
             logging.exception(exc)
@@ -102,6 +108,7 @@ class _Worker:
     def generate_rpc_contract(self, msg):
         try:
             return self.codegen.generate_code(msg[0], msg[1])
+
         except Exception as exc:  # pylint: disable=broad-except
             logging.exception(exc)
             return {"__zerror__failed_to_generate_client_code": str(exc)}

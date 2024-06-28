@@ -18,7 +18,7 @@
     <a href="https://codeclimate.com/github/Ananto30/zero/maintainability" target="_blank">
         <img src="https://api.codeclimate.com/v1/badges/4f2fd83bee97326699bc/maintainability" />
     </a>
-	<a href="https://pepy.tech/project/zeroapi" target="_blank">
+    <a href="https://pepy.tech/project/zeroapi" target="_blank">
         <img src="https://static.pepy.tech/badge/zeroapi" />
     </a>
 </p>
@@ -27,16 +27,16 @@
 
 **Features**:
 
-*   Zero provides **faster communication** (see [benchmarks](https://github.com/Ananto30/zero#benchmarks-)) between the microservices using [zeromq](https://zeromq.org/) under the hood.
-*   Zero uses messages for communication and traditional **client-server** or **request-reply** pattern is supported.
-*   Support for both **async** and **sync**.
-*   The base server (ZeroServer) **utilizes all cpu cores**.
-*   **Code generation**! See [example](https://github.com/Ananto30/zero#code-generation-) 👇
+* Zero provides **faster communication** (see [benchmarks](https://github.com/Ananto30/zero#benchmarks-)) between the microservices using [zeromq](https://zeromq.org/) under the hood.
+* Zero uses messages for communication and traditional **client-server** or **request-reply** pattern is supported.
+* Support for both **async** and **sync**.
+* The base server (ZeroServer) **utilizes all cpu cores**.
+* **Code generation**! See [example](https://github.com/Ananto30/zero#code-generation-) 👇
 
 **Philosophy** behind Zero:
 
-*   **Zero learning curve**: The learning curve is tends to zero. Just add functions and spin up a server, literally that's it! The framework hides the complexity of messaging pattern that enables faster communication.
-*   **ZeroMQ**: An awesome messaging library enables the power of Zero.
+* **Zero learning curve**: The learning curve is tends to zero. Just add functions and spin up a server, literally that's it! The framework hides the complexity of messaging pattern that enables faster communication.
+* **ZeroMQ**: An awesome messaging library enables the power of Zero.
 
 Let's get started!
 
@@ -44,83 +44,86 @@ Let's get started!
 
 *Ensure Python 3.8+*
 
-    pip install zeroapi
+```
+pip install zeroapi
+```
 
 **For Windows**, [tornado](https://pypi.org/project/tornado/) needs to be installed separately (for async operations). It's not included with `zeroapi` because for linux and mac-os, tornado is not needed as they have their own event loops.
 
-*   Create a `server.py`
+* Create a `server.py`
 
-    ```python
-    from zero import ZeroServer
+  ```python
+  from zero import ZeroServer
 
-    app = ZeroServer(port=5559)
+  app = ZeroServer(port=5559)
 
-    @app.register_rpc
-    def echo(msg: str) -> str:
-        return msg
+  @app.register_rpc
+  def echo(msg: str) -> str:
+      return msg
 
-    @app.register_rpc
-    async def hello_world() -> str:
-        return "hello world"
-
-
-    if __name__ == "__main__":
-        app.run()
-    ```
-
-*   The **RPC functions only support one argument** (`msg`) for now.
-
-*   Also note that server **RPC functions are type hinted**. Type hint is **must** in Zero server. Supported types can be found [here](/zero/utils/type_util.py#L11).
-
-*   Run the server
-    ```shell
-    python -m server
-    ```
-
-*   Call the rpc methods
-
-    ```python
-    from zero import ZeroClient
-
-    zero_client = ZeroClient("localhost", 5559)
-
-    def echo():
-        resp = zero_client.call("echo", "Hi there!")
-        print(resp)
-
-    def hello():
-        resp = zero_client.call("hello_world", None)
-        print(resp)
+  @app.register_rpc
+  async def hello_world() -> str:
+      return "hello world"
 
 
-    if __name__ == "__main__":
-        echo()
-        hello()
-    ```
+  if __name__ == "__main__":
+      app.run()
+  ```
 
-*   Or using async client -
+* The **RPC functions only support one argument** (`msg`) for now.
 
-    ```python
-    import asyncio
+* Also note that server **RPC functions are type hinted**. Type hint is **must** in Zero server. Supported types can be found [here](/zero/utils/type_util.py#L11).
 
-    from zero import AsyncZeroClient
+* Run the server
 
-    zero_client = AsyncZeroClient("localhost", 5559)
+  ```shell
+  python -m server
+  ```
 
-    async def echo():
-        resp = await zero_client.call("echo", "Hi there!")
-        print(resp)
+* Call the rpc methods
 
-    async def hello():
-        resp = await zero_client.call("hello_world", None)
-        print(resp)
+  ```python
+  from zero import ZeroClient
+
+  zero_client = ZeroClient("localhost", 5559)
+
+  def echo():
+      resp = zero_client.call("echo", "Hi there!")
+      print(resp)
+
+  def hello():
+      resp = zero_client.call("hello_world", None)
+      print(resp)
 
 
-    if __name__ == "__main__":
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(echo())
-        loop.run_until_complete(hello())
-    ```
+  if __name__ == "__main__":
+      echo()
+      hello()
+  ```
+
+* Or using async client -
+
+  ```python
+  import asyncio
+
+  from zero import AsyncZeroClient
+
+  zero_client = AsyncZeroClient("localhost", 5559)
+
+  async def echo():
+      resp = await zero_client.call("echo", "Hi there!")
+      print(resp)
+
+  async def hello():
+      resp = await zero_client.call("hello_world", None)
+      print(resp)
+
+
+  if __name__ == "__main__":
+      loop = asyncio.get_event_loop()
+      loop.run_until_complete(echo())
+      loop.run_until_complete(hello())
+  ```
 
 # Serialization 📦
 
@@ -224,9 +227,9 @@ Currently, the code generation tool supports only `ZeroClient` and not `AsyncZer
 
 # Important notes! 📝
 
-*   `ZeroServer` should always be run under `if __name__ == "__main__":`, as it uses multiprocessing.
-*   `ZeroServer` creates the workers in different processes, so anything global in your code will be instantiated N times where N is the number of workers. So if you want to initiate them once, put them under `if __name__ == "__main__":`. But recommended to not use global vars. And Databases, Redis, other clients, creating them N times in different processes is fine and preferred. 
-*   The methods which are under `register_rpc()` in `ZeroServer` should have **type hinting**, like `def echo(msg: str) -> str:`
+* `ZeroServer` should always be run under `if __name__ == "__main__":`, as it uses multiprocessing.
+* `ZeroServer` creates the workers in different processes, so anything global in your code will be instantiated N times where N is the number of workers. So if you want to initiate them once, put them under `if __name__ == "__main__":`. But recommended to not use global vars. And Databases, Redis, other clients, creating them N times in different processes is fine and preferred.
+* The methods which are under `register_rpc()` in `ZeroServer` should have **type hinting**, like `def echo(msg: str) -> str:`
 
 # Let's do some benchmarking! 🏎
 
@@ -236,8 +239,8 @@ So we will be testing a gateway calling another server for some data. Check the 
 
 There are two endpoints in every tests,
 
-*   `/hello`: Just call for a hello world response 😅
-*   `/order`: Save a Order object in redis
+* `/hello`: Just call for a hello world response 😅
+* `/order`: Save a Order object in redis
 
 Compare the results! 👇
 
@@ -247,23 +250,23 @@ Compare the results! 👇
 
 *(Sorted alphabetically)*
 
-Framework   | "hello world" (req/s) | 99% latency (ms) | redis save (req/s) | 99% latency (ms)
------------ | --------------------- | ---------------- | ------------------ | ----------------
-aiohttp     | 14949.57              | 8.91             | 9753.87            | 13.75
-aiozmq      | 13844.67              | 9.55             | 5239.14            | 30.92
-blacksheep  | 32967.27              | 3.03             | 18010.67           | 6.79
-fastApi     | 13154.96              | 9.07             | 8369.87            | 15.91
-sanic       | 18793.08              | 5.88             | 12739.37           | 8.78
-zero(sync)  | 28471.47              | 4.12             | 18114.84           | 6.69
-zero(async) | 29012.03              | 3.43             | 20956.48           | 5.80
+| Framework   | "hello world" (req/s) | 99% latency (ms) | redis save (req/s) | 99% latency (ms) |
+| ----------- | --------------------- | ---------------- | ------------------ | ---------------- |
+| aiohttp     | 14949.57              | 8.91             | 9753.87            | 13.75            |
+| aiozmq      | 13844.67              | 9.55             | 5239.14            | 30.92            |
+| blacksheep  | 32967.27              | 3.03             | 18010.67           | 6.79             |
+| fastApi     | 13154.96              | 9.07             | 8369.87            | 15.91            |
+| sanic       | 18793.08              | 5.88             | 12739.37           | 8.78             |
+| zero(sync)  | 28471.47              | 4.12             | 18114.84           | 6.69             |
+| zero(async) | 29012.03              | 3.43             | 20956.48           | 5.80             |
 
 Seems like blacksheep is faster on hello world, but in more complex operations like saving to redis, zero is the winner! 🏆
 
 # Roadmap 🗺
 
-*   [x] Make msgspec as default serializer
-*   [ ] Add support for async server (currently the sync server runs async functions in the eventloop, which is blocking)
-*   [ ] Add pub/sub support
+* \[x] Make msgspec as default serializer
+* \[ ] Add support for async server (currently the sync server runs async functions in the eventloop, which is blocking)
+* \[ ] Add pub/sub support
 
 # Contribution
 

@@ -4,7 +4,18 @@ import decimal
 import enum
 import typing
 import uuid
-from typing import Callable, Optional, get_origin, get_type_hints
+from typing import (
+    Any,
+    Callable,
+    ClassVar,
+    Dict,
+    Optional,
+    Protocol,
+    Type,
+    Union,
+    get_origin,
+    get_type_hints,
+)
 
 import msgspec
 
@@ -17,15 +28,10 @@ builtin_types: typing.List = [
     bytes,
     bytearray,
     tuple,
-    typing.Tuple,
     list,
-    typing.List,
     dict,
-    typing.Dict,
     set,
-    typing.Set,
     frozenset,
-    typing.FrozenSet,
 ]
 
 std_lib_types: typing.List = [
@@ -40,18 +46,59 @@ std_lib_types: typing.List = [
 ]
 
 typing_types: typing.List = [
-    typing.Any,
+    typing.Tuple,
+    typing.List,
+    typing.Dict,
+    typing.Set,
+    typing.FrozenSet,
     typing.Union,
     typing.Optional,
 ]
 
 msgspec_types: typing.List = [
     msgspec.Struct,
-    msgspec.Raw,
 ]
 
 
 allowed_types = builtin_types + std_lib_types + typing_types
+
+
+class IsDataclass(Protocol):
+    # as already noted in comments, checking for this attribute is currently
+    # the most reliable way to ascertain that something is a dataclass
+    __dataclass_fields__: ClassVar[Dict[str, Any]]
+
+
+AllowedType = Union[
+    None,
+    bool,
+    int,
+    float,
+    str,
+    bytes,
+    bytearray,
+    tuple,
+    list,
+    dict,
+    set,
+    frozenset,
+    datetime.datetime,
+    datetime.date,
+    datetime.time,
+    uuid.UUID,
+    decimal.Decimal,
+    enum.Enum,
+    enum.IntEnum,
+    IsDataclass,
+    typing.Tuple,
+    typing.List,
+    typing.Dict,
+    typing.Set,
+    typing.FrozenSet,
+    msgspec.Struct,
+    Type[enum.Enum],  # For enum classes
+    Type[enum.IntEnum],  # For int enum classes
+]
 
 
 def verify_function_args(func: Callable) -> None:
@@ -73,13 +120,6 @@ def verify_function_args(func: Callable) -> None:
 
 
 def verify_function_return(func: Callable) -> None:
-    return_count = func.__code__.co_argcount
-    if return_count > 1:
-        raise ValueError(
-            f"`{func.__name__}` has more than 1 return values; "
-            "RPC functions can have only one return value"
-        )
-
     types = get_type_hints(func)
     if not types.get("return"):
         raise TypeError(
@@ -106,16 +146,11 @@ def get_function_return_class(func: Callable):
 
 def verify_function_input_type(func: Callable):
     input_type = get_function_input_class(func)
-    if input_type in allowed_types:
+    if input_type is None:
         return
 
-    origin_type = get_origin(input_type)
-    if origin_type is not None and origin_type in allowed_types:
+    if is_allowed_type(input_type):
         return
-
-    for mtype in msgspec_types:
-        if input_type is not None and issubclass(input_type, mtype):
-            return
 
     raise TypeError(
         f"{func.__name__} has type {input_type} which is not allowed; "
@@ -125,16 +160,21 @@ def verify_function_input_type(func: Callable):
 
 def verify_function_return_type(func: Callable):
     return_type = get_function_return_class(func)
-    if return_type in allowed_types:
-        return
 
-    origin_type = get_origin(return_type)
-    if origin_type is not None and origin_type in allowed_types:
-        return
+    # None is not allowed as return type
+    if return_type is None:
+        raise TypeError(
+            f"{func.__name__} returns None; RPC functions must return a value"
+        )
 
-    for typ in msgspec_types:
-        if issubclass(return_type, typ):
-            return
+    # Optional is not allowed as return type
+    if get_origin(return_type) == typing.Union and type(None) in return_type.__args__:
+        raise TypeError(
+            f"{func.__name__} returns Optional; RPC functions must return a value"
+        )
+
+    if is_allowed_type(return_type):
+        return
 
     raise TypeError(
         f"{func.__name__} has return type {return_type} which is not allowed; "
@@ -151,22 +191,22 @@ def verify_allowed_type(msg, rpc_method: Optional[str] = None):
         )
 
 
-def verify_incoming_rpc_call_input_type(
-    msg, rpc_method: str, rpc_input_type_map: dict
-):  # pragma: no cover
-    input_type = rpc_input_type_map[rpc_method]
-    if input_type is None:
-        return
+def is_allowed_type(typ: Type):
+    if typ in allowed_types:
+        return True
 
-    if input_type in builtin_types:
-        if input_type != type(msg):
-            raise TypeError(
-                f"{msg} is not allowed for method `{rpc_method}`; allowed type: {input_type}"
-            )
+    if str(typ).startswith("<enum"):
+        return True
 
-    origin_type = get_origin(input_type)
-    if origin_type in builtin_types:
-        if origin_type != type(msg):
-            raise TypeError(
-                f"{msg} is not allowed for method `{rpc_method}`; allowed type: {input_type}"
-            )
+    if dataclasses.is_dataclass(typ):
+        return True
+
+    origin_type = get_origin(typ)
+    if origin_type is not None and origin_type in allowed_types:
+        return True
+
+    for mtype in msgspec_types:
+        if issubclass(typ, mtype):
+            return True
+
+    return False
