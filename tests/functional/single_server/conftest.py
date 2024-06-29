@@ -15,3 +15,10 @@ def base_server():
     process = start_subprocess("tests.functional.single_server.server")
     yield
     kill_subprocess(process)
+
+
+@pytest.fixture(autouse=True, scope="session")
+def threaded_server():
+    process = start_subprocess("tests.functional.single_server.threaded_server")
+    yield
+    kill_subprocess(process)

@@ -3,7 +3,7 @@ import os
 import signal
 import sys
 from functools import partial
-from multiprocessing.pool import Pool
+from multiprocessing.pool import Pool, ThreadPool
 from typing import Callable, Dict, Optional, Tuple
 
 import zmq.utils.win32
@@ -26,6 +26,7 @@ class ZMQServer:
         rpc_input_type_map: Dict[str, Optional[type]],
         rpc_return_type_map: Dict[str, Optional[type]],
         encoder: Encoder,
+        use_threads: bool,
     ):
         self._broker: ZeroMQBroker = None  # type: ignore
         self._device_comm_channel: str = None  # type: ignore
@@ -37,6 +38,7 @@ class ZMQServer:
         self._rpc_input_type_map = rpc_input_type_map
         self._rpc_return_type_map = rpc_return_type_map
         self._encoder = encoder
+        self._use_threads = use_threads
 
     def start(self, workers: int = os.cpu_count() or 1):
         """
@@ -67,7 +69,10 @@ class ZMQServer:
         self._start_server(workers, spawn_worker)
 
     def _start_server(self, workers: int, spawn_worker: Callable[[int], None]):
-        self._pool = Pool(workers)
+        if self._use_threads:
+            self._pool = ThreadPool(workers)
+        else:
+            self._pool = Pool(workers)
 
         # process termination signals
         util.register_signal_term(self._sig_handler)
@@ -113,4 +118,4 @@ class ZMQServer:
     def _terminate_pool(self):
         self._pool.terminate()
         self._pool.close()
-        self._pool.join()
+        # self._pool.join()
