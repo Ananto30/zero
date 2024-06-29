@@ -35,6 +35,7 @@ def _ping(port: int) -> bool:
 
 def kill_process(process: Process):
     process.terminate()
+    process.kill()
     _wait_for_process_to_die(process)
     process.join()
 

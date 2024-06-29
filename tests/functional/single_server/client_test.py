@@ -5,6 +5,7 @@ import time
 import pytest
 
 import zero.error
+from tests.functional.single_server import threaded_server
 from zero import AsyncZeroClient, ZeroClient
 
 from . import server
@@ -221,3 +222,8 @@ def test_random_timeout_async():
 #     time_taken_ms = (time.perf_counter() - start) * 1000
 
 #     assert time_taken_ms < 1000
+
+
+def test_threaded_server_hello_world():
+    client = ZeroClient(threaded_server.HOST, threaded_server.PORT)
+    assert client.call("hello_world", "") == "hello world"

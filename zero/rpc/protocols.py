@@ -24,6 +24,7 @@ class ZeroServerProtocol(Protocol):
         rpc_input_type_map: Dict[str, Optional[type]],
         rpc_return_type_map: Dict[str, Optional[type]],
         encoder: Encoder,
+        use_threads: bool,
     ):
         ...
 
