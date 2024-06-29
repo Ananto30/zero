@@ -5,6 +5,7 @@ import time
 import pytest
 
 import zero.error
+from tests.functional.single_server import threaded_server
 from zero import AsyncZeroClient, ZeroClient
 
 from . import server
@@ -187,3 +188,8 @@ async def test_async_sleep():
     time_taken_ms = 1e3 * (end - start)
 
     assert time_taken_ms < 1000
+
+
+def test_threaded_server_hello_world():
+    client = ZeroClient(threaded_server.HOST, threaded_server.PORT)
+    assert client.call("hello_world", "") == "hello world"

@@ -31,6 +31,7 @@ class ZeroServer:
         port: int = 5559,
         encoder: Optional[Encoder] = None,
         protocol: str = "zeromq",
+        use_threads: bool = False,
     ):
         """
         ZeroServer registers and exposes rpc functions that can be called from a ZeroClient.
@@ -41,21 +42,30 @@ class ZeroServer:
         ----------
         host: str
             Host of the ZeroServer.
+
         port: int
             Port of the ZeroServer.
+
         encoder: Optional[Encoder]
             Encoder to encode/decode messages from/to client.
             Default is msgspec.
             If any other encoder is used, the client should use the same encoder.
             Implement custom encoder by inheriting from `zero.encoder.Encoder`.
+
         protocol: str
             Protocol to use for communication.
             Default is zeromq.
             If any other protocol is used, the client should use the same protocol.
+
+        use_threads: bool
+            Use threads instead of processes.
+            By default it uses processes.
+            If True, the server uses threads instead of processes. GIL will be watching you!
         """
         self._host = host
         self._port = port
         self._address = f"tcp://{self._host}:{self._port}"
+        self._use_threads = use_threads
 
         # to encode/decode messages from/to client
         if encoder and not isinstance(encoder, Encoder):
@@ -78,6 +88,7 @@ class ZeroServer:
             self._rpc_input_type_map,
             self._rpc_return_type_map,
             self._encoder,
+            self._use_threads,
         )
 
     def _determine_server_cls(self, protocol: str) -> Type["ZeroServerProtocol"]:
