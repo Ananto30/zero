@@ -76,5 +76,5 @@ class AsyncZeroClientProtocol(Protocol):
     ) -> Optional[T]:
         ...
 
-    async def close(self):
+    def close(self):
         ...

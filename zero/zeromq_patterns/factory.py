@@ -10,7 +10,7 @@ def get_client(pattern: str, default_timeout: int = 2000) -> ZeroMQClient:
     raise ValueError(f"Invalid pattern: {pattern}")
 
 
-def get_async_client(pattern: str, default_timeout: int = 2000) -> AsyncZeroMQClient:
+def get_async_client(pattern: str, default_timeout: int) -> AsyncZeroMQClient:
     if pattern == "proxy":
         return queue_device.AsyncZeroMQClient(default_timeout)
 

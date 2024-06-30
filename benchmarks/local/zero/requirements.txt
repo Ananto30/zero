@@ -1,11 +1,10 @@
 pyzmq
 msgspec
 PyJWT
-aioredis
+redis>=4.2.0rc1
 uvloop
 aiohttp
 gunicorn
-redis
 sanic
 msgpack
 blacksheep

@@ -20,7 +20,7 @@ def get_and_print(msg):
     resp = func(msg)
     if resp != f"slept for {msg} msecs":
         print(f"expected: slept for {msg} msecs, got: {resp}")
-    print(resp)
+    # print(resp)
 
 
 if __name__ == "__main__":
