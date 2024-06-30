@@ -64,6 +64,7 @@ class AsyncZeroClientProtocol(Protocol):
         address: str,
         default_timeout: int,
         encoder: Encoder,
+        concurrency: int,
     ):
         ...
 
@@ -76,5 +77,5 @@ class AsyncZeroClientProtocol(Protocol):
     ) -> Optional[T]:
         ...
 
-    async def close(self):
+    def close(self):
         ...
