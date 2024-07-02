@@ -20,18 +20,12 @@ class ZMQClient:
     def __init__(
         self,
         address: str,
-        default_timeout: int = 2000,
-        encoder: Optional[Encoder] = None,
+        default_timeout: int,
+        encoder: Encoder,
     ):
-        self._address = address
-        self._default_timeout = default_timeout
         self._encoder = encoder or MsgspecEncoder()
 
-        self.client_pool = ZMQClientPool(
-            self._address,
-            self._default_timeout,
-            self._encoder,
-        )
+        self.client_pool = ZMQClientPool(address, default_timeout)
 
     def call(
         self,
@@ -62,18 +56,13 @@ class AsyncZMQClient:
     def __init__(
         self,
         address: str,
-        default_timeout: int = 2000,
-        encoder: Optional[Encoder] = None,
+        default_timeout: int,
+        encoder: Encoder,
+        concurrency: int,
     ):
-        self._address = address
-        self._default_timeout = default_timeout
-        self._encoder = encoder or MsgspecEncoder()
+        self._encoder = encoder
 
-        self.client_pool = AsyncZMQClientPool(
-            self._address,
-            self._default_timeout,
-            self._encoder,
-        )
+        self.client_pool = AsyncZMQClientPool(address, default_timeout, concurrency)
 
     async def call(
         self,
@@ -108,15 +97,12 @@ class ZMQClientPool:
     If the connection is not available, it creates a new connection and stores it in the pool.
     """
 
-    __slots__ = ["_pool", "_address", "_timeout", "_encoder"]
+    __slots__ = ["_pool", "_address", "_timeout"]
 
-    def __init__(
-        self, address: str, timeout: int = 2000, encoder: Optional[Encoder] = None
-    ):
+    def __init__(self, address: str, timeout: int):
         self._pool: Dict[int, ZeroMQClient] = {}
         self._address = address
         self._timeout = timeout
-        self._encoder = encoder or MsgspecEncoder()
 
     def get(self) -> ZeroMQClient:
         thread_id = threading.get_ident()
@@ -140,22 +126,20 @@ class AsyncZMQClientPool:
     If the connection is not available, it creates a new connection and stores it in the pool.
     """
 
-    __slots__ = ["_pool", "_address", "_timeout", "_encoder"]
+    __slots__ = ["_pool", "_address", "_timeout", "_concurrency"]
 
-    def __init__(
-        self, address: str, timeout: int = 2000, encoder: Optional[Encoder] = None
-    ):
+    def __init__(self, address: str, timeout: int, concurrency: int):
         self._pool: Dict[int, AsyncZeroMQClient] = {}
         self._address = address
         self._timeout = timeout
-        self._encoder = encoder or MsgspecEncoder()
+        self._concurrency = concurrency
 
     async def get(self) -> AsyncZeroMQClient:
         thread_id = threading.get_ident()
         if thread_id not in self._pool:
             logging.debug("No connection found in current thread, creating new one")
             self._pool[thread_id] = get_async_client(
-                config.ZEROMQ_PATTERN, self._timeout
+                config.ZEROMQ_PATTERN, self._timeout, self._concurrency
             )
             await self._pool[thread_id].connect(self._address)
         return self._pool[thread_id]

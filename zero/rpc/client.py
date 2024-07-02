@@ -141,6 +141,8 @@ class AsyncZeroClient:
         port: int,
         default_timeout: int = 2000,
         encoder: Optional[Encoder] = None,
+        protocol: str = "zeromq",
+        concurrency: int = 4,
     ):
         """
         AsyncZeroClient provides the asynchronous client interface for calling the ZeroServer.
@@ -165,23 +167,39 @@ class AsyncZeroClient:
             Port of the ZeroServer.
 
         default_timeout: int
-            Default timeout for all calls. Default is 2000 ms.
+            Default timeout for all calls in milliseconds.
+            Default is 2000 milliseconds (2 seconds).
 
         encoder: Optional[Encoder]
             Encoder to encode/decode messages from/to client.
             Default is msgspec.
             If any other encoder is used, the server should use the same encoder.
             Implement custom encoder by inheriting from `zero.encoder.Encoder`.
+
+        protocol: str
+            Protocol to use for communication.
+            Default is zeromq.
+            If any other protocol is used, the server should use the same protocol.
+
+        concurrency: int
+            Number of concurrent connections to the ZeroServer.
+            Default is 4.
+            Please adjust is based on your server's capacity. If the server is not able to handle
+            the number of connections, the calls might timeout.
+            Concurrency matters in async because the calls are non-blocking. So one can make
+            thousands of calls in a second. If the server is not able to handle the number
+            of calls and results in timeout.
         """
         self._address = f"tcp://{host}:{port}"
         self._default_timeout = default_timeout
         self._encoder = encoder or MsgspecEncoder()
         self._client_inst: "AsyncZeroClientProtocol" = self._determine_client_cls(
-            "zeromq"
+            protocol
         )(
             self._address,
             self._default_timeout,
             self._encoder,
+            concurrency,
         )
 
     def _determine_client_cls(self, protocol: str) -> Type["AsyncZeroClientProtocol"]:
@@ -246,8 +264,9 @@ class AsyncZeroClient:
             Or zeromq cannot receive the response from the server.
             Mainly represents zmq.error.Again exception.
         """
+        _timeout = timeout or self._default_timeout
         resp_data = await self._client_inst.call(
-            rpc_func_name, msg, timeout, return_type
+            rpc_func_name, msg, _timeout, return_type
         )
         check_response(resp_data)
         return resp_data

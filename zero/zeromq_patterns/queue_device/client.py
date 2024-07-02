@@ -1,7 +1,6 @@
 import asyncio
 import logging
 import sys
-from asyncio import Event
 from typing import Dict, Optional
 
 import zmq
@@ -13,8 +12,8 @@ from zero.utils import util
 
 
 class ZeroMQClient:
-    def __init__(self, default_timeout):
-        self._address = None
+    def __init__(self, default_timeout: int):
+        self._address = ""
         self._default_timeout = default_timeout
         self._context = zmq.Context.instance()
 
@@ -29,12 +28,12 @@ class ZeroMQClient:
     def connect(self, address: str) -> None:
         self._address = address
         self.socket.connect(address)
-        self._send(util.unique_id().encode() + b"connect" + b"")
+        self._send(util.unique_id_bytes() + b"connect" + b"")
         self._recv()
         logging.info("Connected to server at %s", self._address)
 
     def request(self, message: bytes, timeout: Optional[int] = None) -> bytes:
-        _timeout = self._default_timeout if timeout is None else timeout
+        _timeout = timeout or self._default_timeout
 
         def _poll_data():
             # poll is slow, need to find a better way
@@ -45,16 +44,16 @@ class ZeroMQClient:
 
             rcv_data = self._recv()
 
-            # first 32 bytes as response id
-            resp_id = rcv_data[:32].decode()
+            # first 16 bytes as response id
+            resp_id = rcv_data[:16]
 
             # the rest is response data
-            resp_data = rcv_data[32:]
+            resp_data = rcv_data[16:]
 
             return resp_id, resp_data
 
-        req_id = util.unique_id()
-        self._send(req_id.encode() + message)
+        req_id = util.unique_id_bytes()
+        self._send(req_id + message)
 
         resp_id, resp_data = None, None
         # as the client is synchronous, we know that the response will be available any next poll
@@ -91,7 +90,7 @@ class ZeroMQClient:
 
 
 class AsyncZeroMQClient:
-    def __init__(self, default_timeout: int = 2000):
+    def __init__(self, default_timeout: int, concurrency: int):
         if sys.platform == "win32":
             # windows need special event loop policy to work with zmq
             asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -108,77 +107,66 @@ class AsyncZeroMQClient:
         self.poller = zmqasync.Poller()
         self.poller.register(self.socket, zmq.POLLIN)
 
-        self._resp_map: Dict[str, bytes] = {}
+        self._resp_futures: Dict[bytes, asyncio.Future] = {}
 
-        # self.peer1, self.peer2 = zpipe_async(self._context)
+        self._semaphore = asyncio.BoundedSemaphore(concurrency)
 
     async def connect(self, address: str) -> None:
         self._address = address
         self.socket.connect(address)
-        await self._send(util.unique_id().encode() + b"connect" + b"")
+        await self._send(util.unique_id_bytes() + b"connect" + b"")
         await self._recv()
         logging.info("Connected to server at %s", self._address)
 
     async def request(self, message: bytes, timeout: Optional[int] = None) -> bytes:
-        _timeout = self._default_timeout if timeout is None else timeout
-        expire_at = util.current_time_us() + (_timeout * 1000)
-
-        is_data = Event()
+        _timeout = timeout or self._default_timeout
+        _expire_at = (asyncio.get_event_loop().time() * 1e3) + _timeout
 
         async def _poll_data():
-            # async has issue with poller, after 3-4 calls, it returns empty
-            # if not await self._poll(_timeout):
-            #     raise TimeoutException(f"Timeout while sending message at {self._address}")
+            while True:
+                try:
+                    resp = await self._recv()
+                    break
+                except ConnectionException as exc:
+                    # server is busy processing previous requests
+                    # so we need to poll again
+                    await asyncio.sleep(0.01)
+                    if asyncio.get_event_loop().time() * 1e3 > _expire_at:
+                        raise TimeoutException(
+                            f"Timeout while sending message at {self._address}"
+                        ) from exc
 
-            resp = await self._recv()
-
-            # first 32 bytes as response id
-            resp_id = resp[:32].decode()
+            # first 16 bytes as response id
+            resp_id = resp[:16]
 
             # the rest is response data
-            resp_data = resp[32:]
-            self._resp_map[resp_id] = resp_data
+            resp_data = resp[16:]
 
-            # pipe is a good way to notify the main event loop that there is a response
-            # but pipe is actually slower than sleep, because it is a zmq socket
-            # yes it uses inproc, but still slower than asyncio.sleep
-            # try:
-            #     await self.peer1.send(b"")
-            # except zmqerr.Again:
-            #     # if the pipe is full, just pass
-            #     pass
+            future = self._resp_futures.pop(resp_id, None)
+            if future and not future.done():
+                future.set_result(resp_data)
 
-            is_data.set()
+        req_id = util.unique_id_bytes()
+        future = self._resp_futures[req_id] = asyncio.Future()
 
-        req_id = util.unique_id()
-        await self._send(req_id.encode() + message)
+        async with self._semaphore:
+            await self._send(req_id + message)
 
-        # poll can get response of a different call
-        # so we poll until we get the response of this call or timeout
-        await _poll_data()
-
-        while req_id not in self._resp_map:
-            if util.current_time_us() > expire_at:
+            _timeout_in_sec = _timeout / 1e3
+            try:
+                await asyncio.wait_for(_poll_data(), _timeout_in_sec)
+                resp_data = await asyncio.wait_for(future, _timeout_in_sec)
+            except asyncio.TimeoutError as exc:
+                self._resp_futures.pop(req_id, None)
                 raise TimeoutException(
                     f"Timeout while waiting for response at {self._address}"
-                )
+                ) from exc
 
-            # await asyncio.sleep(1e-6)
-            await asyncio.wait_for(is_data.wait(), timeout=_timeout)
-
-            # try:
-            #     await self.peer2.recv()
-            # except zmqerr.Again:
-            #     # if the pipe is empty, just pass
-            #     pass
-
-        resp_data = self._resp_map.pop(req_id)
-
-        return resp_data
+            return resp_data
 
     def close(self) -> None:
         self.socket.close()
-        self._resp_map.clear()
+        self._resp_futures.clear()
 
     async def _send(self, message: bytes) -> None:
         try:
@@ -187,10 +175,6 @@ class AsyncZeroMQClient:
             raise ConnectionException(
                 f"Connection error for send at {self._address}"
             ) from exc
-
-    async def _poll(self, timeout: int) -> bool:
-        socks = dict(await self.poller.poll(timeout))
-        return self.socket in socks
 
     async def _recv(self) -> bytes:
         try:

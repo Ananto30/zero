@@ -1,8 +1,8 @@
 import logging
+import os
 import signal
 import socket
 import sys
-import time
 import uuid
 from typing import Callable
 
@@ -53,17 +53,8 @@ def unique_id() -> str:
     return str(uuid.uuid4()).replace("-", "")
 
 
-def current_time_us() -> int:
-    """
-    Get current time in microseconds.
-
-    Returns
-    -------
-    int
-        Current time in microseconds.
-
-    """
-    return int(time.time() * 1e6)
+def unique_id_bytes() -> bytes:
+    return os.urandom(16)
 
 
 def register_signal_term(sigterm_handler: Callable):

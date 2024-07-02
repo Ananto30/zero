@@ -39,9 +39,9 @@ class ZeroMQWorker:
         # so the broker knows who to send the response to
         ident, data = frames
 
-        # first 32 bytes is request id
-        req_id = data[:32]
-        data = data[32:]
+        # first 16 bytes is request id
+        req_id = data[:16]
+        data = data[16:]
 
         # then 80 bytes is function name
         func_name = data[:80].strip()

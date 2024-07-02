@@ -1,17 +1,8 @@
 import asyncio
 import random
 import time
-from contextlib import contextmanager
 
 from zero import AsyncZeroClient
-
-
-@contextmanager
-def get_client():
-    client = AsyncZeroClient("localhost", 5559)
-    yield client
-    client.close()
-
 
 async_client = AsyncZeroClient("localhost", 5559)
 
@@ -25,7 +16,7 @@ async def task(semaphore, sleep_time):
 
 
 async def test():
-    conc = 10
+    conc = 32
     semaphore = asyncio.BoundedSemaphore(conc)
 
     sleep_times = []

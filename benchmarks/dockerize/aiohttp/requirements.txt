@@ -1,7 +1,6 @@
 aiohttp
 gunicorn
 PyJWT
-aioredis
+redis>=4.2.0rc1
 uvloop
 msgpack
-redis
