@@ -11,7 +11,7 @@ def hello() -> str:
 
 def run(port):
     print("Starting server1 on port", port)
-    app = ZeroServer(port=port)
+    app = ZeroServer(port=port, use_threads=True)
     app.register_rpc(echo)
     app.register_rpc(hello)
     app.run(2)
