@@ -182,7 +182,7 @@ class RpcClient:
 
         if python_version >= (3, 9):
             code += inspect.getsource(cls) + "\n\n"
-        else:
+        else:  # pragma: no cover
             #  python 3.8 doesnt return @dataclass decorator
             if is_dataclass(cls):
                 code += f"@dataclass\n{inspect.getsource(cls)}\n\n"
@@ -209,23 +209,23 @@ class RpcClient:
 
     def _generate_code_for_type(self, typ: Type, already_generated: Set[Type]) -> str:
         code = ""
-        typs = self._resolve_field_type(typ)
-        for it in typs:
-            self._track_imports(it)
-            if isinstance(it, type) and (
-                issubclass(it, (msgspec.Struct, enum.Enum, enum.IntEnum))
-                or is_dataclass(it)
+        all_possible_typs = self._resolve_field_type(typ)
+        for possible_typ in all_possible_typs:
+            self._track_imports(possible_typ)
+            if isinstance(possible_typ, type) and (
+                issubclass(possible_typ, (msgspec.Struct, enum.Enum, enum.IntEnum))
+                or is_dataclass(possible_typ)
             ):
-                code += self._generate_class_code(it, already_generated)
+                code += self._generate_class_code(possible_typ, already_generated)
         return code
 
     def _resolve_field_type(self, field_type) -> List[Type]:
         origin = get_origin(field_type)
         if origin in (list, tuple, set, frozenset, Optional):
             return [get_args(field_type)[0]]
-        elif origin == dict:
+        if origin == dict:
             return [get_args(field_type)[1]]
-        elif origin == Union:
+        if origin == Union:
             return list(get_args(field_type))
 
         return [field_type]

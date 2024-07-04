@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-import aioredis
 import msgpack
 import redis
+from redis import asyncio as aioredis
 
 
 @dataclass

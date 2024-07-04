@@ -19,11 +19,11 @@ async def task(semaphore, items):
 
 
 async def process_tasks(items_chunk):
-    conc = 8
+    conc = 16
     semaphore = asyncio.BoundedSemaphore(conc)
     tasks = [task(semaphore, items) for items in items_chunk]
     await asyncio.gather(*tasks)
-    await async_client.close()
+    async_client.close()
 
 
 def run_chunk(items_chunk):

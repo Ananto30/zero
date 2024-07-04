@@ -7,7 +7,6 @@ httpx
 fastapi
 sanic
 PyJWT
-redis
-aioredis @ git+https://github.com/aio-libs/aioredis@ff5a8fe068ebda837d14c3b3777a6182e610854a
+redis>=4.2.0rc1
 uvloop
 pydantic
