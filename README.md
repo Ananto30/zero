@@ -27,16 +27,16 @@
 
 **Features**:
 
-* Zero provides **faster communication** (see [benchmarks](https://github.com/Ananto30/zero#benchmarks-)) between the microservices using [zeromq](https://zeromq.org/) under the hood.
-* Zero uses messages for communication and traditional **client-server** or **request-reply** pattern is supported.
-* Support for both **async** and **sync**.
-* The base server (ZeroServer) **utilizes all cpu cores**.
-* **Code generation**! See [example](https://github.com/Ananto30/zero#code-generation-) 👇
+*   Zero provides **faster communication** (see [benchmarks](https://github.com/Ananto30/zero#benchmarks-)) between the microservices using [zeromq](https://zeromq.org/) under the hood.
+*   Zero uses messages for communication and traditional **client-server** or **request-reply** pattern is supported.
+*   Support for both **async** and **sync**.
+*   The base server (ZeroServer) **utilizes all cpu cores**.
+*   **Code generation**! See [example](https://github.com/Ananto30/zero#code-generation-) 👇
 
 **Philosophy** behind Zero:
 
-* **Zero learning curve**: The learning curve is tends to zero. Just add functions and spin up a server, literally that's it! The framework hides the complexity of messaging pattern that enables faster communication.
-* **ZeroMQ**: An awesome messaging library enables the power of Zero.
+*   **Zero learning curve**: The learning curve is tends to zero. Just add functions and spin up a server, literally that's it! The framework hides the complexity of messaging pattern that enables faster communication.
+*   **ZeroMQ**: An awesome messaging library enables the power of Zero.
 
 Let's get started!
 
@@ -44,86 +44,84 @@ Let's get started!
 
 *Ensure Python 3.8+*
 
-```
-pip install zeroapi
-```
+    pip install zeroapi
 
 **For Windows**, [tornado](https://pypi.org/project/tornado/) needs to be installed separately (for async operations). It's not included with `zeroapi` because for linux and mac-os, tornado is not needed as they have their own event loops.
 
-* Create a `server.py`
+*   Create a `server.py`
 
-  ```python
-  from zero import ZeroServer
+    ```python
+    from zero import ZeroServer
 
-  app = ZeroServer(port=5559)
+    app = ZeroServer(port=5559)
 
-  @app.register_rpc
-  def echo(msg: str) -> str:
-      return msg
+    @app.register_rpc
+    def echo(msg: str) -> str:
+        return msg
 
-  @app.register_rpc
-  async def hello_world() -> str:
-      return "hello world"
-
-
-  if __name__ == "__main__":
-      app.run()
-  ```
-
-* The **RPC functions only support one argument** (`msg`) for now.
-
-* Also note that server **RPC functions are type hinted**. Type hint is **must** in Zero server. Supported types can be found [here](/zero/utils/type_util.py#L11).
-
-* Run the server
-
-  ```shell
-  python -m server
-  ```
-
-* Call the rpc methods
-
-  ```python
-  from zero import ZeroClient
-
-  zero_client = ZeroClient("localhost", 5559)
-
-  def echo():
-      resp = zero_client.call("echo", "Hi there!")
-      print(resp)
-
-  def hello():
-      resp = zero_client.call("hello_world", None)
-      print(resp)
+    @app.register_rpc
+    async def hello_world() -> str:
+        return "hello world"
 
 
-  if __name__ == "__main__":
-      echo()
-      hello()
-  ```
+    if __name__ == "__main__":
+        app.run()
+    ```
 
-* Or using async client -
+*   The **RPC functions only support one argument** (`msg`) for now.
 
-  ```python
-  import asyncio
+*   Also note that server **RPC functions are type hinted**. Type hint is **must** in Zero server. Supported types can be found [here](/zero/utils/type_util.py#L11).
 
-  from zero import AsyncZeroClient
+*   Run the server
 
-  zero_client = AsyncZeroClient("localhost", 5559)
+    ```shell
+    python -m server
+    ```
 
-  async def echo():
-      resp = await zero_client.call("echo", "Hi there!")
-      print(resp)
+*   Call the rpc methods
 
-  async def hello():
-      resp = await zero_client.call("hello_world", None)
-      print(resp)
+    ```python
+    from zero import ZeroClient
+
+    zero_client = ZeroClient("localhost", 5559)
+
+    def echo():
+        resp = zero_client.call("echo", "Hi there!")
+        print(resp)
+
+    def hello():
+        resp = zero_client.call("hello_world", None)
+        print(resp)
 
 
-  if __name__ == "__main__":
-      loop = asyncio.get_event_loop()
-      loop.run_until_complete(echo())
-      loop.run_until_complete(hello())
-  ```
+    if __name__ == "__main__":
+        echo()
+        hello()
+    ```
+
+*   Or using async client -
+
+    ```python
+    import asyncio
+
+    from zero import AsyncZeroClient
+
+    zero_client = AsyncZeroClient("localhost", 5559)
+
+    async def echo():
+        resp = await zero_client.call("echo", "Hi there!")
+        print(resp)
+
+    async def hello():
+        resp = await zero_client.call("hello_world", None)
+        print(resp)
+
+
+    if __name__ == "__main__":
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(echo())
+        loop.run_until_complete(hello())
+    ```
 
 # Serialization 📦
 
@@ -160,7 +158,7 @@ def save_order(order: Order) -> bool:
     ...
 ```
 
-## Return type
+## Return type on client
 
 The return type of the RPC function can be any of the [supported types](https://jcristharif.com/msgspec/supported-types.html). If `return_type` is set in the client `call` method, then the return type will be converted to that type.
 
@@ -177,59 +175,76 @@ def get_order(id: str) -> Order:
 
 # Code Generation 🤖
 
-Easy to use code generation tool is also provided!
+Easy to use code generation tool is also provided with schema support!
 
-After running the server, like above, call the server to get the client code. This makes it easy to know what functions are available in the local or remote server.
+*   After running the server, like above, it calls the server to get the client code. 
+    
+    This makes it easy to get the latest schemas on live servers and not to maintain other file sharing approach to manage schemas.
 
-Using `zero.generate_client` generate client code for even remote servers using the `--host` and `--port` options.
+    Using `zero.generate_client` generate client code for even remote servers using the `--host` and `--port` options.
 
-```shell
-python -m zero.generate_client --host localhost --port 5559 --overwrite-dir ./my_client
-```
+    ```shell
+    python -m zero.generate_client --host localhost --port 5559 --overwrite-dir ./my_client
+    ```
 
-It will generate client like this -
+*   It will generate client like this -
 
-```python
-import typing  # remove this if not needed
-from typing import List, Dict, Union, Optional, Tuple  # remove this if not needed
-from zero import ZeroClient
+    ```python
+    from dataclasses import dataclass
+    from msgspec import Struct
+    from datetime import datetime
+
+    from zero import ZeroClient
 
 
-zero_client = ZeroClient("localhost", 5559)
+    zero_client = ZeroClient("localhost", 5559)
+
+    class Person(Struct):
+        name: str
+        age: int
+        dob: datetime
 
 
-class RpcClient:
-    def __init__(self, zero_client: ZeroClient):
-        self._zero_client = zero_client
+    @dataclass
+    class Order:
+        id: int
+        amount: float
+        created_at: datetime
 
-    def echo(self, msg: str) -> str:
-        return self._zero_client.call("echo", msg)
 
-    def hello_world(self, msg: str) -> str:
-        return self._zero_client.call("hello_world", msg)
-```
+    class RpcClient:
+        def __init__(self, zero_client: ZeroClient):
+            self._zero_client = zero_client
 
-Use the client -
+        def save_person(self, person: Person) -> bool:
+            return self._zero_client.call("save_person", person)
 
-```python
-from my_client import RpcClient, zero_client
+        def save_order(self, order: Order) -> bool:
+            return self._zero_client.call("save_order", order)
+    ```
 
-client = RpcClient(zero_client)
+    Check the schemas are copied!
 
-if __name__ == "__main__":
-    client.echo("Hi there!")
-    client.hello_world(None)
-```
+*   Use the client -
 
-Currently, the code generation tool supports only `ZeroClient` and not `AsyncZeroClient`.
+    ```python
+    from my_client import RpcClient, zero_client
 
-*WIP - Generate models from server code.*
+    client = RpcClient(zero_client)
+
+    if __name__ == "__main__":
+        client.save_person(Person(name="John", age=25, dob=datetime.now()))
+        client.save_order(Order(id=1, amount=100.0, created_at=datetime.now()))
+    ```
+
+*If you want a async client just replace `ZeroClient` with `AsyncZeroClient` in the generated code, and update the methods to be async. (Next version will have async client generation, hopefully 😅)*
 
 # Important notes! 📝
 
-* `ZeroServer` should always be run under `if __name__ == "__main__":`, as it uses multiprocessing.
-* `ZeroServer` creates the workers in different processes, so anything global in your code will be instantiated N times where N is the number of workers. So if you want to initiate them once, put them under `if __name__ == "__main__":`. But recommended to not use global vars. And Databases, Redis, other clients, creating them N times in different processes is fine and preferred.
-* The methods which are under `register_rpc()` in `ZeroServer` should have **type hinting**, like `def echo(msg: str) -> str:`
+## For multiprocessing
+
+*   `ZeroServer` should always be run under `if __name__ == "__main__":`, as it uses multiprocessing.
+*   `ZeroServer` creates the workers in different processes, so anything global in your code will be instantiated N times where N is the number of workers. So if you want to initiate them once, put them under `if __name__ == "__main__":`. But recommended to not use global vars. And Databases, Redis, other clients, creating them N times in different processes is fine and preferred.
 
 # Let's do some benchmarking! 🏎
 
@@ -239,8 +254,8 @@ So we will be testing a gateway calling another server for some data. Check the 
 
 There are two endpoints in every tests,
 
-* `/hello`: Just call for a hello world response 😅
-* `/order`: Save a Order object in redis
+*   `/hello`: Just call for a hello world response 😅
+*   `/order`: Save a Order object in redis
 
 Compare the results! 👇
 
@@ -261,12 +276,6 @@ Compare the results! 👇
 | zero(async) | 29012.03              | 3.43             | 20956.48           | 5.80             |
 
 Seems like blacksheep is faster on hello world, but in more complex operations like saving to redis, zero is the winner! 🏆
-
-# Roadmap 🗺
-
-* \[x] Make msgspec as default serializer
-* \[ ] Add support for async server (currently the sync server runs async functions in the eventloop, which is blocking)
-* \[ ] Add pub/sub support
 
 # Contribution
 
