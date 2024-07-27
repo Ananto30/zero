@@ -1,0 +1,70 @@
+ {
+    "platinum":
+    [
+        {
+            "name": "Sponsor 1",
+            "image": "/advertisement/bmc.png",
+            "link": "https://tabpole.github.io"
+        },
+        {
+            "name": "Sponsor 1",
+            "image": "/advertisement/bmc.png",
+            "link": "https://tabpole.github.io"
+        },
+        {
+            "name": "Sponsor 3",
+            "image": "/advertisement/bmc.png",
+            "link": "https://tabpole.github.io"
+        },
+        {
+            "name": "Sponsor 4",
+            "image": "/advertisement/bmc.png",
+            "link": "https://tabpole.github.io"
+        }
+    ],
+
+    "average":
+    [
+        {
+            "name": "Sponsor1",
+            "image": "/advertisement/bmc.png",
+            "link": "https://tabpole.github.io"
+        },
+        {
+            "name": "Sponsor2",
+            "image": "/advertisement/bmc.png",
+            "link": "https://tabpole.github.io"
+        },
+        {
+            "name": "Sponsor3",
+            "image": "/advertisement/bmc.png",
+            "link": "https://tabpole.github.io"
+        },
+        {
+            "name": "Sponsor4",
+            "image": "/advertisement/bmc.png",
+            "link": "https://tabpole.github.io"
+        },
+        {
+            "name": "Sponsor5",
+            "image": "/advertisement/bmc.png",
+            "link": "https://tabpole.github.io"
+        },
+        {
+            "name": "Sponsor6",
+            "image": "/advertisement/bmc.png",
+            "link": "https://tabpole.github.io"
+        },
+        {
+            "name": "Sponsor7",
+            "image": "/advertisement/bmc.png",
+            "link": "https://tabpole.github.io"
+        },
+        {
+            "name": "Sponsor8",
+            "image": "/advertisement/bmc.png",
+            "link": "https://tabpole.github.io"
+        }
+    ]
+    
+}
