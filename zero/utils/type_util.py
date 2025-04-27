@@ -215,7 +215,7 @@ def is_allowed_type(typ: Type):
     return False
 
 
-def _is_pydantic_model_type(typ: type) -> bool:
+def _is_pydantic_model_type(typ: Type) -> bool:
     return any(
         base.__module__.startswith("pydantic") and base.__name__ == "BaseModel"
         for base in typ.__mro__
