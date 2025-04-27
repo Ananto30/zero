@@ -31,6 +31,7 @@
 *   Zero uses messages for communication and traditional **client-server** or **request-reply** pattern is supported.
 *   Support for both **async** and **sync**.
 *   The base server (ZeroServer) **utilizes all cpu cores**.
+*   Built-in support for Pydantic.
 *   **Code generation**! See [example](https://github.com/Ananto30/zero#code-generation-) 👇
 
 **Philosophy** behind Zero:

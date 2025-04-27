@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Optional, Type, TypeVar
 
 from zero import config
 from zero.encoder import Encoder
-from zero.encoder.msgspc import MsgspecEncoder
+from zero.encoder.generic import GenericEncoder
 from zero.error import MethodNotFoundException, RemoteException, ValidationException
 from zero.utils.type_util import AllowedType
 
@@ -46,7 +46,7 @@ class ZeroClient:
 
         encoder: Optional[Encoder]
             Encoder to encode/decode messages from/to client.
-            Default is msgspec.
+            Default is generic encoder.
             If any other encoder is used, make sure the server should use the same encoder.
             Implement custom encoder by inheriting from `zero.encoder.Encoder`.
 
@@ -57,7 +57,7 @@ class ZeroClient:
         """
         self._address = f"tcp://{host}:{port}"
         self._default_timeout = default_timeout
-        self._encoder = encoder or MsgspecEncoder()
+        self._encoder = encoder or GenericEncoder()
         self._client_inst: "ZeroClientProtocol" = self._determine_client_cls(protocol)(
             self._address,
             self._default_timeout,
@@ -182,7 +182,7 @@ class AsyncZeroClient:
         """
         self._address = f"tcp://{host}:{port}"
         self._default_timeout = default_timeout
-        self._encoder = encoder or MsgspecEncoder()
+        self._encoder = encoder or GenericEncoder()
         self._client_inst: "AsyncZeroClientProtocol" = self._determine_client_cls(
             protocol
         )(
