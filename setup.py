@@ -22,4 +22,7 @@ setuptools.setup(
     python_requires=">=3.8",
     package_dir={"": "."},
     install_requires=["pyzmq", "msgspec"],
+    extras_require={
+        "pydantic": ["pydantic"],  # Optional dependency
+    },
 )

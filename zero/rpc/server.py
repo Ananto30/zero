@@ -15,7 +15,7 @@ from typing import (
 
 from zero import config
 from zero.encoder import Encoder
-from zero.encoder.msgspc import MsgspecEncoder
+from zero.encoder.generic import GenericEncoder
 from zero.utils import type_util
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -48,7 +48,7 @@ class ZeroServer:
 
         encoder: Optional[Encoder]
             Encoder to encode/decode messages from/to client.
-            Default is msgspec.
+            Default is `GenericEncoder` with `msgspec` and `pydantic` support.
             If any other encoder is used, the client should use the same encoder.
             Implement custom encoder by inheriting from `zero.encoder.Encoder`.
 
@@ -72,7 +72,7 @@ class ZeroServer:
             raise TypeError(
                 f"encoder should be an instance of Encoder; not {type(encoder)}"
             )
-        self._encoder = encoder or MsgspecEncoder()
+        self._encoder = encoder or GenericEncoder()
 
         # Stores rpc functions against their names
         # and if they are coroutines

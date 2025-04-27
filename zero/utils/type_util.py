@@ -209,4 +209,14 @@ def is_allowed_type(typ: Type):
         if issubclass(typ, mtype):
             return True
 
+    if _is_pydantic_model_type(typ):
+        return True
+
     return False
+
+
+def _is_pydantic_model_type(typ: type) -> bool:
+    return any(
+        base.__module__.startswith("pydantic") and base.__name__ == "BaseModel"
+        for base in typ.__mro__
+    )
