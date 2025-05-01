@@ -15,19 +15,17 @@ from .msgspc import MsgspecEncoder, T
 class GenericEncoder(MsgspecEncoder):
     def encode(self, data: Any) -> bytes:
         if PYDANTIC_AVAILABLE and isinstance(data, BaseModel):
-            if IS_PYDANTIC_V2:
-                data = data.model_dump()
-            else:  # Pydantic v1
-                data = data.dict()
+            data = data.model_dump() if IS_PYDANTIC_V2 else data.dict()
 
         return super().encode(data)
 
     def decode_type(self, data: bytes, typ: Type[T]) -> T:
         if PYDANTIC_AVAILABLE and issubclass(typ, BaseModel):
-            data = self.decode(data)
-            if IS_PYDANTIC_V2:
-                return typ.model_validate(data)  # type: ignore[return-value]
-            else:  # Pydantic v1
-                return typ.parse_obj(data)  # type: ignore[return-value]
+            decoded_data = self.decode(data)
+            return (
+                typ.model_validate(decoded_data)  # type: ignore[return-value]
+                if IS_PYDANTIC_V2
+                else typ.parse_obj(decoded_data)  # type: ignore[return-value]
+            )
 
         return super().decode_type(data, typ)

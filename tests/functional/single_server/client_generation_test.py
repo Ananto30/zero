@@ -116,6 +116,9 @@ class RpcClient:
     def echo_dataclass(self, msg: Dataclass) -> Dataclass:
         return self._zero_client.call("echo_dataclass", msg)
 
+    def echo_pydantic(self, msg: PydanticModel) -> PydanticModel:
+        return self._zero_client.call("echo_pydantic", msg)
+
     def echo_typing_tuple(self, msg: Tuple[int, str]) -> Tuple[int, str]:
         return self._zero_client.call("echo_typing_tuple", msg)
 
