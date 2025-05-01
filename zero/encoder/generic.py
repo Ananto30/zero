@@ -25,7 +25,7 @@ class GenericEncoder(MsgspecEncoder):
             return (
                 typ.model_validate(decoded_data)  # type: ignore[return-value]
                 if IS_PYDANTIC_V2
-                else typ.parse_obj(decoded_data)  # type: ignore[return-value]
+                else typ.parse_obj(decoded_data)
             )
 
         return super().decode_type(data, typ)
