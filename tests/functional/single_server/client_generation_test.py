@@ -23,6 +23,7 @@ from datetime import date, datetime, time
 import decimal
 import enum
 import msgspec
+from pydantic import BaseModel
 from typing import Dict, FrozenSet, List, Optional, Set, Tuple, Union
 import uuid
 
@@ -45,6 +46,11 @@ class ColorInt(enum.IntEnum):
 
 @dataclass
 class Dataclass:
+    name: str
+    age: int
+
+
+class PydanticModel(BaseModel):
     name: str
     age: int
 
