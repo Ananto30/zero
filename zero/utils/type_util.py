@@ -19,6 +19,8 @@ from typing import (
 
 import msgspec
 
+from ..encoder.protocols import Encoder
+
 builtin_types: typing.List = [
     None,
     bool,
@@ -144,12 +146,12 @@ def get_function_return_class(func: Callable):
     return types.get("return")
 
 
-def verify_function_input_type(func: Callable):
+def verify_function_input_type(func: Callable, encoder: Encoder):
     input_type = get_function_input_class(func)
     if input_type is None:
         return
 
-    if is_allowed_type(input_type):
+    if encoder.is_allowed_type(input_type):
         return
 
     raise TypeError(
@@ -158,7 +160,7 @@ def verify_function_input_type(func: Callable):
     )
 
 
-def verify_function_return_type(func: Callable):
+def verify_function_return_type(func: Callable, encoder: Encoder):
     return_type = get_function_return_class(func)
 
     # None is not allowed as return type
@@ -173,7 +175,7 @@ def verify_function_return_type(func: Callable):
             f"{func.__name__} returns Optional; RPC functions must return a value"
         )
 
-    if is_allowed_type(return_type):
+    if encoder.is_allowed_type(return_type):
         return
 
     raise TypeError(

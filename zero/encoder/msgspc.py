@@ -2,6 +2,8 @@ from typing import Any, Type, TypeVar
 
 import msgspec
 
+from ..utils.type_util import is_allowed_type
+
 T = TypeVar("T")
 
 # Have to put here to make it fork-safe
@@ -21,3 +23,6 @@ class MsgspecEncoder:
 
     def decode_type(self, data: bytes, typ: Type[T]) -> T:
         return msgspec.msgpack.decode(data, type=typ)
+
+    def is_allowed_type(self, typ: Type) -> bool:
+        return is_allowed_type(typ)

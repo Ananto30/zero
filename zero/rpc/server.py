@@ -118,9 +118,9 @@ class ZeroServer:
         """
         self._verify_function_name(func)
         type_util.verify_function_args(func)
-        type_util.verify_function_input_type(func)
         type_util.verify_function_return(func)
-        type_util.verify_function_return_type(func)
+        type_util.verify_function_input_type(func, self._encoder)
+        type_util.verify_function_return_type(func, self._encoder)
 
         self._rpc_input_type_map[func.__name__] = type_util.get_function_input_class(
             func
