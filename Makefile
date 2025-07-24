@@ -12,15 +12,8 @@ test:
 	python3 -m pytest tests --cov=zero --cov-report=term-missing --cov-config=.coveragerc -vv --durations=10 --timeout=280
 
 docker-test:
-	docker build -t zero-test -f Dockerfile.test.py38 .
+	docker build -t zero-test -f Dockerfile.test .
 	docker run --rm zero-test
-	docker rmi zero-test
-	docker build -t zero-test -f Dockerfile.test.py39 .
-	docker run --rm zero-test
-	docker rmi zero-test
-	docker build -t zero-test -f Dockerfile.test.py310 .
-	docker run --rm zero-test
-	docker rmi zero-test
 
 format:
 	isort . --profile black -l 99

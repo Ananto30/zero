@@ -1,0 +1,25 @@
+# syntax=docker/dockerfile:1
+FROM python:3.13-slim
+
+WORKDIR /app
+
+# Install system dependencies (if needed)
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements.txt ./
+COPY tests/requirements.txt ./tests/
+
+# Install Python dependencies
+RUN pip install --upgrade pip \
+    && pip install -r requirements.txt \
+    && pip install -r tests/requirements.txt
+
+# Copy the rest of the code
+COPY zero zero
+COPY tests tests
+
+# Run tests (default command)
+CMD ["python3", "-m", "pytest", "tests", "--cov=zero", "--cov-report=term-missing", "--cov-config=.coveragerc", "-vv", "--durations=10", "--timeout=280"]

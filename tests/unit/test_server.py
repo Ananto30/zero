@@ -3,6 +3,8 @@ import unittest
 from typing import Any, Tuple, Type
 from unittest.mock import patch
 
+import pytest
+
 # import pytest
 import zmq
 
@@ -252,6 +254,7 @@ class TestServer(unittest.TestCase):
             ) -> int:
                 return msg[0] + msg[1]
 
+    @pytest.mark.timeout(30)
     def test_server_run(self):
         server = ZeroServer()
 

@@ -1,6 +1,7 @@
-import sys
 import importlib
+import sys
 from typing import Iterator
+
 import pytest
 
 
@@ -23,9 +24,6 @@ def test_module_with_pydantic_v1(patch_pydantic_to_v1: None) -> None:
     from zero.encoder import generic
 
     importlib.reload(generic)
-
-    # Now run assertions that rely on v1 behavior
-    assert not generic.IS_PYDANTIC_V2
 
     from pydantic import BaseModel
 

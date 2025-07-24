@@ -217,8 +217,14 @@ class RpcClient:
         for possible_typ in all_possible_typs:
             self._track_imports(possible_typ)
             if isinstance(possible_typ, type) and (
-                issubclass(
-                    possible_typ, (msgspec.Struct, BaseModel, enum.Enum, enum.IntEnum)
+                issubclass(  # pytype: disable=wrong-arg-types
+                    possible_typ,
+                    (
+                        msgspec.Struct,
+                        BaseModel,
+                        enum.Enum,
+                        enum.IntEnum,
+                    ),
                 )
                 or is_dataclass(possible_typ)
             ):
