@@ -1,0 +1,41 @@
+server is up-to-date
+redis is up-to-date
+gateway is up-to-date
+Creating fast_api_wrk-hello_1 ... 
+Creating fast_api_wrk-hello_1 ... done
+Attaching to fast_api_wrk-hello_1
+[36mwrk-hello_1  |[0m Running 30s test @ http://gateway:8000/hello
+[36mwrk-hello_1  |[0m   8 threads and 80 connections
+[36mwrk-hello_1  |[0m   Thread Stats   Avg      Stdev     Max   +/- Stdev
+[36mwrk-hello_1  |[0m     Latency     3.97ms    1.46ms  51.39ms   71.93%
+[36mwrk-hello_1  |[0m     Req/Sec     2.54k   323.53     3.48k    70.75%
+[36mwrk-hello_1  |[0m   Latency Distribution
+[36mwrk-hello_1  |[0m      50%    3.83ms
+[36mwrk-hello_1  |[0m      75%    4.79ms
+[36mwrk-hello_1  |[0m      90%    5.73ms
+[36mwrk-hello_1  |[0m      99%    8.14ms
+[36mwrk-hello_1  |[0m   607218 requests in 30.02s, 79.91MB read
+[36mwrk-hello_1  |[0m Requests/sec:  20225.57
+[36mwrk-hello_1  |[0m Transfer/sec:      2.66MB
+[36mfast_api_wrk-hello_1 exited with code 0
+[0mserver is up-to-date
+redis is up-to-date
+gateway is up-to-date
+Creating fast_api_wrk-order_1 ... 
+Creating fast_api_wrk-order_1 ... done
+Attaching to fast_api_wrk-order_1
+[36mwrk-order_1  |[0m Running 30s test @ http://gateway:8000/order
+[36mwrk-order_1  |[0m   8 threads and 80 connections
+[36mwrk-order_1  |[0m   Thread Stats   Avg      Stdev     Max   +/- Stdev
+[36mwrk-order_1  |[0m     Latency     7.13ms    3.45ms  63.02ms   71.61%
+[36mwrk-order_1  |[0m     Req/Sec     1.43k   310.63     3.55k    58.43%
+[36mwrk-order_1  |[0m   Latency Distribution
+[36mwrk-order_1  |[0m      50%    6.59ms
+[36mwrk-order_1  |[0m      75%    8.94ms
+[36mwrk-order_1  |[0m      90%   11.65ms
+[36mwrk-order_1  |[0m      99%   17.78ms
+[36mwrk-order_1  |[0m   342001 requests in 30.10s, 69.80MB read
+[36mwrk-order_1  |[0m Requests/sec:  11362.20
+[36mwrk-order_1  |[0m Transfer/sec:      2.32MB
+[36mfast_api_wrk-order_1 exited with code 0
+[0m
