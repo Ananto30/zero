@@ -20,6 +20,7 @@ from typing import (
 )
 
 import msgspec
+from pydantic import BaseModel
 
 from zero.utils.type_util import typing_types
 
@@ -123,6 +124,9 @@ class RpcClient:
         if "(Struct)" in code:
             import_lines.append("from msgspec import Struct")
 
+        if "(BaseModel)" in code:
+            import_lines.append("from pydantic import BaseModel")
+
         if self._typing_imports:
             import_lines.append("from typing import " + ", ".join(self._typing_imports))
 
@@ -213,7 +217,9 @@ class RpcClient:
         for possible_typ in all_possible_typs:
             self._track_imports(possible_typ)
             if isinstance(possible_typ, type) and (
-                issubclass(possible_typ, (msgspec.Struct, enum.Enum, enum.IntEnum))
+                issubclass(
+                    possible_typ, (msgspec.Struct, BaseModel, enum.Enum, enum.IntEnum)
+                )
                 or is_dataclass(possible_typ)
             ):
                 code += self._generate_class_code(possible_typ, already_generated)

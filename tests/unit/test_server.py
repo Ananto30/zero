@@ -1,6 +1,6 @@
 import sys
 import unittest
-from typing import Any, Tuple
+from typing import Any, Tuple, Type
 from unittest.mock import patch
 
 # import pytest
@@ -71,8 +71,11 @@ class TestServer(unittest.TestCase):
             def decode(self, message: bytes) -> Any:
                 return message
 
-            def decode_type(self, message: bytes, typ: Any) -> Any:
+            def decode_type(self, message: bytes, typ: Type[Any]) -> Any:
                 return message
+
+            def is_allowed_type(self, typ: Type) -> bool:
+                return True
 
         encoder = CustomEncoder()
 
@@ -94,8 +97,11 @@ class TestServer(unittest.TestCase):
             def decode(self, message: bytes) -> Any:
                 return message
 
-            def decode_type(self, message: bytes, typ: Any) -> Any:
+            def decode_type(self, message: bytes, typ: Type[Any]) -> Any:
                 return message
+
+            def is_allowed_type(self, typ: Type) -> bool:
+                return True
 
         encoder = CustomEncoder()
         port = 5562
@@ -118,8 +124,11 @@ class TestServer(unittest.TestCase):
             def decode(self, message: bytes) -> Any:
                 return message
 
-            def decode_type(self, message: bytes, typ: Any) -> Any:
+            def decode_type(self, message: bytes, typ: Type[Any]) -> Any:
                 return message
+
+            def is_allowed_type(self, typ: Type) -> bool:
+                return True
 
         encoder = CustomEncoder()
         host = "123.0.0.123"
@@ -142,8 +151,11 @@ class TestServer(unittest.TestCase):
             def decode(self, message: bytes) -> Any:
                 return message
 
-            def decode_type(self, message: bytes, typ: Any) -> Any:
+            def decode_type(self, message: bytes, typ: Type[Any]) -> Any:
                 return message
+
+            def is_allowed_type(self, typ: Type) -> bool:
+                return True
 
         encoder = CustomEncoder()
         host = "123.0.0.123"
@@ -236,7 +248,7 @@ class TestServer(unittest.TestCase):
 
             @server.register_rpc
             def add_this_is_a_very_long_name_for_a_function_more_than_120_characters_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff(
-                msg: Tuple[int, int]
+                msg: Tuple[int, int],
             ) -> int:
                 return msg[0] + msg[1]
 

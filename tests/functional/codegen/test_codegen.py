@@ -11,6 +11,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import msgspec
 from msgspec import Struct
+from pydantic import BaseModel
 
 from zero.codegen.codegen import CodeGen
 
@@ -61,6 +62,11 @@ class SimpleEnum(enum.Enum):
 class SimpleIntEnum(enum.IntEnum):
     ONE = 1
     TWO = 2
+
+
+class SimplePydanticModel(BaseModel):
+    a: int
+    b: str
 
 
 def func_none(arg: None) -> str:
@@ -213,6 +219,14 @@ def func_take_optional_child_dataclass_return_optional_child_complex_struct(
     return None
 
 
+def func_pydantic_model(arg: SimplePydanticModel) -> str:
+    return f"Received Pydantic model: {arg}"
+
+
+def func_return_pydantic_model() -> SimplePydanticModel:
+    return SimplePydanticModel(a=1, b="hello")
+
+
 class TestCodegen(unittest.TestCase):
     def setUp(self) -> None:
         self.maxDiff = None
@@ -250,6 +264,8 @@ class TestCodegen(unittest.TestCase):
             "func_msgspec_struct_complex": (func_msgspec_struct_complex, False),
             "func_child_complex_struct": (func_child_complex_struct, False),
             "func_return_complex_struct": (func_return_complex_struct, False),
+            "func_pydantic_model": (func_pydantic_model, False),
+            "func_return_pydantic_model": (func_return_pydantic_model, False),
         }
         self._rpc_input_type_map = {
             "func_none": None,
@@ -285,6 +301,8 @@ class TestCodegen(unittest.TestCase):
             "func_msgspec_struct_complex": ComplexStruct,
             "func_child_complex_struct": ChildComplexStruct,
             "func_return_complex_struct": None,
+            "func_pydantic_model": SimplePydanticModel,
+            "func_return_pydantic_model": None,
         }
         self._rpc_return_type_map = {
             "func_none": str,
@@ -320,6 +338,8 @@ class TestCodegen(unittest.TestCase):
             "func_msgspec_struct_complex": str,
             "func_child_complex_struct": str,
             "func_return_complex_struct": ComplexStruct,
+            "func_pydantic_model": str,
+            "func_return_pydantic_model": SimplePydanticModel,
         }
 
     def test_codegen(self):
@@ -335,6 +355,7 @@ import decimal
 import enum
 import msgspec
 from msgspec import Struct
+from pydantic import BaseModel
 from typing import Dict, FrozenSet, List, Optional, Set, Tuple, Union
 import uuid
 
@@ -383,6 +404,11 @@ class ComplexStruct(msgspec.Struct):
 class ChildComplexStruct(ComplexStruct):
     h: int
     i: str
+
+
+class SimplePydanticModel(BaseModel):
+    a: int
+    b: str
 
 
 
@@ -488,6 +514,12 @@ class RpcClient:
 
     def func_return_complex_struct(self) -> ComplexStruct:
         return self._zero_client.call("func_return_complex_struct", None)
+
+    def func_pydantic_model(self, arg: SimplePydanticModel) -> str:
+        return self._zero_client.call("func_pydantic_model", arg)
+
+    def func_return_pydantic_model(self) -> SimplePydanticModel:
+        return self._zero_client.call("func_return_pydantic_model", None)
 """
         self.assertEqual(code, expected_code)
 

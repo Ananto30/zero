@@ -131,6 +131,13 @@ def test_echo_dataclass(zero_client):
     assert result == data
 
 
+# pydantic input
+def test_echo_pydantic(zero_client):
+    data = server.PydanticModel(name="John", age=30)
+    result = zero_client.call("echo_pydantic", data, return_type=server.PydanticModel)
+    assert result == data
+
+
 # typing.Tuple input
 def test_echo_typing_tuple(zero_client):
     assert zero_client.call(

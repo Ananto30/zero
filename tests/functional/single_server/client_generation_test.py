@@ -23,6 +23,7 @@ from datetime import date, datetime, time
 import decimal
 import enum
 import msgspec
+from pydantic import BaseModel
 from typing import Dict, FrozenSet, List, Optional, Set, Tuple, Union
 import uuid
 
@@ -45,6 +46,11 @@ class ColorInt(enum.IntEnum):
 
 @dataclass
 class Dataclass:
+    name: str
+    age: int
+
+
+class PydanticModel(BaseModel):
     name: str
     age: int
 
@@ -115,6 +121,9 @@ class RpcClient:
 
     def echo_dataclass(self, msg: Dataclass) -> Dataclass:
         return self._zero_client.call("echo_dataclass", msg)
+
+    def echo_pydantic(self, msg: PydanticModel) -> PydanticModel:
+        return self._zero_client.call("echo_pydantic", msg)
 
     def echo_typing_tuple(self, msg: Tuple[int, str]) -> Tuple[int, str]:
         return self._zero_client.call("echo_typing_tuple", msg)

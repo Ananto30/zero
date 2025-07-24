@@ -1,5 +1,6 @@
 pyzmq
 msgspec
+pydantic>=2.0
 pytest
 pytest-cov
 PyJWT

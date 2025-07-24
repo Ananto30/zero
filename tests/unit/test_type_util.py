@@ -2,6 +2,7 @@ import unittest
 from typing import Optional
 from unittest.mock import MagicMock
 
+from zero.encoder.generic import GenericEncoder
 from zero.utils.type_util import (
     get_function_input_class,
     get_function_return_class,
@@ -17,21 +18,21 @@ class TestVerifyFunctionReturnType(unittest.TestCase):
         def func() -> int:
             return 1
 
-        verify_function_return_type(func)
+        verify_function_return_type(func, encoder=GenericEncoder())
 
     def test_none_return_type(self):
         def func() -> None:
             return None
 
         with self.assertRaises(TypeError):
-            verify_function_return_type(func)
+            verify_function_return_type(func, encoder=GenericEncoder())
 
     def test_optional_return_type(self):
         def func() -> Optional[int]:
             return None
 
         with self.assertRaises(TypeError):
-            verify_function_return_type(func)
+            verify_function_return_type(func, encoder=GenericEncoder())
 
     def test_invalid_return_type(self):
         class CustomType:
@@ -41,14 +42,14 @@ class TestVerifyFunctionReturnType(unittest.TestCase):
             return CustomType()
 
         with self.assertRaises(TypeError):
-            verify_function_return_type(func)
+            verify_function_return_type(func, encoder=GenericEncoder())
 
     def test_mocked_return_type(self):
         def func() -> MagicMock:
             return MagicMock()
 
         with self.assertRaises(TypeError):
-            verify_function_return_type(func)
+            verify_function_return_type(func, encoder=GenericEncoder())
 
     def test__verify_function_args__ok(self):
         def func(a: int) -> int:
@@ -117,18 +118,18 @@ class TestVerifyFunctionReturnType(unittest.TestCase):
         def func(a: int) -> int:
             return a
 
-        verify_function_input_type(func)
+        verify_function_input_type(func, encoder=GenericEncoder())
 
     def test__verify_function_input_type__invalid(self):
         def func(a: MagicMock) -> int:
             return a
 
         with self.assertRaises(TypeError):
-            verify_function_input_type(func)
+            verify_function_input_type(func, encoder=GenericEncoder())
 
     def test__verify_function_input_type__no_type_hint(self):
         def func(a) -> int:
             return a
 
         with self.assertRaises(KeyError):
-            verify_function_input_type(func)
+            verify_function_input_type(func, encoder=GenericEncoder())

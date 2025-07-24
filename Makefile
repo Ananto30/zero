@@ -29,7 +29,7 @@ format:
 install-lint:
 	python -m pip install --upgrade pip
 	pip install -r requirements.txt  # needed for pytype
-	pip install black isort flake8 pylint pytype mypy
+	pip install black isort flake8 pylint pytype mypy pydantic>=2.0
 
 lint:
 	flake8 ./zero

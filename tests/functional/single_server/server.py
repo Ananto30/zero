@@ -9,6 +9,7 @@ from dataclasses import dataclass
 
 import jwt
 import msgspec
+from pydantic import BaseModel
 
 from zero import ZeroServer
 
@@ -152,6 +153,17 @@ class Dataclass:
 
 @app.register_rpc
 def echo_dataclass(msg: Dataclass) -> Dataclass:
+    return msg
+
+
+# pydantic input
+class PydanticModel(BaseModel):
+    name: str
+    age: int
+
+
+@app.register_rpc
+def echo_pydantic(msg: PydanticModel) -> PydanticModel:
     return msg
 
 
