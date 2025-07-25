@@ -29,6 +29,6 @@ class GenericEncoder(MsgspecEncoder):
             decoded_data = self.decode(data)
             if hasattr(typ, "model_validate"):  # Pydantic v2
                 return typ.model_validate(decoded_data)
-            return typ.parse_obj(decoded_data)  # type: ignore
+            return typ.parse_obj(decoded_data)
 
         return super().decode_type(data, typ)

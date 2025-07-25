@@ -22,13 +22,17 @@ format:
 install-lint:
 	python -m pip install --upgrade pip
 	pip install -r requirements.txt  # needed for pytype
-	pip install black isort flake8 pylint pytype mypy pydantic>=2.0
+	pip install -r requirements-lint.txt
 
 lint:
 	flake8 ./zero
 	pylint ./zero
 	pytype ./zero
 	mypy ./zero
+
+docker-lint:
+	docker build -t zero-lint -f Dockerfile.lint .
+	docker run --rm zero-lint
 
 build-package:
 	pip install -U setuptools wheel
