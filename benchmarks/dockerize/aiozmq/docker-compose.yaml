@@ -25,11 +25,11 @@ services:
       - "6379:6379"
   wrk-hello:
     image: skandyla/wrk
-    command: -t 8 -c 64 -d 15s --latency http://gateway:8000/hello
+    command: -t 8 -c 80 -d 30s --latency http://gateway:8000/hello
     depends_on:
       - gateway
   wrk-order:
     image: skandyla/wrk
-    command: -t 8 -c 64 -d 15s --latency http://gateway:8000/order
+    command: -t 8 -c 80 -d 30s --latency http://gateway:8000/order
     depends_on:
       - gateway

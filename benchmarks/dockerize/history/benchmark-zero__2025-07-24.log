@@ -1,0 +1,83 @@
+redis is up-to-date
+server is up-to-date
+gateway is up-to-date
+Creating zero_wrk-hello_1 ... 
+Creating zero_wrk-hello_1 ... done
+Attaching to zero_wrk-hello_1
+[36mwrk-hello_1        |[0m Running 30s test @ http://gateway:8000/hello
+[36mwrk-hello_1        |[0m   8 threads and 80 connections
+[36mwrk-hello_1        |[0m   Thread Stats   Avg      Stdev     Max   +/- Stdev
+[36mwrk-hello_1        |[0m     Latency     3.65ms    1.69ms  15.71ms   76.58%
+[36mwrk-hello_1        |[0m     Req/Sec     2.80k   666.71     4.76k    63.94%
+[36mwrk-hello_1        |[0m   Latency Distribution
+[36mwrk-hello_1        |[0m      50%    3.12ms
+[36mwrk-hello_1        |[0m      75%    4.59ms
+[36mwrk-hello_1        |[0m      90%    5.78ms
+[36mwrk-hello_1        |[0m      99%    9.44ms
+[36mwrk-hello_1        |[0m   669629 requests in 30.10s, 73.44MB read
+[36mwrk-hello_1        |[0m Requests/sec:  22248.28
+[36mwrk-hello_1        |[0m Transfer/sec:      2.44MB
+[36mzero_wrk-hello_1 exited with code 0
+[0mserver is up-to-date
+redis is up-to-date
+gateway is up-to-date
+Creating zero_wrk-order_1 ... 
+Creating zero_wrk-order_1 ... done
+Attaching to zero_wrk-order_1
+[36mwrk-order_1        |[0m Running 30s test @ http://gateway:8000/order
+[36mwrk-order_1        |[0m   8 threads and 80 connections
+[36mwrk-order_1        |[0m   Thread Stats   Avg      Stdev     Max   +/- Stdev
+[36mwrk-order_1        |[0m     Latency     7.33ms    3.43ms  29.38ms   71.88%
+[36mwrk-order_1        |[0m     Req/Sec     1.39k   380.54     2.63k    65.71%
+[36mwrk-order_1        |[0m   Latency Distribution
+[36mwrk-order_1        |[0m      50%    6.66ms
+[36mwrk-order_1        |[0m      75%    9.09ms
+[36mwrk-order_1        |[0m      90%   12.01ms
+[36mwrk-order_1        |[0m      99%   18.15ms
+[36mwrk-order_1        |[0m   331902 requests in 30.03s, 58.24MB read
+[36mwrk-order_1        |[0m Requests/sec:  11051.80
+[36mwrk-order_1        |[0m Transfer/sec:      1.94MB
+[36mzero_wrk-order_1 exited with code 0
+[0mserver is up-to-date
+redis is up-to-date
+gateway is up-to-date
+Creating zero_wrk-hello-async_1 ... 
+Creating zero_wrk-hello-async_1 ... done
+Attaching to zero_wrk-hello-async_1
+[36mwrk-hello-async_1  |[0m Running 30s test @ http://gateway:8000/async_hello
+[36mwrk-hello-async_1  |[0m   8 threads and 80 connections
+[36mwrk-hello-async_1  |[0m   Thread Stats   Avg      Stdev     Max   +/- Stdev
+[36mwrk-hello-async_1  |[0m     Latency     2.98ms    2.11ms  93.99ms   91.91%
+[36mwrk-hello-async_1  |[0m     Req/Sec     3.45k   666.13     6.94k    85.62%
+[36mwrk-hello-async_1  |[0m   Latency Distribution
+[36mwrk-hello-async_1  |[0m      50%    2.68ms
+[36mwrk-hello-async_1  |[0m      75%    3.67ms
+[36mwrk-hello-async_1  |[0m      90%    4.83ms
+[36mwrk-hello-async_1  |[0m      99%    6.66ms
+[36mwrk-hello-async_1  |[0m   824390 requests in 30.01s, 90.41MB read
+[36mwrk-hello-async_1  |[0m   Socket errors: connect 0, read 0, write 0, timeout 1
+[36mwrk-hello-async_1  |[0m   Non-2xx or 3xx responses: 1
+[36mwrk-hello-async_1  |[0m Requests/sec:  27466.46
+[36mwrk-hello-async_1  |[0m Transfer/sec:      3.01MB
+[36mzero_wrk-hello-async_1 exited with code 0
+[0mserver is up-to-date
+redis is up-to-date
+gateway is up-to-date
+Creating zero_wrk-order-async_1 ... 
+Creating zero_wrk-order-async_1 ... done
+Attaching to zero_wrk-order-async_1
+[36mwrk-order-async_1  |[0m Running 30s test @ http://gateway:8000/async_order
+[36mwrk-order-async_1  |[0m   8 threads and 80 connections
+[36mwrk-order-async_1  |[0m   Thread Stats   Avg      Stdev     Max   +/- Stdev
+[36mwrk-order-async_1  |[0m     Latency     4.41ms    2.42ms  54.19ms   74.14%
+[36mwrk-order-async_1  |[0m     Req/Sec     2.34k   366.85     6.08k    72.44%
+[36mwrk-order-async_1  |[0m   Latency Distribution
+[36mwrk-order-async_1  |[0m      50%    3.89ms
+[36mwrk-order-async_1  |[0m      75%    5.67ms
+[36mwrk-order-async_1  |[0m      90%    7.49ms
+[36mwrk-order-async_1  |[0m      99%   12.04ms
+[36mwrk-order-async_1  |[0m   560496 requests in 30.09s, 98.35MB read
+[36mwrk-order-async_1  |[0m Requests/sec:  18625.51
+[36mwrk-order-async_1  |[0m Transfer/sec:      3.27MB
+[36mzero_wrk-order-async_1 exited with code 0
+[0m

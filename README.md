@@ -262,21 +262,21 @@ Compare the results! 👇
 
 # Benchmarks 🏆
 
-11th Gen Intel® Core™ i7-11800H @ 2.30GHz, 8 cores, 16 threads, 16GB RAM (Docker in Ubuntu 22.04.2 LTS)
+13th Gen Intel® Core™ i9-13900HK @ 5.40GHz, 14 cores, 20 threads, 32GB RAM (Docker in Ubuntu 22.04.2 LTS)
 
 *(Sorted alphabetically)*
 
 | Framework   | "hello world" (req/s) | 99% latency (ms) | redis save (req/s) | 99% latency (ms) |
 | ----------- | --------------------- | ---------------- | ------------------ | ---------------- |
-| aiohttp     | 14949.57              | 8.91             | 9753.87            | 13.75            |
-| aiozmq      | 13844.67              | 9.55             | 5239.14            | 30.92            |
-| blacksheep  | 32967.27              | 3.03             | 18010.67           | 6.79             |
-| fastApi     | 13154.96              | 9.07             | 8369.87            | 15.91            |
-| sanic       | 18793.08              | 5.88             | 12739.37           | 8.78             |
-| zero(sync)  | 28471.47              | 4.12             | 18114.84           | 6.69             |
-| zero(async) | 29012.03              | 3.43             | 20956.48           | 5.80             |
+| aiohttp     | 30926.39              | 8.31             | 17092.79           | 10.86            |
+| aiozmq      | 19076.34              | 8.65             | 7725.18            | 11.62            |
+| blacksheep  | 22357.13              | 7.86             | 11253.14           | 18.26            |
+| fastApi     | 20225.57              | 8.14             | 11362.2            | 17.78            |
+| sanic       | 35917.24              | 5.88             | 22272.22           | 8.97             |
+| zero(sync)  | 22248.28              | 9.44             | 11051.8            | 18.15            |
+| zero(async) | 27466.46              | 6.66             | 18625.51           | 12.04            |
 
-Seems like blacksheep is faster on hello world, but in more complex operations like saving to redis, zero is the winner! 🏆
+Seems like sanic is the fastest in python 3.13
 
 # Contribution
 

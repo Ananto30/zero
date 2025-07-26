@@ -1,0 +1,41 @@
+redis is up-to-date
+server is up-to-date
+gateway is up-to-date
+Creating aiohttp_wrk-hello_1 ... 
+Creating aiohttp_wrk-hello_1 ... done
+Attaching to aiohttp_wrk-hello_1
+[36mwrk-hello_1  |[0m Running 30s test @ http://gateway:8000/hello
+[36mwrk-hello_1  |[0m   8 threads and 80 connections
+[36mwrk-hello_1  |[0m   Thread Stats   Avg      Stdev     Max   +/- Stdev
+[36mwrk-hello_1  |[0m     Latency     2.78ms    1.84ms  27.54ms   83.93%
+[36mwrk-hello_1  |[0m     Req/Sec     3.89k     0.85k    9.23k    71.88%
+[36mwrk-hello_1  |[0m   Latency Distribution
+[36mwrk-hello_1  |[0m      50%    2.05ms
+[36mwrk-hello_1  |[0m      75%    3.50ms
+[36mwrk-hello_1  |[0m      90%    5.96ms
+[36mwrk-hello_1  |[0m      99%    8.31ms
+[36mwrk-hello_1  |[0m   930879 requests in 30.10s, 146.48MB read
+[36mwrk-hello_1  |[0m Requests/sec:  30926.39
+[36mwrk-hello_1  |[0m Transfer/sec:      4.87MB
+[36maiohttp_wrk-hello_1 exited with code 0
+[0mserver is up-to-date
+redis is up-to-date
+gateway is up-to-date
+Creating aiohttp_wrk-order_1 ... 
+Creating aiohttp_wrk-order_1 ... done
+Attaching to aiohttp_wrk-order_1
+[36mwrk-order_1  |[0m Running 30s test @ http://gateway:8000/order
+[36mwrk-order_1  |[0m   8 threads and 80 connections
+[36mwrk-order_1  |[0m   Thread Stats   Avg      Stdev     Max   +/- Stdev
+[36mwrk-order_1  |[0m     Latency     4.72ms    2.32ms  30.48ms   67.28%
+[36mwrk-order_1  |[0m     Req/Sec     2.15k   450.99     4.45k    85.32%
+[36mwrk-order_1  |[0m   Latency Distribution
+[36mwrk-order_1  |[0m      50%    4.55ms
+[36mwrk-order_1  |[0m      75%    6.23ms
+[36mwrk-order_1  |[0m      90%    7.73ms
+[36mwrk-order_1  |[0m      99%   10.86ms
+[36mwrk-order_1  |[0m   514494 requests in 30.10s, 122.17MB read
+[36mwrk-order_1  |[0m Requests/sec:  17092.79
+[36mwrk-order_1  |[0m Transfer/sec:      4.06MB
+[36maiohttp_wrk-order_1 exited with code 0
+[0m
