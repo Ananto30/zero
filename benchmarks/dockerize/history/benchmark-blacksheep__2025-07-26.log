@@ -1,0 +1,41 @@
+redis is up-to-date
+server is up-to-date
+gateway is up-to-date
+Creating blacksheep_wrk-hello_1 ... 
+Creating blacksheep_wrk-hello_1 ... done
+Attaching to blacksheep_wrk-hello_1
+[36mwrk-hello_1  |[0m Running 30s test @ http://gateway:8000/hello
+[36mwrk-hello_1  |[0m   8 threads and 80 connections
+[36mwrk-hello_1  |[0m   Thread Stats   Avg      Stdev     Max   +/- Stdev
+[36mwrk-hello_1  |[0m     Latency     3.69ms    1.65ms  28.22ms   72.49%
+[36mwrk-hello_1  |[0m     Req/Sec     2.75k   443.37     4.62k    65.56%
+[36mwrk-hello_1  |[0m   Latency Distribution
+[36mwrk-hello_1  |[0m      50%    3.40ms
+[36mwrk-hello_1  |[0m      75%    4.53ms
+[36mwrk-hello_1  |[0m      90%    5.92ms
+[36mwrk-hello_1  |[0m      99%    8.90ms
+[36mwrk-hello_1  |[0m   658822 requests in 30.10s, 91.10MB read
+[36mwrk-hello_1  |[0m Requests/sec:  21887.95
+[36mwrk-hello_1  |[0m Transfer/sec:      3.03MB
+[36mblacksheep_wrk-hello_1 exited with code 0
+[0mredis is up-to-date
+server is up-to-date
+gateway is up-to-date
+Creating blacksheep_wrk-order_1 ... 
+Creating blacksheep_wrk-order_1 ... done
+Attaching to blacksheep_wrk-order_1
+[36mwrk-order_1  |[0m Running 30s test @ http://gateway:8000/order
+[36mwrk-order_1  |[0m   8 threads and 80 connections
+[36mwrk-order_1  |[0m   Thread Stats   Avg      Stdev     Max   +/- Stdev
+[36mwrk-order_1  |[0m     Latency     7.03ms    3.12ms  35.30ms   68.29%
+[36mwrk-order_1  |[0m     Req/Sec     1.44k   167.29     2.21k    69.21%
+[36mwrk-order_1  |[0m   Latency Distribution
+[36mwrk-order_1  |[0m      50%    6.84ms
+[36mwrk-order_1  |[0m      75%    8.93ms
+[36mwrk-order_1  |[0m      90%   11.06ms
+[36mwrk-order_1  |[0m      99%   15.77ms
+[36mwrk-order_1  |[0m   343741 requests in 30.03s, 68.19MB read
+[36mwrk-order_1  |[0m Requests/sec:  11446.89
+[36mwrk-order_1  |[0m Transfer/sec:      2.27MB
+[36mblacksheep_wrk-order_1 exited with code 0
+[0m

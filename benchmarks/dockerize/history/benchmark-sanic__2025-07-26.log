@@ -1,0 +1,41 @@
+server is up-to-date
+redis is up-to-date
+gateway is up-to-date
+Creating sanic_wrk-hello_1 ... 
+Creating sanic_wrk-hello_1 ... done
+Attaching to sanic_wrk-hello_1
+[36mwrk-hello_1  |[0m Running 30s test @ http://gateway:8000/hello
+[36mwrk-hello_1  |[0m   8 threads and 80 connections
+[36mwrk-hello_1  |[0m   Thread Stats   Avg      Stdev     Max   +/- Stdev
+[36mwrk-hello_1  |[0m     Latency     1.80ms    1.02ms  30.34ms   78.73%
+[36mwrk-hello_1  |[0m     Req/Sec     5.81k     0.98k   13.70k    69.70%
+[36mwrk-hello_1  |[0m   Latency Distribution
+[36mwrk-hello_1  |[0m      50%    1.59ms
+[36mwrk-hello_1  |[0m      75%    2.23ms
+[36mwrk-hello_1  |[0m      90%    3.08ms
+[36mwrk-hello_1  |[0m      99%    5.22ms
+[36mwrk-hello_1  |[0m   1388908 requests in 30.10s, 152.33MB read
+[36mwrk-hello_1  |[0m Requests/sec:  46143.93
+[36mwrk-hello_1  |[0m Transfer/sec:      5.06MB
+[36msanic_wrk-hello_1 exited with code 0
+[0mserver is up-to-date
+redis is up-to-date
+gateway is up-to-date
+Creating sanic_wrk-order_1 ... 
+Creating sanic_wrk-order_1 ... done
+Attaching to sanic_wrk-order_1
+[36mwrk-order_1  |[0m Running 30s test @ http://gateway:8000/order
+[36mwrk-order_1  |[0m   8 threads and 80 connections
+[36mwrk-order_1  |[0m   Thread Stats   Avg      Stdev     Max   +/- Stdev
+[36mwrk-order_1  |[0m     Latency     4.04ms    2.06ms  28.59ms   67.81%
+[36mwrk-order_1  |[0m     Req/Sec     2.52k   479.37     4.58k    80.58%
+[36mwrk-order_1  |[0m   Latency Distribution
+[36mwrk-order_1  |[0m      50%    3.77ms
+[36mwrk-order_1  |[0m      75%    5.31ms
+[36mwrk-order_1  |[0m      90%    6.80ms
+[36mwrk-order_1  |[0m      99%    9.77ms
+[36mwrk-order_1  |[0m   602291 requests in 30.02s, 102.24MB read
+[36mwrk-order_1  |[0m Requests/sec:  20062.11
+[36mwrk-order_1  |[0m Transfer/sec:      3.41MB
+[36msanic_wrk-order_1 exited with code 0
+[0m

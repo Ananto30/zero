@@ -27,17 +27,17 @@
 
 **Features**:
 
-*   Zero provides **faster communication** (see [benchmarks](https://github.com/Ananto30/zero#benchmarks-)) between the microservices using [zeromq](https://zeromq.org/) under the hood.
-*   Zero uses messages for communication and traditional **client-server** or **request-reply** pattern is supported.
-*   Support for both **async** and **sync**.
-*   The base server (ZeroServer) **utilizes all cpu cores**.
-*   Built-in support for Pydantic.
-*   **Code generation**! See [example](https://github.com/Ananto30/zero#code-generation-) 👇
+* Zero provides **faster communication** (see [benchmarks](https://github.com/Ananto30/zero#benchmarks-)) between the microservices using [zeromq](https://zeromq.org/) under the hood.
+* Zero uses messages for communication and traditional **client-server** or **request-reply** pattern is supported.
+* Support for both **async** and **sync**.
+* The base server (ZeroServer) **utilizes all cpu cores**.
+* Built-in support for Pydantic.
+* **Code generation**! See [example](https://github.com/Ananto30/zero#code-generation-) 👇
 
 **Philosophy** behind Zero:
 
-*   **Zero learning curve**: The learning curve is tends to zero. Just add functions and spin up a server, literally that's it! The framework hides the complexity of messaging pattern that enables faster communication.
-*   **ZeroMQ**: An awesome messaging library enables the power of Zero.
+* **Zero learning curve**: The learning curve is tends to zero. Just add functions and spin up a server, literally that's it! The framework hides the complexity of messaging pattern that enables faster communication.
+* **ZeroMQ**: An awesome messaging library enables the power of Zero.
 
 Let's get started!
 
@@ -45,84 +45,86 @@ Let's get started!
 
 *Ensure Python 3.8+*
 
-    pip install zeroapi
+```
+pip install zeroapi
+```
 
 **For Windows**, [tornado](https://pypi.org/project/tornado/) needs to be installed separately (for async operations). It's not included with `zeroapi` because for linux and mac-os, tornado is not needed as they have their own event loops.
 
-*   Create a `server.py`
+* Create a `server.py`
 
-    ```python
-    from zero import ZeroServer
+  ```python
+  from zero import ZeroServer
 
-    app = ZeroServer(port=5559)
+  app = ZeroServer(port=5559)
 
-    @app.register_rpc
-    def echo(msg: str) -> str:
-        return msg
+  @app.register_rpc
+  def echo(msg: str) -> str:
+      return msg
 
-    @app.register_rpc
-    async def hello_world() -> str:
-        return "hello world"
-
-
-    if __name__ == "__main__":
-        app.run()
-    ```
-
-*   The **RPC functions only support one argument** (`msg`) for now.
-
-*   Also note that server **RPC functions are type hinted**. Type hint is **must** in Zero server. Supported types can be found [here](/zero/utils/type_util.py#L11).
-
-*   Run the server
-
-    ```shell
-    python -m server
-    ```
-
-*   Call the rpc methods
-
-    ```python
-    from zero import ZeroClient
-
-    zero_client = ZeroClient("localhost", 5559)
-
-    def echo():
-        resp = zero_client.call("echo", "Hi there!")
-        print(resp)
-
-    def hello():
-        resp = zero_client.call("hello_world", None)
-        print(resp)
+  @app.register_rpc
+  async def hello_world() -> str:
+      return "hello world"
 
 
-    if __name__ == "__main__":
-        echo()
-        hello()
-    ```
+  if __name__ == "__main__":
+      app.run()
+  ```
 
-*   Or using async client -
+* The **RPC functions only support one argument** (`msg`) for now.
 
-    ```python
-    import asyncio
+* Also note that server **RPC functions are type hinted**. Type hint is **must** in Zero server. Supported types can be found [here](/zero/utils/type_util.py#L11).
 
-    from zero import AsyncZeroClient
+* Run the server
 
-    zero_client = AsyncZeroClient("localhost", 5559)
+  ```shell
+  python -m server
+  ```
 
-    async def echo():
-        resp = await zero_client.call("echo", "Hi there!")
-        print(resp)
+* Call the rpc methods
 
-    async def hello():
-        resp = await zero_client.call("hello_world", None)
-        print(resp)
+  ```python
+  from zero import ZeroClient
+
+  zero_client = ZeroClient("localhost", 5559)
+
+  def echo():
+      resp = zero_client.call("echo", "Hi there!")
+      print(resp)
+
+  def hello():
+      resp = zero_client.call("hello_world", None)
+      print(resp)
 
 
-    if __name__ == "__main__":
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(echo())
-        loop.run_until_complete(hello())
-    ```
+  if __name__ == "__main__":
+      echo()
+      hello()
+  ```
+
+* Or using async client -
+
+  ```python
+  import asyncio
+
+  from zero import AsyncZeroClient
+
+  zero_client = AsyncZeroClient("localhost", 5559)
+
+  async def echo():
+      resp = await zero_client.call("echo", "Hi there!")
+      print(resp)
+
+  async def hello():
+      resp = await zero_client.call("hello_world", None)
+      print(resp)
+
+
+  if __name__ == "__main__":
+      loop = asyncio.get_event_loop()
+      loop.run_until_complete(echo())
+      loop.run_until_complete(hello())
+  ```
 
 # Serialization 📦
 
@@ -178,65 +180,65 @@ def get_order(id: str) -> Order:
 
 Easy to use code generation tool is also provided with schema support!
 
-*   After running the server, like above, it calls the server to get the client code. 
-    
-    This makes it easy to get the latest schemas on live servers and not to maintain other file sharing approach to manage schemas.
+* After running the server, like above, it calls the server to get the client code.
 
-    Using `zero.generate_client` generate client code for even remote servers using the `--host` and `--port` options.
+  This makes it easy to get the latest schemas on live servers and not to maintain other file sharing approach to manage schemas.
 
-    ```shell
-    python -m zero.generate_client --host localhost --port 5559 --overwrite-dir ./my_client
-    ```
+  Using `zero.generate_client` generate client code for even remote servers using the `--host` and `--port` options.
 
-*   It will generate client like this -
+  ```shell
+  python -m zero.generate_client --host localhost --port 5559 --overwrite-dir ./my_client
+  ```
 
-    ```python
-    from dataclasses import dataclass
-    from msgspec import Struct
-    from datetime import datetime
+* It will generate client like this -
 
-    from zero import ZeroClient
+  ```python
+  from dataclasses import dataclass
+  from msgspec import Struct
+  from datetime import datetime
 
-
-    zero_client = ZeroClient("localhost", 5559)
-
-    class Person(Struct):
-        name: str
-        age: int
-        dob: datetime
+  from zero import ZeroClient
 
 
-    @dataclass
-    class Order:
-        id: int
-        amount: float
-        created_at: datetime
+  zero_client = ZeroClient("localhost", 5559)
+
+  class Person(Struct):
+      name: str
+      age: int
+      dob: datetime
 
 
-    class RpcClient:
-        def __init__(self, zero_client: ZeroClient):
-            self._zero_client = zero_client
+  @dataclass
+  class Order:
+      id: int
+      amount: float
+      created_at: datetime
 
-        def save_person(self, person: Person) -> bool:
-            return self._zero_client.call("save_person", person)
 
-        def save_order(self, order: Order) -> bool:
-            return self._zero_client.call("save_order", order)
-    ```
+  class RpcClient:
+      def __init__(self, zero_client: ZeroClient):
+          self._zero_client = zero_client
 
-    Check the schemas are copied!
+      def save_person(self, person: Person) -> bool:
+          return self._zero_client.call("save_person", person)
 
-*   Use the client -
+      def save_order(self, order: Order) -> bool:
+          return self._zero_client.call("save_order", order)
+  ```
 
-    ```python
-    from my_client import RpcClient, zero_client
+  Check the schemas are copied!
 
-    client = RpcClient(zero_client)
+* Use the client -
 
-    if __name__ == "__main__":
-        client.save_person(Person(name="John", age=25, dob=datetime.now()))
-        client.save_order(Order(id=1, amount=100.0, created_at=datetime.now()))
-    ```
+  ```python
+  from my_client import RpcClient, zero_client
+
+  client = RpcClient(zero_client)
+
+  if __name__ == "__main__":
+      client.save_person(Person(name="John", age=25, dob=datetime.now()))
+      client.save_order(Order(id=1, amount=100.0, created_at=datetime.now()))
+  ```
 
 *If you want a async client just replace `ZeroClient` with `AsyncZeroClient` in the generated code, and update the methods to be async. (Next version will have async client generation, hopefully 😅)*
 
@@ -244,8 +246,8 @@ Easy to use code generation tool is also provided with schema support!
 
 ## For multiprocessing
 
-*   `ZeroServer` should always be run under `if __name__ == "__main__":`, as it uses multiprocessing.
-*   `ZeroServer` creates the workers in different processes, so anything global in your code will be instantiated N times where N is the number of workers. So if you want to initiate them once, put them under `if __name__ == "__main__":`. But recommended to not use global vars. And Databases, Redis, other clients, creating them N times in different processes is fine and preferred.
+* `ZeroServer` should always be run under `if __name__ == "__main__":`, as it uses multiprocessing.
+* `ZeroServer` creates the workers in different processes, so anything global in your code will be instantiated N times where N is the number of workers. So if you want to initiate them once, put them under `if __name__ == "__main__":`. But recommended to not use global vars. And Databases, Redis, other clients, creating them N times in different processes is fine and preferred.
 
 # Let's do some benchmarking! 🏎
 
@@ -255,8 +257,8 @@ So we will be testing a gateway calling another server for some data. Check the 
 
 There are two endpoints in every tests,
 
-*   `/hello`: Just call for a hello world response 😅
-*   `/order`: Save a Order object in redis
+* `/hello`: Just call for a hello world response 😅
+* `/order`: Save a Order object in redis
 
 Compare the results! 👇
 
@@ -268,15 +270,15 @@ Compare the results! 👇
 
 | Framework   | "hello world" (req/s) | 99% latency (ms) | redis save (req/s) | 99% latency (ms) |
 | ----------- | --------------------- | ---------------- | ------------------ | ---------------- |
-| aiohttp     | 30926.39              | 8.31             | 17092.79           | 10.86            |
-| aiozmq      | 19076.34              | 8.65             | 7725.18            | 11.62            |
-| blacksheep  | 22357.13              | 7.86             | 11253.14           | 18.26            |
-| fastApi     | 20225.57              | 8.14             | 11362.2            | 17.78            |
-| sanic       | 35917.24              | 5.88             | 22272.22           | 8.97             |
-| zero(sync)  | 22248.28              | 9.44             | 11051.8            | 18.15            |
-| zero(async) | 27466.46              | 6.66             | 18625.51           | 12.04            |
+| aiohttp     | 35023.07              | 7.66             | 17153.06           | 12.09            |
+| aiozmq      | 20621.64              | 6.88             | 7651.61            | 11.13            |
+| blacksheep  | 21887.95              | 8.9              | 11446.89           | 15.77            |
+| fastApi     | 19857.4               | 9.66             | 9781.64            | 18.58            |
+| sanic       | 46143.93              | 5.22             | 20062.11           | 9.77             |
+| zero(sync)  | 22556.58              | 8.86             | 11779.06           | 20.13            |
+| zero(async) | 34411.23              | 5.73             | 23638.82           | 8.13             |
 
-Seems like sanic is the fastest in python 3.13
+Seems like sanic is the fastest in hello world response, but zero is the fastest in redis save 🎉
 
 # Contribution
 

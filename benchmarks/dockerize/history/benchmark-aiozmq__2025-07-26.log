@@ -1,0 +1,41 @@
+redis is up-to-date
+server is up-to-date
+gateway is up-to-date
+Creating aiozmq_wrk-hello_1 ... 
+Creating aiozmq_wrk-hello_1 ... done
+Attaching to aiozmq_wrk-hello_1
+[36mwrk-hello_1  |[0m Running 30s test @ http://gateway:8000/hello
+[36mwrk-hello_1  |[0m   8 threads and 80 connections
+[36mwrk-hello_1  |[0m   Thread Stats   Avg      Stdev     Max   +/- Stdev
+[36mwrk-hello_1  |[0m     Latency     3.87ms    1.31ms  11.57ms   72.46%
+[36mwrk-hello_1  |[0m     Req/Sec     2.60k   531.96    15.74k    65.39%
+[36mwrk-hello_1  |[0m   Latency Distribution
+[36mwrk-hello_1  |[0m      50%    4.11ms
+[36mwrk-hello_1  |[0m      75%    4.63ms
+[36mwrk-hello_1  |[0m      90%    5.52ms
+[36mwrk-hello_1  |[0m      99%    6.88ms
+[36mwrk-hello_1  |[0m   620708 requests in 30.10s, 97.67MB read
+[36mwrk-hello_1  |[0m Requests/sec:  20621.64
+[36mwrk-hello_1  |[0m Transfer/sec:      3.24MB
+[36maiozmq_wrk-hello_1 exited with code 0
+[0mredis is up-to-date
+server is up-to-date
+gateway is up-to-date
+Creating aiozmq_wrk-order_1 ... 
+Creating aiozmq_wrk-order_1 ... done
+Attaching to aiozmq_wrk-order_1
+[36mwrk-order_1  |[0m Running 30s test @ http://gateway:8000/order
+[36mwrk-order_1  |[0m   8 threads and 80 connections
+[36mwrk-order_1  |[0m   Thread Stats   Avg      Stdev     Max   +/- Stdev
+[36mwrk-order_1  |[0m     Latency    10.45ms  532.48us  36.96ms   98.60%
+[36mwrk-order_1  |[0m     Req/Sec     0.96k    25.95     1.33k    83.42%
+[36mwrk-order_1  |[0m   Latency Distribution
+[36mwrk-order_1  |[0m      50%   10.42ms
+[36mwrk-order_1  |[0m      75%   10.50ms
+[36mwrk-order_1  |[0m      90%   10.60ms
+[36mwrk-order_1  |[0m      99%   11.13ms
+[36mwrk-order_1  |[0m   229745 requests in 30.03s, 55.87MB read
+[36mwrk-order_1  |[0m Requests/sec:   7651.61
+[36mwrk-order_1  |[0m Transfer/sec:      1.86MB
+[36maiozmq_wrk-order_1 exited with code 0
+[0m
