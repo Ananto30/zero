@@ -9,18 +9,11 @@ setup:
 		)
 
 test:
-	python3 -m pytest tests --cov=zero --cov-report=term-missing --cov-config=.coveragerc -vv --durations=10 --timeout=280
+	python3 -m pytest tests --cov=zero --cov-report=term-missing --cov-config=.coveragerc -vv --durations=10 --timeout=280 -s --exitfirst
 
 docker-test:
-	docker build -t zero-test -f Dockerfile.test.py38 .
+	docker build -t zero-test -f Dockerfile.test .
 	docker run --rm zero-test
-	docker rmi zero-test
-	docker build -t zero-test -f Dockerfile.test.py39 .
-	docker run --rm zero-test
-	docker rmi zero-test
-	docker build -t zero-test -f Dockerfile.test.py310 .
-	docker run --rm zero-test
-	docker rmi zero-test
 
 format:
 	isort . --profile black -l 99
@@ -29,13 +22,17 @@ format:
 install-lint:
 	python -m pip install --upgrade pip
 	pip install -r requirements.txt  # needed for pytype
-	pip install black isort flake8 pylint pytype mypy pydantic>=2.0
+	pip install -r requirements-lint.txt
 
 lint:
 	flake8 ./zero
 	pylint ./zero
 	pytype ./zero
 	mypy ./zero
+
+docker-lint:
+	docker build -t zero-lint -f Dockerfile.lint .
+	docker run --rm zero-lint
 
 build-package:
 	pip install -U setuptools wheel

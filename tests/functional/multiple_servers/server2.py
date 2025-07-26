@@ -6,11 +6,11 @@ async_client = AsyncZeroClient("localhost", constants.MULTIPLE_SERVERS_PORT1)
 
 
 def echo(msg: str) -> str:
-    return client.call("echo", msg)  # type: ignore
+    return client.call("echo", msg)
 
 
 def hello() -> str:
-    return client.call("hello", None)  # type: ignore
+    return client.call("hello", None)
 
 
 async def async_echo(msg: str) -> str:
