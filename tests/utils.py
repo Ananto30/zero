@@ -4,15 +4,11 @@ import time
 import typing
 from multiprocessing import Process
 
-# process used in tests
-process_map: dict[typing.Union[int, str], typing.Union[Process, subprocess.Popen]] = {}
-
 
 def start_server(port: int, runner: typing.Callable) -> Process:
     p = Process(target=runner, args=(port,))
     p.start()
     _ping_until_success(port)
-    process_map[port] = p
     return p
 
 
@@ -40,17 +36,19 @@ def _ping(port: int) -> bool:
 def kill_process(process: Process):
     pid = process.pid
     process.terminate()
-    process.kill()
-    _wait_for_process_to_die(process)
+    # allow the process a moment to exit cleanly
+    process.join(timeout=5)
+    if process.is_alive():
+        process.kill()
+        _wait_for_process_to_die(process, timeout=5)
     process.join()
-    if pid and pid in process_map:
-        del process_map[pid]
 
 
-def _wait_for_process_to_die(process, timeout: int = 5):
+def _wait_for_process_to_die(process, timeout: float = 5.0):
     start = time.time()
     while time.time() - start < timeout:
         if not process.is_alive():
+            process.join()
             return
         time.sleep(0.1)
 
@@ -60,13 +58,14 @@ def _wait_for_process_to_die(process, timeout: int = 5):
 def start_subprocess(module: str) -> subprocess.Popen:
     p = subprocess.Popen(["python", "-m", module], shell=False)  # nosec
     _ping_until_success(5559)
-    process_map[module] = p
     return p
 
 
 def kill_subprocess(process: subprocess.Popen):
     pid = process.pid
     process.terminate()
-    process.wait()
-    if pid and pid in process_map:
-        del process_map[pid]
+    try:
+        process.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait()

@@ -18,7 +18,7 @@ def get_and_sum(msg):
 
 
 if __name__ == "__main__":
-    process_no = 32
+    process_no = 8
     pool = Pool(process_no)
 
     sum_items = []

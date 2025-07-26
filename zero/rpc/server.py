@@ -21,8 +21,6 @@ from zero.utils import type_util
 if TYPE_CHECKING:  # pragma: no cover
     from .protocols import ZeroServerProtocol
 
-# import uvloop
-
 
 class ZeroServer:
     def __init__(

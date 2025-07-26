@@ -24,5 +24,7 @@ setuptools.setup(
     install_requires=["pyzmq", "msgspec"],
     extras_require={
         "pydantic": ["pydantic"],  # Optional dependency
+        "uvloop": ["uvloop"],  # Optional dependency for better performance
+        "all": ["pydantic", "uvloop"],  # Install all optional dependencies
     },
 )

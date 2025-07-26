@@ -5,11 +5,11 @@ setup:
 	source venv/bin/activate && ( \
 		pip install -r requirements.txt; \
 		pip install -r tests/requirements.txt; \
-		pip install black isort flake8 pylint pytype mypy; \
+		pip install -r requirements-lint.txt; \
 		)
 
 test:
-	python3 -m pytest tests --cov=zero --cov-report=term-missing --cov-config=.coveragerc -vv --durations=10 --timeout=280 -s --exitfirst
+	python3 -m pytest tests --cov=zero --cov-report=term-missing --cov-config=.coveragerc -vv --durations=10 --timeout=280
 
 docker-test:
 	docker build -t zero-test -f Dockerfile.test .

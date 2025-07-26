@@ -5,3 +5,4 @@ pylint
 pytype
 mypy
 pydantic
+uvloop

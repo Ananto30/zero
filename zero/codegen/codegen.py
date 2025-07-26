@@ -20,9 +20,15 @@ from typing import (
 )
 
 import msgspec
-from pydantic import BaseModel
 
 from zero.utils.type_util import typing_types
+
+try:
+    from pydantic import BaseModel
+
+    PYDANTIC_AVAILABLE = True
+except ImportError:
+    PYDANTIC_AVAILABLE = False
 
 python_version = sys.version_info
 
@@ -217,16 +223,14 @@ class RpcClient:
         for possible_typ in all_possible_typs:
             self._track_imports(possible_typ)
             if isinstance(possible_typ, type) and (
-                issubclass(  # pytype: disable=wrong-arg-types
-                    possible_typ,
-                    (
-                        msgspec.Struct,
-                        BaseModel,
-                        enum.Enum,
-                        enum.IntEnum,
-                    ),
-                )
+                issubclass(possible_typ, (msgspec.Struct, enum.Enum, enum.IntEnum))
                 or is_dataclass(possible_typ)
+                or (
+                    PYDANTIC_AVAILABLE
+                    and issubclass(  # pytype: disable=wrong-arg-types
+                        possible_typ, BaseModel
+                    )
+                )
             ):
                 code += self._generate_class_code(possible_typ, already_generated)
         return code

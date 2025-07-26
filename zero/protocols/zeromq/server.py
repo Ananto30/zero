@@ -15,8 +15,6 @@ from zero.zeromq_patterns import ZeroMQBroker, get_broker
 
 from .worker import _Worker
 
-# import uvloop
-
 
 class ZMQServer:
     def __init__(
