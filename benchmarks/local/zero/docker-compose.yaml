@@ -16,9 +16,9 @@ services:
   # gateway:
   #   build: .
   #   container_name: gateway
-  #   command: gunicorn gateway_aiohttp:app --bind 0.0.0.0:8000 --worker-class aiohttp.worker.GunicornWebWorker --workers 8 --log-level  warning
+  #   command: gunicorn gateway_aiohttp:app --bind 0.0.0.0:8766 --worker-class aiohttp.worker.GunicornWebWorker --workers 8 --log-level  warning
   #   ports:
-  #     - "8000:8000"
+  #     - "8766:8766"
   #   depends_on:
   #     - server
   #     - redis

@@ -2,6 +2,14 @@ import asyncio
 import threading
 from functools import wraps
 
+try:
+    import uvloop
+
+    IS_UVLOOP_AVAILABLE = True
+except ImportError:
+    IS_UVLOOP_AVAILABLE = False
+
+
 _LOOP = None
 _THRD = None
 
@@ -9,6 +17,9 @@ _THRD = None
 def start_async_loop():
     global _LOOP, _THRD  # pylint: disable=global-statement
     if _LOOP is None or _THRD is None or not _THRD.is_alive():
+        if IS_UVLOOP_AVAILABLE:
+            asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+
         _LOOP = asyncio.new_event_loop()
         _THRD = threading.Thread(
             target=_LOOP.run_forever, name="Async Runner", daemon=True

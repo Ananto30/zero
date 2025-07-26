@@ -67,6 +67,10 @@ def start_subprocess(module: str) -> subprocess.Popen:
 def kill_subprocess(process: subprocess.Popen):
     pid = process.pid
     process.terminate()
-    process.wait()
+    try:
+        process.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait()
     if pid and pid in process_map:
         del process_map[pid]

@@ -109,38 +109,34 @@ class AsyncZeroMQClient:
 
         self._resp_events: Dict[bytes, asyncio.Event] = {}
         self._resp_data: Dict[bytes, bytes] = {}
+        self._recv_task: Optional[asyncio.Task] = None
+        self._closed = False
 
     async def connect(self, address: str) -> None:
         self._address = address
         self.socket.connect(address)
         await self._send(util.unique_id_bytes() + b"connect" + b"")
         await self._recv()
+        self._recv_task = asyncio.create_task(self._recv_loop())
         logging.info("Connected to server at %s", self._address)
 
-    async def request(self, message: bytes, timeout: Optional[int] = None) -> bytes:
-        _timeout = timeout or self._default_timeout
-        _expire_at = (asyncio.get_event_loop().time() * 1e3) + _timeout
-
-        async def _poll_data():
+    async def _recv_loop(self) -> None:
+        while not self._closed:
             resp = await self._recv()
-
-            resp_id = resp[:16]
-            resp_data = resp[16:]
-
-            if resp_id in self._resp_events:
+            resp_id, resp_data = resp[:16], resp[16:]
+            event = self._resp_events.get(resp_id)
+            if event:
                 self._resp_data[resp_id] = resp_data
-                self._resp_events[resp_id].set()
+                event.set()
 
+    async def request(self, message: bytes, timeout: Optional[int] = None) -> bytes:
         req_id = util.unique_id_bytes()
         self._resp_events[req_id] = asyncio.Event()
-
         await self._send(req_id + message)
-
         try:
-            await asyncio.wait_for(_poll_data(), _timeout / 1e3)
-            remaining_time = _expire_at - (asyncio.get_event_loop().time() * 1e3)
             await asyncio.wait_for(
-                self._resp_events[req_id].wait(), remaining_time / 1e3
+                self._resp_events[req_id].wait(),
+                (timeout or self._default_timeout) / 1000,
             )
             return self._resp_data.pop(req_id, b"")
         except asyncio.TimeoutError as exc:
@@ -151,6 +147,9 @@ class AsyncZeroMQClient:
             ) from exc
 
     def close(self) -> None:
+        self._closed = True
+        if self._recv_task:
+            self._recv_task.cancel()
         self.socket.close()
         self._resp_events.clear()
         self._resp_data.clear()
