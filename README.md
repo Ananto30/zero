@@ -15,8 +15,8 @@
     <a href="https://app.codacy.com/gh/Ananto30/zero/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade">
         <img src="https://app.codacy.com/project/badge/Grade/f6d4db49974b470f95999565f7901595"/>
     </a>
-    <a href="https://codeclimate.com/github/Ananto30/zero/maintainability" target="_blank">
-        <img src="https://api.codeclimate.com/v1/badges/4f2fd83bee97326699bc/maintainability" />
+    <a href="https://qlty.sh/gh/Ananto30/projects/zero" target="_blank">
+        <img src="https://qlty.sh/gh/Ananto30/projects/zero/maintainability.svg" />
     </a>
     <a href="https://pepy.tech/project/zeroapi" target="_blank">
         <img src="https://static.pepy.tech/badge/zeroapi" />
