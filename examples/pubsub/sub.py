@@ -20,10 +20,10 @@ def handle_message(msg: Message):
 def throughput_reporter():
     global bytes_processed
     while True:
-        time.sleep(5)
+        time.sleep(1)
         with lock:
-            mbps = bytes_processed / 1_000_000 / 5
-            print(f"Throughput: {mbps:.3f} MBps (last 5s)")
+            mbps = bytes_processed / 1_000_000
+            print(f"Throughput: {mbps:.3f} MBps (last 1s)")
             bytes_processed = 0
 
 
