@@ -1,6 +1,7 @@
 import logging
 import os
 from asyncio import iscoroutinefunction
+from importlib import import_module
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -16,10 +17,10 @@ from typing import (
 from zero import config
 from zero.encoder import Encoder
 from zero.encoder.generic import GenericEncoder
+from zero.protocols.zeromq.server import ZMQServer
 from zero.utils import type_util
 
-if TYPE_CHECKING:  # pragma: no cover
-    from .protocols import ZeroServerProtocol
+from .protocols import ZeroServerProtocol
 
 
 class ZeroServer:
@@ -27,8 +28,8 @@ class ZeroServer:
         self,
         host: str = "0.0.0.0",
         port: int = 5559,
-        encoder: Optional[Encoder] = None,
-        protocol: str = "zeromq",
+        encoder: Type[Encoder] = GenericEncoder,
+        protocol: Type[ZeroServerProtocol] = ZMQServer,
         use_threads: bool = False,
     ):
         """
@@ -44,16 +45,17 @@ class ZeroServer:
         port: int
             Port of the ZeroServer.
 
-        encoder: Optional[Encoder]
-            Encoder to encode/decode messages from/to client.
-            Default is `GenericEncoder` with `msgspec` and `pydantic` support.
+        encoder: Type[Encoder]
+            Encoder class to use for encoding/decoding messages from/to client.
+            Default is GenericEncoder with msgspec and pydantic support.
             If any other encoder is used, the client should use the same encoder.
             Implement custom encoder by inheriting from `zero.encoder.Encoder`.
 
-        protocol: str
-            Protocol to use for communication.
-            Default is zeromq.
-            If any other protocol is used, the client should use the same protocol.
+        protocol: Union[Type[ZeroServerProtocol], str]
+            Protocol server class to use for communication.
+            Default is ZMQServer.
+            Can be a protocol class or a string name like "zmq".
+            Must implement the ZeroServerProtocol interface.
 
         use_threads: bool
             Use threads instead of processes.
@@ -66,11 +68,16 @@ class ZeroServer:
         self._use_threads = use_threads
 
         # to encode/decode messages from/to client
-        if encoder and not isinstance(encoder, Encoder):
+        if not isinstance(encoder, type) or not issubclass(encoder, Encoder):
+            raise TypeError(f"encoder should be a subclass of Encoder; not {encoder}")
+        self._encoder = encoder()
+
+        if not isinstance(protocol, type) or not issubclass(
+            protocol, ZeroServerProtocol
+        ):
             raise TypeError(
-                f"encoder should be an instance of Encoder; not {type(encoder)}"
+                f"protocol should be a subclass of ZeroServerProtocol; not {protocol}"
             )
-        self._encoder = encoder or GenericEncoder()
 
         # Stores rpc functions against their names
         # and if they are coroutines
@@ -80,7 +87,7 @@ class ZeroServer:
         self._rpc_input_type_map: Dict[str, Optional[type]] = {}
         self._rpc_return_type_map: Dict[str, Optional[type]] = {}
 
-        self._server_inst: "ZeroServerProtocol" = self._determine_server_cls(protocol)(
+        self._server_inst = protocol(
             self._address,
             self._rpc_router,
             self._rpc_input_type_map,
@@ -88,20 +95,6 @@ class ZeroServer:
             self._encoder,
             self._use_threads,
         )
-
-    def _determine_server_cls(self, protocol: str) -> Type["ZeroServerProtocol"]:
-        if protocol not in config.SUPPORTED_PROTOCOLS:
-            raise ValueError(
-                f"Protocol {protocol} is not supported. "
-                f"Supported protocols are {config.SUPPORTED_PROTOCOLS}"
-            )
-        server_cls = config.SUPPORTED_PROTOCOLS.get(protocol, {}).get("server")
-        if not server_cls:
-            raise ValueError(
-                f"Protocol {protocol} is not supported. "
-                f"Supported protocols are {config.SUPPORTED_PROTOCOLS}"
-            )
-        return server_cls
 
     def register_rpc(self, func: Callable[..., Union[Any, Coroutine]]):
         """

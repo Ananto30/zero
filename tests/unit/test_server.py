@@ -79,9 +79,7 @@ class TestServer(unittest.TestCase):
             def is_allowed_type(self, typ: Type) -> bool:
                 return True
 
-        encoder = CustomEncoder()
-
-        server = ZeroServer(encoder=encoder)
+        server = ZeroServer(encoder=CustomEncoder)
         self.assertIsInstance(server, ZeroServer)
         self.assertEqual(server._port, DEFAULT_PORT)
         self.assertEqual(server._host, DEFAULT_HOST)
@@ -105,10 +103,9 @@ class TestServer(unittest.TestCase):
             def is_allowed_type(self, typ: Type) -> bool:
                 return True
 
-        encoder = CustomEncoder()
         port = 5562
 
-        server = ZeroServer(encoder=encoder, port=port)
+        server = ZeroServer(encoder=CustomEncoder, port=port)
         self.assertIsInstance(server, ZeroServer)
         self.assertEqual(server._port, port)
         self.assertEqual(server._host, DEFAULT_HOST)
@@ -132,10 +129,9 @@ class TestServer(unittest.TestCase):
             def is_allowed_type(self, typ: Type) -> bool:
                 return True
 
-        encoder = CustomEncoder()
         host = "123.0.0.123"
 
-        server = ZeroServer(encoder=encoder, host=host)
+        server = ZeroServer(encoder=CustomEncoder, host=host)
         self.assertIsInstance(server, ZeroServer)
         self.assertEqual(server._port, DEFAULT_PORT)
         self.assertEqual(server._host, host)
@@ -159,11 +155,10 @@ class TestServer(unittest.TestCase):
             def is_allowed_type(self, typ: Type) -> bool:
                 return True
 
-        encoder = CustomEncoder()
         host = "123.0.0.123"
         port = 5563
 
-        server = ZeroServer(encoder=encoder, host=host, port=port)
+        server = ZeroServer(encoder=CustomEncoder, host=host, port=port)
         self.assertIsInstance(server, ZeroServer)
         self.assertEqual(server._port, port)
         self.assertEqual(server._host, host)
@@ -178,13 +173,8 @@ class TestServer(unittest.TestCase):
             ZeroServer(encoder="encoder")
 
     def test_create_server_with_invalid_protocol(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TypeError):
             ZeroServer(protocol="invalid_protocol")
-
-    def test_create_server_with_protocol_with_no_server(self):
-        with patch("zero.rpc.server.config.SUPPORTED_PROTOCOLS", {"redis": {}}):
-            with self.assertRaises(ValueError):
-                ZeroServer(protocol="redis")
 
     def test_register_rpc(self):
         server = ZeroServer()
@@ -262,19 +252,10 @@ class TestServer(unittest.TestCase):
         def add(msg: Tuple[int, int]) -> int:
             return msg[0] + msg[1]
 
-        with patch("zmq.device") as mock_device:
+        with patch.object(server, "_server_inst") as mock_server_inst:
+            mock_server_inst.start.side_effect = SystemExit
             with self.assertRaises(SystemExit):
                 server.run()
-                self.assertIsInstance(server._broker, ZeroMQBroker)
-                if sys.platform == "win32":
-                    self.assertIn("tcp", server._device_comm_channel)
-                else:
-                    self.assertIn("ipc", server._device_comm_channel)
-                mock_device.assert_called_once_with(
-                    zmq.QUEUE,
-                    server._broker.gateway,  # type: ignore
-                    server._broker.backend,  # type: ignore
-                )
 
     def test_server_run_keyboard_interrupt(self):
         server = ZeroServer()

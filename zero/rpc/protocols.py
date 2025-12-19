@@ -25,14 +25,11 @@ class ZeroServerProtocol(Protocol):
         rpc_return_type_map: Dict[str, Optional[type]],
         encoder: Encoder,
         use_threads: bool,
-    ):
-        ...
+    ): ...
 
-    def start(self, workers: int):
-        ...
+    def start(self, workers: int): ...
 
-    def stop(self):
-        ...
+    def stop(self): ...
 
 
 @runtime_checkable
@@ -42,8 +39,7 @@ class ZeroClientProtocol(Protocol):
         address: str,
         default_timeout: int,
         encoder: Encoder,
-    ):
-        ...
+    ): ...
 
     def call(
         self,
@@ -51,11 +47,9 @@ class ZeroClientProtocol(Protocol):
         msg: AllowedType,
         timeout: Optional[int] = None,
         return_type: Optional[Type[T]] = None,
-    ) -> Optional[T]:
-        ...
+    ) -> Optional[T]: ...
 
-    def close(self):
-        ...
+    def close(self): ...
 
 
 @runtime_checkable
@@ -65,8 +59,7 @@ class AsyncZeroClientProtocol(Protocol):
         address: str,
         default_timeout: int,
         encoder: Encoder,
-    ):
-        ...
+    ): ...
 
     async def call(
         self,
@@ -74,8 +67,6 @@ class AsyncZeroClientProtocol(Protocol):
         msg: AllowedType,
         timeout: Optional[int] = None,
         return_type: Optional[Type[T]] = None,
-    ) -> Optional[T]:
-        ...
+    ) -> Optional[T]: ...
 
-    def close(self):
-        ...
+    def close(self): ...

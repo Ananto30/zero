@@ -1,13 +1,11 @@
 from typing import TYPE_CHECKING, Optional, Type, TypeVar
 
-from zero import config
 from zero.encoder import Encoder
 from zero.encoder.generic import GenericEncoder
 from zero.error import MethodNotFoundException, RemoteException, ValidationException
+from zero.protocols.zeromq.client import AsyncZMQClient, ZMQClient
+from zero.rpc.protocols import AsyncZeroClientProtocol, ZeroClientProtocol
 from zero.utils.type_util import AllowedType
-
-if TYPE_CHECKING:  # pragma: no cover
-    from zero.rpc.protocols import AsyncZeroClientProtocol, ZeroClientProtocol
 
 T = TypeVar("T")
 
@@ -18,8 +16,8 @@ class ZeroClient:
         host: str,
         port: int,
         default_timeout: int = 2000,
-        encoder: Optional[Encoder] = None,
-        protocol: str = "zeromq",
+        encoder: Type[Encoder] = GenericEncoder,
+        protocol: Type[ZeroClientProtocol] = ZMQClient,
     ):
         """
         ZeroClient provides the client interface for calling the ZeroServer.
@@ -44,39 +42,36 @@ class ZeroClient:
         default_timeout: int
             Default timeout for all calls. Default is 2000 ms.
 
-        encoder: Optional[Encoder]
-            Encoder to encode/decode messages from/to client.
-            Default is generic encoder.
+        encoder: Type[Encoder]
+            Encoder class to use for encoding/decoding messages from/to client.
+            Default is GenericEncoder.
             If any other encoder is used, make sure the server should use the same encoder.
             Implement custom encoder by inheriting from `zero.encoder.Encoder`.
 
-        protocol: str
-            Protocol to use for communication.
-            Default is zeromq.
-            If any other protocol is used, make sure the server should use the same protocol.
+        protocol: Type[ZeroClientProtocol]
+            Protocol client class to use for communication.
+            Default is ZMQClient.
+            Must implement the ZeroClientProtocol interface.
         """
         self._address = f"tcp://{host}:{port}"
         self._default_timeout = default_timeout
-        self._encoder = encoder or GenericEncoder()
-        self._client_inst: "ZeroClientProtocol" = self._determine_client_cls(protocol)(
+
+        if not isinstance(encoder, type) or not issubclass(encoder, Encoder):
+            raise TypeError(f"encoder should be a subclass of Encoder; not {encoder}")
+
+        if not isinstance(protocol, type) or not issubclass(
+            protocol, ZeroClientProtocol
+        ):
+            raise TypeError(
+                f"protocol should be a subclass of ZeroClientProtocol; not {protocol}"
+            )
+
+        self._encoder = encoder()
+        self._client_inst = protocol(
             self._address,
             self._default_timeout,
             self._encoder,
         )
-
-    def _determine_client_cls(self, protocol: str) -> Type["ZeroClientProtocol"]:
-        if protocol not in config.SUPPORTED_PROTOCOLS:
-            raise ValueError(
-                f"Protocol {protocol} is not supported. "
-                f"Supported protocols are {config.SUPPORTED_PROTOCOLS}"
-            )
-        client_cls = config.SUPPORTED_PROTOCOLS.get(protocol, {}).get("client")
-        if client_cls is None:
-            raise ValueError(
-                f"Protocol {protocol} is not supported. "
-                f"Supported protocols are {config.SUPPORTED_PROTOCOLS}"
-            )
-        return client_cls
 
     def call(
         self,
@@ -140,8 +135,8 @@ class AsyncZeroClient:
         host: str,
         port: int,
         default_timeout: int = 2000,
-        encoder: Optional[Encoder] = None,
-        protocol: str = "zeromq",
+        encoder: Type[Encoder] = GenericEncoder,
+        protocol: Type[AsyncZeroClientProtocol] = AsyncZMQClient,
     ):
         """
         AsyncZeroClient provides the asynchronous client interface for calling the ZeroServer.
@@ -169,41 +164,36 @@ class AsyncZeroClient:
             Default timeout for all calls in milliseconds.
             Default is 2000 milliseconds (2 seconds).
 
-        encoder: Optional[Encoder]
-            Encoder to encode/decode messages from/to client.
-            Default is msgspec.
+        encoder: Type[Encoder]
+            Encoder class to use for encoding/decoding messages from/to client.
+            Default is GenericEncoder.
             If any other encoder is used, the server should use the same encoder.
             Implement custom encoder by inheriting from `zero.encoder.Encoder`.
 
-        protocol: str
-            Protocol to use for communication.
-            Default is zeromq.
-            If any other protocol is used, the server should use the same protocol.
+        protocol: Type[AsyncZeroClientProtocol]
+            Protocol client class to use for communication.
+            Default is AsyncZMQClient.
+            Must implement the AsyncZeroClientProtocol interface.
         """
         self._address = f"tcp://{host}:{port}"
         self._default_timeout = default_timeout
-        self._encoder = encoder or GenericEncoder()
-        self._client_inst: "AsyncZeroClientProtocol" = self._determine_client_cls(
-            protocol
-        )(
+
+        if not isinstance(encoder, type) or not issubclass(encoder, Encoder):
+            raise TypeError(f"encoder should be a subclass of Encoder; not {encoder}")
+
+        if not isinstance(protocol, type) or not issubclass(
+            protocol, AsyncZeroClientProtocol
+        ):
+            raise TypeError(
+                f"protocol should be a subclass of AsyncZeroClientProtocol; not {protocol}"
+            )
+
+        self._encoder = encoder()
+        self._client_inst = protocol(
             self._address,
             self._default_timeout,
             self._encoder,
         )
-
-    def _determine_client_cls(self, protocol: str) -> Type["AsyncZeroClientProtocol"]:
-        if protocol not in config.SUPPORTED_PROTOCOLS:
-            raise ValueError(
-                f"Protocol {protocol} is not supported. "
-                f"Supported protocols are {config.SUPPORTED_PROTOCOLS}"
-            )
-        client_cls = config.SUPPORTED_PROTOCOLS.get(protocol, {}).get("async_client")
-        if client_cls is None:
-            raise ValueError(
-                f"Protocol {protocol} is not supported. "
-                f"Supported protocols are {config.SUPPORTED_PROTOCOLS}"
-            )
-        return client_cls
 
     async def call(
         self,

@@ -23,8 +23,8 @@ class GenericEncoder(MsgspecEncoder):
         return super().encode(data)
 
     def decode_type(self, data: bytes, typ: Type[T]) -> T:
-        if PYDANTIC_AVAILABLE and issubclass(
-            typ, BaseModel
+        if (
+            PYDANTIC_AVAILABLE and isinstance(typ, type) and issubclass(typ, BaseModel)
         ):  # pytype: disable=wrong-arg-types
             decoded_data = self.decode(data)
             if hasattr(typ, "model_validate"):  # Pydantic v2
