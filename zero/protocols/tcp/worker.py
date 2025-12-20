@@ -4,8 +4,6 @@ import signal
 import sys
 from typing import Any, Callable, Dict, Optional, Tuple
 
-import uvloop
-
 from zero.encoder import Encoder
 from zero.protocols.common_rpc import execute_common_rpc
 
@@ -49,6 +47,8 @@ class _TCPWorker:
         )
 
         try:
+            import uvloop
+
             uvloop.install()
         except Exception as e:
             logging.warning("Failed to install uvloop: %s", e)
