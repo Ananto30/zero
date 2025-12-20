@@ -22,6 +22,10 @@ class _TCPWorker:
         encoder: Encoder,
         worker_id: int,
     ):
+        if sys.platform == "win32":
+            # windows need special event loop policy to work with zmq
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
         self._address = address
         self._rpc_router = rpc_router
         self._rpc_input_type_map = rpc_input_type_map

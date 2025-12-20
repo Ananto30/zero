@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import sys
 from dataclasses import dataclass
 from typing import Any, List, Optional, Type, TypeVar
 
@@ -20,6 +21,10 @@ class AsyncTCPClient:
         encoder: Encoder,
         pool_size: int,
     ):
+        if sys.platform == "win32":
+            # windows need special event loop policy to work with zmq
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
         self._encoder = encoder
         self._default_timeout = default_timeout
 
