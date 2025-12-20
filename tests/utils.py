@@ -27,14 +27,21 @@ def _ping_until_success(port: int, timeout: int = 5):
 
 
 def _ping(port: int) -> bool:
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        sock.connect(("localhost", port))
-        return True
-    except socket.error:
-        return False
-    finally:
-        sock.close()
+    # Try both IPv4 and IPv6 loopback addresses because on Windows
+    # "localhost" may resolve to ::1 (IPv6) while the server could be
+    # listening on IPv4 only (0.0.0.0). Try IPv4 first, then IPv6.
+    for host in ("127.0.0.1", "::1"):
+        family = socket.AF_INET6 if ":" in host else socket.AF_INET
+        sock = socket.socket(family, socket.SOCK_STREAM)
+        try:
+            sock.settimeout(0.5)
+            sock.connect((host, port))
+            return True
+        except socket.error:
+            continue
+        finally:
+            sock.close()
+    return False
 
 
 def kill_process(process: Process):
