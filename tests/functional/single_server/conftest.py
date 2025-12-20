@@ -17,20 +17,20 @@ else:
 
 @pytest.fixture(autouse=True, scope="session")
 def base_server():
-    process = start_subprocess("tests.functional.single_server.server")
+    process = start_subprocess("tests.functional.single_server.server", 5559)
     yield
     kill_subprocess(process)
 
 
 @pytest.fixture(autouse=True, scope="session")
 def threaded_server():
-    process = start_subprocess("tests.functional.single_server.threaded_server")
+    process = start_subprocess("tests.functional.single_server.threaded_server", 7777)
     yield
     kill_subprocess(process)
 
 
 @pytest.fixture(autouse=True, scope="session")
 def tcp_server():
-    process = start_subprocess("tests.functional.single_server.tcp_server")
+    process = start_subprocess("tests.functional.single_server.tcp_server", 5560)
     yield
     kill_subprocess(process)

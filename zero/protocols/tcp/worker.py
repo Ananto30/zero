@@ -23,8 +23,7 @@ class _TCPWorker:
         worker_id: int,
     ):
         if sys.platform == "win32":
-            # windows need special event loop policy to work with zmq
-            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+            raise RuntimeError("TCPWorker is not supported on Windows")
 
         self._address = address
         self._rpc_router = rpc_router

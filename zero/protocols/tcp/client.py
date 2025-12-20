@@ -22,8 +22,7 @@ class AsyncTCPClient:
         pool_size: int,
     ):
         if sys.platform == "win32":
-            # windows need special event loop policy to work with zmq
-            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+            raise RuntimeError("AsyncTCPClient is not supported on Windows")
 
         self._encoder = encoder
         self._default_timeout = default_timeout

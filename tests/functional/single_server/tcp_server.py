@@ -1,12 +1,4 @@
 import asyncio
-import sys
-
-# On Windows the default ProactorEventLoop doesn't implement the selector
-# based add_reader family required by pyzmq; set the selector policy early
-# so subprocesses use a compatible event loop.
-if sys.platform == "win32":
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
 import datetime
 import decimal
 import enum

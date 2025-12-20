@@ -3,7 +3,6 @@ import os
 import signal
 import socket
 import sys
-import time
 from functools import partial
 from multiprocessing.pool import Pool, ThreadPool
 from typing import Callable, Dict, Optional, Tuple
@@ -24,6 +23,9 @@ class TCPServer:
         encoder: Encoder,
         use_threads: bool,
     ):
+        if sys.platform == "win32":
+            raise RuntimeError("TCPServer is not supported on Windows")
+
         self._address = address
         self._rpc_router = rpc_router
         self._rpc_input_type_map = rpc_input_type_map
@@ -101,18 +103,9 @@ class TCPServer:
         util.register_signal_term(self._sig_handler)
 
         # Blocking - keeps server running until signal
-        # Use platform-agnostic approach: signal.pause() is Unix-only
-        try:
-            if hasattr(signal, "pause"):
-                # Unix-like systems
-                while True:
-                    signal.pause()
-            else:
-                # Windows - use sleep loop instead
-                while True:
-                    time.sleep(1)
-        except KeyboardInterrupt:
-            self.stop()
+        # signal.pause() will be interrupted by signal handlers
+        while True:
+            signal.pause()
 
     def _sig_handler(self, signum, frame):  # pylint: disable=unused-argument
         logging.warning("Signal %d received, stopping server", signum)

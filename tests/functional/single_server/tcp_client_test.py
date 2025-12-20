@@ -1,5 +1,6 @@
 import asyncio
 import random
+import sys
 import time
 
 import pytest
@@ -11,6 +12,9 @@ from zero.protocols.tcp import AsyncTCPClient
 from . import tcp_server
 
 
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="TCP tests not supported on Windows"
+)
 @pytest.mark.asyncio
 async def test_concurrent_divide():
     async_client = AsyncZeroClient(
@@ -55,6 +59,9 @@ async def test_concurrent_divide():
     assert total_pass > 2
 
 
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="TCP tests not supported on Windows"
+)
 @pytest.mark.asyncio
 async def test_server_error():
     client = AsyncZeroClient(tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient)
@@ -65,6 +72,9 @@ async def test_server_error():
         pass
 
 
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="TCP tests not supported on Windows"
+)
 @pytest.mark.asyncio
 async def test_timeout_all_async():
     client = AsyncZeroClient(tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient)
@@ -76,6 +86,9 @@ async def test_timeout_all_async():
         await client.call("sleep", 1000, timeout=200)
 
 
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="TCP tests not supported on Windows"
+)
 @pytest.mark.asyncio
 async def test_random_timeout_async():
     client = AsyncZeroClient(tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient)
@@ -98,6 +111,9 @@ async def test_random_timeout_async():
     assert fails >= should_fail
 
 
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="TCP tests not supported on Windows"
+)
 @pytest.mark.asyncio
 async def test_async_sleep():
     client = AsyncZeroClient(tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient)
