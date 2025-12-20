@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="zeroapi",
-    version="0.9.0",
+    version="1.0.0",
     author="Azizul Haque Ananto",
     author_email="azizulhaq.ananto@gmail.com",
     license="MIT",
@@ -25,6 +25,7 @@ setuptools.setup(
     extras_require={
         "pydantic": ["pydantic"],  # Optional dependency
         "uvloop": ["uvloop"],  # Optional dependency for better performance
-        "all": ["pydantic", "uvloop"],  # Install all optional dependencies
+        "tornado": ["tornado"],  # Optional dependency for Windows async support
+        "all": ["pydantic", "uvloop", "tornado"],  # Install all optional dependencies
     },
 )

@@ -43,13 +43,17 @@ Let's get started!
 
 # Getting started 🚀
 
-*Ensure Python 3.8+*
+*Ensure Python 3.9+*
 
 ```
 pip install zeroapi
+pip install "zeroapi[uvloop]"  # for better async performance on linux and mac-os
+pip install "zeroapi[pydantic]"  # for pydantic support
+pip install "zeroapi[tornado]"  # for windows async support
+pip install "zeroapi[all]"  # for all extras
 ```
 
-**For Windows**, [tornado](https://pypi.org/project/tornado/) needs to be installed separately (for async operations). It's not included with `zeroapi` because for linux and mac-os, tornado is not needed as they have their own event loops.
+## Basic example
 
 * Create a `server.py`
 
@@ -126,7 +130,7 @@ pip install zeroapi
       loop.run_until_complete(hello())
   ```
 
-### TCP client/server
+## TCP client/server
 
 * By default Zero uses ZeroMQ for communication. But if you want to use raw TCP, you can use the protocol parameter.
 
@@ -157,6 +161,7 @@ pip install zeroapi
   from zero import AsyncZeroClient
   from zero import ZeroClient
   from zero.protocols.tcp import AsyncTCPClient
+
   zero_client = ZeroClient("localhost", 5559, protocol=AsyncTCPClient)  # <-- Note the protocol parameter
 
   async def echo():
@@ -335,7 +340,7 @@ Easy to use code generation tool is also provided with schema support!
 
 # Important notes! 📝
 
-## For multiprocessing
+### For multiprocessing
 
 * `ZeroServer` should always be run under `if __name__ == "__main__":`, as it uses multiprocessing.
 * `ZeroServer` creates the workers in different processes, so anything global in your code will be instantiated N times where N is the number of workers. So if you want to initiate them once, put them under `if __name__ == "__main__":`. But recommended to not use global vars. And Databases, Redis, other clients, creating them N times in different processes is fine and preferred.
