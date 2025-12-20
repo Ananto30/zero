@@ -48,7 +48,11 @@ class _TCPWorker:
             "Starting TCP worker %d on %s:%d", self._worker_id, self._host, self._port
         )
 
-        uvloop.install()
+        try:
+            uvloop.install()
+        except Exception as e:
+            logging.warning("Failed to install uvloop: %s", e)
+
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         self._main_task = loop.create_task(self._main())
