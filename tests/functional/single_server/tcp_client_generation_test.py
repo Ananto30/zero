@@ -1,15 +1,19 @@
 import os
+import sys
 
 import pytest
 
 import zero.error
 from zero.generate_client import generate_client_code_and_save
 
-from . import tcp_server
 
-
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="TCP tests not supported on Windows"
+)
 @pytest.mark.asyncio
 async def test_codegeneration():
+    from . import tcp_server
+
     await generate_client_code_and_save(
         tcp_server.HOST, tcp_server.PORT, ".", protocol="tcp", overwrite_dir=True
     )
@@ -186,8 +190,13 @@ class RpcClient:
     os.remove("rpc_client.py")
 
 
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="TCP tests not supported on Windows"
+)
 @pytest.mark.asyncio
 async def test_connection_fail_in_code_generation():
+    from . import tcp_server
+
     with pytest.raises(zero.error.ConnectionException):
         await generate_client_code_and_save(
             tcp_server.HOST, 5558, ".", protocol="tcp", overwrite_dir=True

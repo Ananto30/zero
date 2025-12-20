@@ -23,8 +23,7 @@ class _TCPWorker:
         worker_id: int,
     ):
         if sys.platform == "win32":
-            # windows need special event loop policy to work with zmq
-            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+            raise RuntimeError("TCPWorker is not supported on Windows")
 
         self._address = address
         self._rpc_router = rpc_router
@@ -81,12 +80,28 @@ class _TCPWorker:
             loop.add_signal_handler(sig, self._signal_handler)
 
         # Create listening server with SO_REUSEPORT for multiple workers on same port
-        self._server = await asyncio.start_server(
-            self._handle_client,
-            self._host,
-            self._port,
-            reuse_port=True,
-        )
+        # Note: On Windows, SO_REUSEPORT support is limited; we try with it first,
+        # but fall back to without it if needed
+        try:
+            self._server = await asyncio.start_server(
+                self._handle_client,
+                self._host,
+                self._port,
+                reuse_port=True,
+            )
+        except OSError as e:
+            # Fall back to binding without reuse_port on Windows
+            logging.warning(
+                "Worker %d: Failed to bind with reuse_port, retrying without: %s",
+                self._worker_id,
+                e,
+            )
+            self._server = await asyncio.start_server(
+                self._handle_client,
+                self._host,
+                self._port,
+                reuse_port=False,
+            )
 
         self._running = True
         addrs = ", ".join(

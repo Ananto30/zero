@@ -22,8 +22,7 @@ class AsyncTCPClient:
         pool_size: int,
     ):
         if sys.platform == "win32":
-            # windows need special event loop policy to work with zmq
-            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+            raise RuntimeError("AsyncTCPClient is not supported on Windows")
 
         self._encoder = encoder
         self._default_timeout = default_timeout
@@ -161,15 +160,19 @@ class AsyncTCPConnPool:
         if self._started:
             return
 
-        for _ in range(self._size):
+        # Create all connections concurrently for faster startup
+        async def create_connection() -> PooledTCPConn:
             reader, writer = await asyncio.open_connection(self._host, self._port)
-            conn = PooledTCPConn(
+            return PooledTCPConn(
                 reader=reader,
                 writer=writer,
                 encoder=self._encoder,
                 lock=asyncio.Lock(),
             )
-            self._all.append(conn)
+
+        conns = await asyncio.gather(*[create_connection() for _ in range(self._size)])
+        self._all.extend(conns)
+        for conn in conns:
             self._q.put_nowait(conn)
 
         self._started = True

@@ -17,7 +17,7 @@ from zero.protocols.tcp import TCPServer
 PORT = 5560
 HOST = "localhost"
 
-app = ZeroServer(port=PORT, protocol=TCPServer)
+app = ZeroServer(host=HOST, port=PORT, protocol=TCPServer)
 
 
 # None input

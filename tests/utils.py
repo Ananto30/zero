@@ -29,7 +29,7 @@ def _ping_until_success(port: int, timeout: int = 5):
 def _ping(port: int) -> bool:
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        sock.connect(("localhost", port))
+        sock.connect(("127.0.0.1", port))
         return True
     except socket.error:
         return False
@@ -38,7 +38,6 @@ def _ping(port: int) -> bool:
 
 
 def kill_process(process: Process):
-    pid = process.pid
     process.terminate()
     # allow the process a moment to exit cleanly
     process.join(timeout=5)
@@ -59,15 +58,8 @@ def _wait_for_process_to_die(process, timeout: float = 5.0):
     raise TimeoutError("Server did not die in time")
 
 
-def start_subprocess(module: str) -> subprocess.Popen:
+def start_subprocess(module: str, port: int) -> subprocess.Popen:
     p = subprocess.Popen(["python", "-m", module], shell=False)  # nosec
-    # Determine port based on module name
-    if "tcp_server" in module:
-        port = 5560
-    elif "threaded_server" in module:
-        port = 7777
-    else:
-        port = 5559
     _ping_until_success(port)
     return p
 
