@@ -87,9 +87,10 @@ class AsyncTCPClient:
                     if return_type is None
                     else self._encoder.decode_type(data, return_type)
                 )
-            else:
-                # Response contains error keys like __zerror__*, return as-is for check_response()
-                return response  # type: ignore
+
+            # Response contains error keys like __zerror__*, return as-is for check_response()
+            return response
+
         finally:
             await self._pool.release(conn, broken=conn_broken)
 
@@ -108,7 +109,7 @@ class AsyncTCPClient:
                 if loop.is_closed():
                     return
                 loop.run_until_complete(self._pool.close())
-            except Exception:
+            except Exception:  # pylint: disable=broad-except
                 pass
 
 
@@ -130,7 +131,7 @@ class PooledTCPConn:
         try:
             self.writer.close()
             await self.writer.wait_closed()
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             pass
 
 
@@ -185,7 +186,7 @@ class AsyncTCPConnPool:
             # Create a background task to replace the connection asynchronously
             asyncio.create_task(self._replace_connection_async(conn))
         else:
-            # TODO Add health check/reconnect logic here if needed
+            # Add health check/reconnect logic here if needed
             await self._q.put(conn)
 
     async def _replace_connection_async(self, old_conn: PooledTCPConn) -> None:
@@ -209,7 +210,7 @@ class AsyncTCPConnPool:
                 await self._q.put(new_conn)
                 logging.info("Replaced broken connection after %d retries", retry_count)
                 return
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 retry_count += 1
                 # Exponential backoff with max wait
                 wait_time = min(2 ** min(retry_count, 5), max_wait)
@@ -218,6 +219,7 @@ class AsyncTCPConnPool:
                     "waiting %ds before retry: %s",
                     retry_count,
                     wait_time,
+                    e,
                     exc_info=e,
                     stack_info=True,
                 )

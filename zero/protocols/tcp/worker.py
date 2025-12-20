@@ -144,7 +144,7 @@ class _TCPWorker:
                 "Worker %d: Client %s disconnected unexpectedly", self._worker_id, peer
             )
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logging.error(
                 "Worker %d: Error handling %s: %s",
                 self._worker_id,
@@ -157,7 +157,7 @@ class _TCPWorker:
             try:
                 writer.close()
                 await writer.wait_closed()
-            except Exception:
+            except Exception:  # pylint: disable=broad-except
                 pass
 
     async def _process_rpc(self, req: Dict[str, Any]) -> Dict[str, Any]:
@@ -203,7 +203,7 @@ class _TCPWorker:
 
                 return {"data": result}
 
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 logging.error(
                     "Worker %d: Error calling %s: %s",
                     self._worker_id,
@@ -213,7 +213,7 @@ class _TCPWorker:
                 )
                 return {"__zerror__server_exception": repr(e)}
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logging.error(
                 "Worker %d: Error processing RPC: %s", self._worker_id, e, exc_info=e
             )

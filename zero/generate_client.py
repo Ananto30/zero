@@ -8,7 +8,12 @@ from .rpc.client import AsyncZeroClient
 
 
 async def generate_client_code_and_save(
-    host, port, directory, protocol="zmq", async_client=False, overwrite_dir=False
+    host,
+    port,
+    directory,
+    protocol,
+    async_client=False,
+    overwrite_dir=False,
 ):
     if protocol == "tcp":
         # TCP protocol always uses async client

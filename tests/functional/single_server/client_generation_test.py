@@ -11,7 +11,7 @@ from . import server
 @pytest.mark.asyncio
 async def test_codegeneration():
     await generate_client_code_and_save(
-        server.HOST, server.PORT, ".", overwrite_dir=True
+        server.HOST, server.PORT, ".", "zmq", overwrite_dir=True
     )
     assert os.path.isfile("rpc_client.py")
 
@@ -187,14 +187,16 @@ class RpcClient:
 @pytest.mark.asyncio
 async def test_connection_fail_in_code_generation():
     with pytest.raises(zero.error.ConnectionException):
-        await generate_client_code_and_save(server.HOST, 5558, ".", overwrite_dir=True)
+        await generate_client_code_and_save(
+            server.HOST, 5558, ".", "zmq", overwrite_dir=True
+        )
     assert os.path.isfile("rpc_client.py") is False
 
 
 @pytest.mark.asyncio
 async def test_generate_code_in_different_directory():
     await generate_client_code_and_save(
-        server.HOST, server.PORT, "./test_codegen", overwrite_dir=True
+        server.HOST, server.PORT, "./test_codegen", "zmq", overwrite_dir=True
     )
     assert os.path.isfile("./test_codegen/rpc_client.py")
 
@@ -205,13 +207,13 @@ async def test_generate_code_in_different_directory():
 @pytest.mark.asyncio
 async def test_overwrite_dir_false(monkeypatch):
     await generate_client_code_and_save(
-        server.HOST, server.PORT, "./test_codegen", overwrite_dir=True
+        server.HOST, server.PORT, "./test_codegen", "zmq", overwrite_dir=True
     )
     file_hash = hash(open("./test_codegen/rpc_client.py", encoding="utf-8").read())
 
     monkeypatch.setattr("builtins.input", lambda _: "N")
     await generate_client_code_and_save(
-        server.HOST, server.PORT, "./test_codegen", overwrite_dir=False
+        server.HOST, server.PORT, "./test_codegen", "zmq", overwrite_dir=False
     )
     assert file_hash == hash(
         open("./test_codegen/rpc_client.py", encoding="utf-8").read()

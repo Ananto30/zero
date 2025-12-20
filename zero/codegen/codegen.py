@@ -61,9 +61,15 @@ class CodeGen:
             raise ValueError(f"Unsupported protocol: {protocol}")
 
         if protocol == "tcp":
-            client_import = "from zero import AsyncZeroClient\nfrom zero.protocols.tcp import AsyncTCPClient\n\n\n"
+            client_import = (
+                "from zero import AsyncZeroClient\n"
+                + "from zero.protocols.tcp import AsyncTCPClient\n\n\n"
+            )
             client_class_name = "AsyncZeroClient"
-            client_init = f'zero_client = AsyncZeroClient("{host}", {port}, protocol=AsyncTCPClient)\n\n\n'
+            client_init = (
+                f'zero_client = AsyncZeroClient("{host}", {port}, '
+                + "protocol=AsyncTCPClient)\n\n\n"
+            )
             is_async = True
         elif async_client:
             client_import = "from zero import AsyncZeroClient\n\n\n"
