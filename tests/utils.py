@@ -38,7 +38,6 @@ def _ping(port: int) -> bool:
 
 
 def kill_process(process: Process):
-    pid = process.pid
     process.terminate()
     # allow the process a moment to exit cleanly
     process.join(timeout=5)

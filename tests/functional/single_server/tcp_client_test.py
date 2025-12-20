@@ -1,12 +1,11 @@
 import asyncio
 import random
 import sys
-import time
 
 import pytest
 
 import zero.error
-from zero import AsyncZeroClient, ZeroClient
+from zero import AsyncZeroClient
 from zero.protocols.tcp import AsyncTCPClient
 
 
@@ -115,6 +114,7 @@ async def test_random_timeout_async():
             fails += 1
 
     assert fails >= should_fail
+
 
 # For some reason this is failing in MacOS
 # @pytest.mark.skipif(
