@@ -30,11 +30,10 @@ def threaded_server():
     kill_subprocess(process)
 
 
-@pytest.mark.skipif(
-    sys.platform == "win32", reason="TCP tests not supported on Windows"
-)
-@pytest.fixture(autouse=True, scope="session")
-def tcp_server():
-    process = start_subprocess("tests.functional.single_server.tcp_server", 5560)
-    yield
-    kill_subprocess(process)
+if sys.platform != "win32":
+
+    @pytest.fixture(autouse=True, scope="session")
+    def tcp_server():
+        process = start_subprocess("tests.functional.single_server.tcp_server", 5560)
+        yield
+        kill_subprocess(process)
