@@ -124,7 +124,9 @@ async def test_random_timeout_async():
 async def test_async_sleep():
     from . import tcp_server
 
-    client = AsyncZeroClient(tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient)
+    client = AsyncZeroClient(
+        tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient, pool_size=5
+    )
 
     async def task(sleep_time):
         res = await client.call("sleep_async", sleep_time)
