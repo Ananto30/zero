@@ -1,6 +1,11 @@
+import multiprocessing
+
 import pytest
 
 from tests.utils import kill_subprocess, start_subprocess
+
+# Set spawn method for multiprocessing to avoid fork() warnings with asyncio
+multiprocessing.set_start_method("spawn", force=True)
 
 try:
     from pytest_cov.embed import cleanup_on_sigterm
@@ -20,5 +25,12 @@ def base_server():
 @pytest.fixture(autouse=True, scope="session")
 def threaded_server():
     process = start_subprocess("tests.functional.single_server.threaded_server")
+    yield
+    kill_subprocess(process)
+
+
+@pytest.fixture(autouse=True, scope="session")
+def tcp_server():
+    process = start_subprocess("tests.functional.single_server.tcp_server")
     yield
     kill_subprocess(process)

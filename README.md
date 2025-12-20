@@ -27,7 +27,7 @@
 
 **Features**:
 
-* Zero provides **faster communication** (see [benchmarks](https://github.com/Ananto30/zero#benchmarks-)) between the microservices using [zeromq](https://zeromq.org/) under the hood.
+* Zero provides **faster communication** (see [benchmarks](https://github.com/Ananto30/zero#benchmarks-)) between the microservices using [zeromq](https://zeromq.org/) or raw TCP under the hood.
 * Zero uses messages for communication and traditional **client-server** or **request-reply** pattern is supported.
 * Support for both **async** and **sync**.
 * The base server (ZeroServer) **utilizes all cpu cores**.
@@ -126,6 +126,56 @@ pip install zeroapi
       loop.run_until_complete(hello())
   ```
 
+### TCP client/server
+
+* By default Zero uses ZeroMQ for communication. But if you want to use raw TCP, you can use the protocol parameter.
+
+  ```python
+  from zero import ZeroServer
+  from zero.protocols.tcp import TCPServer
+
+  app = ZeroServer(port=5559, protocol=TCPServer)  # <-- Note the protocol parameter
+
+  @app.register_rpc
+  def echo(msg: str) -> str:
+  return msg
+
+  @app.register_rpc
+  async def hello_world() -> str:
+  return "hello world"
+
+
+  if __name__ == "__main__":
+  app.run()
+  ```
+
+* In that case the client should also use TCP protocol.
+
+  ```python
+  import asyncio
+
+  from zero import AsyncZeroClient
+  from zero import ZeroClient
+  from zero.protocols.tcp import AsyncTCPClient
+  zero_client = ZeroClient("localhost", 5559, protocol=AsyncTCPClient)  # <-- Note the protocol parameter
+
+  async def echo():
+      resp = await zero_client.call("echo", "Hi there!")
+      print(resp)
+
+  async def hello():
+      resp = await zero_client.call("hello_world", None)
+      print(resp)
+
+
+  if __name__ == "__main__":
+      loop = asyncio.get_event_loop()
+      loop.run_until_complete(echo())
+      loop.run_until_complete(hello())
+  ```
+
+TCP has better performance and throughput than ZeroMQ. We might make it the default protocol in future releases.
+
 # Serialization 📦
 
 ## Default serializer
@@ -187,7 +237,7 @@ Easy to use code generation tool is also provided with schema support!
   Using `zero.generate_client` generate client code for even remote servers using the `--host` and `--port` options.
 
   ```shell
-  python -m zero.generate_client --host localhost --port 5559 --overwrite-dir ./my_client
+  python -m zero.generate_client --host localhost --port 5559 --overwrite-dir ./my_client --protocol zmq
   ```
 
 * It will generate client like this -

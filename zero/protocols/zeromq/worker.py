@@ -6,9 +6,9 @@ from typing import Any, Optional
 from msgspec import ValidationError
 
 from zero import config
-from zero.codegen.codegen import CodeGen
 from zero.encoder.protocols import Encoder
 from zero.error import SERVER_PROCESSING_ERROR
+from zero.protocols.common_rpc import execute_common_rpc
 from zero.utils.async_to_sync import async_to_sync
 from zero.zeromq_patterns.factory import get_worker
 
@@ -29,12 +29,6 @@ class _Worker:
         self._rpc_return_type_map = rpc_return_type_map
 
         self._loop = asyncio.new_event_loop() or asyncio.get_event_loop()
-
-        self.codegen = CodeGen(
-            self._rpc_router,
-            self._rpc_input_type_map,
-            self._rpc_return_type_map,
-        )
 
     def start_dealer_worker(self, worker_id):
         worker = get_worker(config.ZEROMQ_PATTERN, worker_id)
@@ -78,23 +72,22 @@ class _Worker:
                 {"__zerror__server_exception": SERVER_PROCESSING_ERROR}
             )
 
-    def execute_rpc(self, rpc: str, msg: Any):
-        if rpc == "get_rpc_contract":
-            return self.generate_rpc_contract(msg)
+    def execute_rpc(self, func_name: str, msg: Any):
+        if common_rpc := execute_common_rpc(
+            func_name,
+            msg,
+            self._rpc_router,
+            self._rpc_input_type_map,
+            self._rpc_return_type_map,
+        ):
+            return common_rpc
 
-        if rpc == "connect":
-            return "connected"
-
-        if rpc not in self._rpc_router:
-            logging.error("Function `%s` not found!", rpc)
-            return {"__zerror__function_not_found": f"Function `{rpc}` not found!"}
-
-        func, is_coro = self._rpc_router[rpc]
+        func, is_coro = self._rpc_router[func_name]
         ret = None
 
         try:
             func_to_call = async_to_sync(func) if is_coro else func
-            if self._rpc_input_type_map.get(rpc):
+            if self._rpc_input_type_map.get(func_name):
                 ret = func_to_call(msg)
             else:
                 ret = func_to_call()
@@ -104,14 +97,6 @@ class _Worker:
             ret = {"__zerror__server_exception": repr(exc)}
 
         return ret
-
-    def generate_rpc_contract(self, msg):
-        try:
-            return self.codegen.generate_code(msg[0], msg[1])
-
-        except Exception as exc:  # pylint: disable=broad-except
-            logging.exception(exc)
-            return {"__zerror__failed_to_generate_client_code": str(exc)}
 
     @classmethod
     def spawn_worker(

@@ -4,8 +4,9 @@ import time
 from concurrent.futures import ProcessPoolExecutor
 
 from zero import AsyncZeroClient
+from zero.protocols.tcp import AsyncTCPClient
 
-async_client = AsyncZeroClient("localhost", 5559)
+async_client = AsyncZeroClient("localhost", 5559, protocol=AsyncTCPClient)
 
 
 async def task(semaphore, items):

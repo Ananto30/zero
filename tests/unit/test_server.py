@@ -1,16 +1,11 @@
-import sys
 import unittest
 from typing import Any, Tuple, Type
 from unittest.mock import patch
 
 import pytest
 
-# import pytest
-import zmq
-
 from zero import ZeroServer
 from zero.encoder.protocols import Encoder
-from zero.zeromq_patterns.interfaces import ZeroMQBroker
 
 DEFAULT_PORT = 5559
 DEFAULT_HOST = "0.0.0.0"

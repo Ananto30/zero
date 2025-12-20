@@ -1,12 +1,16 @@
+import multiprocessing
 import socket
 import subprocess  # nosec
 import time
 import typing
 from multiprocessing import Process
 
+# Set spawn method to avoid fork() warnings with asyncio
+ctx = multiprocessing.get_context("spawn")
+
 
 def start_server(port: int, runner: typing.Callable) -> Process:
-    p = Process(target=runner, args=(port,))
+    p = ctx.Process(target=runner, args=(port,))
     p.start()
     _ping_until_success(port)
     return p
@@ -57,7 +61,14 @@ def _wait_for_process_to_die(process, timeout: float = 5.0):
 
 def start_subprocess(module: str) -> subprocess.Popen:
     p = subprocess.Popen(["python", "-m", module], shell=False)  # nosec
-    _ping_until_success(5559)
+    # Determine port based on module name
+    if "tcp_server" in module:
+        port = 5560
+    elif "threaded_server" in module:
+        port = 7777
+    else:
+        port = 5559
+    _ping_until_success(port)
     return p
 
 

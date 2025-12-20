@@ -1,9 +1,7 @@
 import logging
 import os
 from asyncio import iscoroutinefunction
-from importlib import import_module
 from typing import (
-    TYPE_CHECKING,
     Any,
     Callable,
     Coroutine,
@@ -20,7 +18,7 @@ from zero.encoder.generic import GenericEncoder
 from zero.protocols.zeromq.server import ZMQServer
 from zero.utils import type_util
 
-from .protocols import ZeroServerProtocol
+from ..protocols.blueprint import ZeroServerProtocol
 
 
 class ZeroServer:

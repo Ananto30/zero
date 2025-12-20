@@ -1,12 +1,23 @@
 import argparse
+import asyncio
 import os
 
-from .rpc.client import ZeroClient
+from .protocols.tcp import AsyncTCPClient
+from .protocols.zeromq import AsyncZMQClient
+from .rpc.client import AsyncZeroClient
 
 
-def generate_client_code_and_save(host, port, directory, overwrite_dir=False):
-    zero_client = ZeroClient(host, port)
-    code = zero_client.call("get_rpc_contract", [host, port])
+async def generate_client_code_and_save(
+    host, port, directory, protocol="zmq", overwrite_dir=False
+):
+    if protocol == "tcp":
+        zero_client = AsyncZeroClient(host, port, protocol=AsyncTCPClient)
+    elif protocol == "zmq":
+        zero_client = AsyncZeroClient(host, port, protocol=AsyncZMQClient)
+    else:
+        raise ValueError(f"Unsupported protocol: {protocol}")
+
+    code = await zero_client.call("get_rpc_contract", [host, port])
 
     if isinstance(code, dict) and "__zerror__failed_to_generate_client_code" in code:
         print(
@@ -39,10 +50,14 @@ if __name__ == "__main__":  # pragma: no cover
     required.add_argument("--host", required=True)
     required.add_argument("--port", required=True, type=int)
     optional.add_argument("--overwrite-dir", action="store_true")
+    optional.add_argument("--protocol", choices=["zmq", "tcp"], default="zmq")
     args = parser.parse_args()
-    generate_client_code_and_save(
-        args.host,
-        args.port,
-        args.directory,
-        args.overwrite_dir,
+
+    asyncio.run(
+        generate_client_code_and_save(
+            args.host,
+            args.port,
+            args.directory,
+            args.overwrite_dir,
+        )
     )

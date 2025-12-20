@@ -39,6 +39,7 @@ class ZeroClientProtocol(Protocol):
         address: str,
         default_timeout: int,
         encoder: Encoder,
+        pool_size: int,
     ): ...
 
     def call(
@@ -59,6 +60,7 @@ class AsyncZeroClientProtocol(Protocol):
         address: str,
         default_timeout: int,
         encoder: Encoder,
+        pool_size: int,
     ): ...
 
     async def call(

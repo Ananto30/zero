@@ -14,11 +14,11 @@ def hello() -> str:
 
 
 async def async_echo(msg: str) -> str:
-    return await async_client.call("echo", msg)  # type: ignore
+    return await async_client.call("echo", msg)
 
 
 async def async_hello() -> str:
-    return await async_client.call("hello", None)  # type: ignore
+    return await async_client.call("hello", None)
 
 
 def run(port):

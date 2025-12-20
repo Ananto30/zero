@@ -1,10 +1,10 @@
-from typing import TYPE_CHECKING, Optional, Type, TypeVar
+from typing import Optional, Type, TypeVar
 
 from zero.encoder import Encoder
 from zero.encoder.generic import GenericEncoder
 from zero.error import MethodNotFoundException, RemoteException, ValidationException
+from zero.protocols.blueprint import AsyncZeroClientProtocol, ZeroClientProtocol
 from zero.protocols.zeromq.client import AsyncZMQClient, ZMQClient
-from zero.rpc.protocols import AsyncZeroClientProtocol, ZeroClientProtocol
 from zero.utils.type_util import AllowedType
 
 T = TypeVar("T")
@@ -18,6 +18,7 @@ class ZeroClient:
         default_timeout: int = 2000,
         encoder: Type[Encoder] = GenericEncoder,
         protocol: Type[ZeroClientProtocol] = ZMQClient,
+        pool_size: int = 50,
     ):
         """
         ZeroClient provides the client interface for calling the ZeroServer.
@@ -52,6 +53,9 @@ class ZeroClient:
             Protocol client class to use for communication.
             Default is ZMQClient.
             Must implement the ZeroClientProtocol interface.
+
+        pool_size: int
+            Size of the connection pool. Default is 50.
         """
         self._address = f"tcp://{host}:{port}"
         self._default_timeout = default_timeout
@@ -71,6 +75,7 @@ class ZeroClient:
             self._address,
             self._default_timeout,
             self._encoder,
+            pool_size,
         )
 
     def call(
@@ -137,6 +142,7 @@ class AsyncZeroClient:
         default_timeout: int = 2000,
         encoder: Type[Encoder] = GenericEncoder,
         protocol: Type[AsyncZeroClientProtocol] = AsyncZMQClient,
+        pool_size: int = 50,
     ):
         """
         AsyncZeroClient provides the asynchronous client interface for calling the ZeroServer.
@@ -174,6 +180,9 @@ class AsyncZeroClient:
             Protocol client class to use for communication.
             Default is AsyncZMQClient.
             Must implement the AsyncZeroClientProtocol interface.
+
+        pool_size: int
+            Size of the connection pool. Default is 50.
         """
         self._address = f"tcp://{host}:{port}"
         self._default_timeout = default_timeout
@@ -193,6 +202,7 @@ class AsyncZeroClient:
             self._address,
             self._default_timeout,
             self._encoder,
+            pool_size,
         )
 
     async def call(
@@ -201,7 +211,7 @@ class AsyncZeroClient:
         msg: AllowedType,
         timeout: Optional[int] = None,
         return_type: Optional[Type[T]] = None,
-    ) -> Optional[T]:
+    ) -> T:
         """
         Call the rpc function resides on the ZeroServer.
 
@@ -248,7 +258,7 @@ class AsyncZeroClient:
             rpc_func_name, msg, _timeout, return_type
         )
         check_response(resp_data)
-        return resp_data
+        return resp_data  # type: ignore
 
     def close(self):
         self._client_inst.close()

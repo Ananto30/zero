@@ -22,6 +22,7 @@ class ZMQClient:
         address: str,
         default_timeout: int,
         encoder: Encoder,
+        pool_size: int,
     ):
         self._encoder = encoder or MsgspecEncoder()
 
@@ -58,6 +59,7 @@ class AsyncZMQClient:
         address: str,
         default_timeout: int,
         encoder: Encoder,
+        pool_size: int,
     ):
         self._encoder = encoder
 

@@ -5,13 +5,13 @@ import pytest
 import zero.error
 from zero.generate_client import generate_client_code_and_save
 
-from . import server
+from . import tcp_server
 
 
 @pytest.mark.asyncio
 async def test_codegeneration():
     await generate_client_code_and_save(
-        server.HOST, server.PORT, ".", overwrite_dir=True
+        tcp_server.HOST, tcp_server.PORT, ".", protocol="tcp", overwrite_dir=True
     )
     assert os.path.isfile("rpc_client.py")
 
@@ -33,7 +33,7 @@ import uuid
 from zero import ZeroClient
 
 
-zero_client = ZeroClient("localhost", 5559)
+zero_client = ZeroClient("localhost", 5560)
 
 class Color(enum.Enum):
     RED = 1
@@ -187,35 +187,7 @@ class RpcClient:
 @pytest.mark.asyncio
 async def test_connection_fail_in_code_generation():
     with pytest.raises(zero.error.ConnectionException):
-        await generate_client_code_and_save(server.HOST, 5558, ".", overwrite_dir=True)
+        await generate_client_code_and_save(
+            tcp_server.HOST, 5558, ".", protocol="tcp", overwrite_dir=True
+        )
     assert os.path.isfile("rpc_client.py") is False
-
-
-@pytest.mark.asyncio
-async def test_generate_code_in_different_directory():
-    await generate_client_code_and_save(
-        server.HOST, server.PORT, "./test_codegen", overwrite_dir=True
-    )
-    assert os.path.isfile("./test_codegen/rpc_client.py")
-
-    os.remove("./test_codegen/rpc_client.py")
-    os.rmdir("./test_codegen")
-
-
-@pytest.mark.asyncio
-async def test_overwrite_dir_false(monkeypatch):
-    await generate_client_code_and_save(
-        server.HOST, server.PORT, "./test_codegen", overwrite_dir=True
-    )
-    file_hash = hash(open("./test_codegen/rpc_client.py", encoding="utf-8").read())
-
-    monkeypatch.setattr("builtins.input", lambda _: "N")
-    await generate_client_code_and_save(
-        server.HOST, server.PORT, "./test_codegen", overwrite_dir=False
-    )
-    assert file_hash == hash(
-        open("./test_codegen/rpc_client.py", encoding="utf-8").read()
-    )
-
-    os.remove("./test_codegen/rpc_client.py")
-    os.rmdir("./test_codegen")

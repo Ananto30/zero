@@ -2,8 +2,9 @@ import asyncio
 import time
 
 from zero import ZeroServer
+from zero.protocols.tcp import TCPServer
 
-app = ZeroServer(port=5559)
+app = ZeroServer(port=5559, protocol=TCPServer)
 
 
 @app.register_rpc

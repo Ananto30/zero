@@ -11,7 +11,7 @@ get = app.router.get
 
 @get("/hello")
 def hello():
-    resp = client.call("hello_world", None)
+    resp = client.call("hello_world", None, return_type=str)
     return text(resp)
 
 

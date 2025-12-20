@@ -1,24 +1,11 @@
-version: '3'
-
 services:
   # blacksheep gateway
   # gateway:
   #   build: .
   #   container_name: gateway
-  #   command: uvicorn gateway_blacksheep:app --host 0.0.0.0 --port 8000 --workers 8 --no-access-log
+  #   command: uvicorn zmq__gateway_blacksheep:app --host 0.0.0.0 --port 8000 --workers 8 --no-access-log
   #   ports:
   #     - "8000:8000"
-  #   depends_on:
-  #     - server
-  #     - redis
-
-  # aiohttp gateway
-  # gateway:
-  #   build: .
-  #   container_name: gateway
-  #   command: gunicorn gateway_aiohttp:app --bind 0.0.0.0:8766 --worker-class aiohttp.worker.GunicornWebWorker --workers 8 --log-level  warning
-  #   ports:
-  #     - "8766:8766"
   #   depends_on:
   #     - server
   #     - redis
@@ -27,7 +14,7 @@ services:
   gateway:
     build: .
     container_name: gateway
-    command: sanic gateway_sanic:app --host 0.0.0.0 --port 8000 --workers 8 --no-access-logs
+    command: sanic zmq__gateway_sanic:app --host 0.0.0.0 --port 8000 --workers 8 --no-access-logs
     ports:
       - "8000:8000"
     depends_on:
@@ -37,7 +24,7 @@ services:
   server:
     build: .
     container_name: server
-    command: python server.py
+    command: python zmq__server.py
     ports:
       - "5559:5559"
     # cpus: '0.50'
@@ -47,28 +34,28 @@ services:
     image: eqalpha/keydb:latest
     container_name: redis
     ports:
-      - "6379:6379"
+      - "6378:6379"
 
   wrk-hello:
     image: skandyla/wrk
-    command: -t 8 -c 80 -d 30s --latency http://gateway:8000/hello
+    command: -t 8 -c 80 -d 10s --latency http://gateway:8000/hello
     depends_on:
       - gateway
 
   wrk-order:
     image: skandyla/wrk
-    command: -t 8 -c 80 -d 30s --latency http://gateway:8000/order
+    command: -t 8 -c 80 -d 10s --latency http://gateway:8000/order
     depends_on:
       - gateway
 
   wrk-hello-async:
     image: skandyla/wrk
-    command: -t 8 -c 80 -d 30s --latency http://gateway:8000/async_hello
+    command: -t 8 -c 80 -d 10s --latency http://gateway:8000/async_hello
     depends_on:
       - gateway
 
   wrk-order-async:
     image: skandyla/wrk
-    command: -t 8 -c 80 -d 30s --latency http://gateway:8000/async_order
+    command: -t 8 -c 80 -d 10s --latency http://gateway:8000/async_order
     depends_on:
       - gateway

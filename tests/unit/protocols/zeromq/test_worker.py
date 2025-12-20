@@ -80,26 +80,6 @@ class TestWorker(unittest.TestCase):
         mock_worker.close.assert_called_once()
 
     @patch("zero.protocols.zeromq.worker.async_to_sync", side_effect=lambda x: x)
-    def test_handle_msg_get_rpc_contract(self, mock_async_to_sync):
-        worker = _Worker(
-            self.rpc_router,
-            self.device_comm_channel,
-            self.encoder,
-            self.rpc_input_type_map,
-            self.rpc_return_type_map,
-        )
-        msg = ["rpc_name", "msg_data"]
-        expected_response = b"generated_code"
-
-        with patch.object(
-            worker, "generate_rpc_contract", return_value=expected_response
-        ) as mock_generate_rpc_contract:
-            response = worker.execute_rpc("get_rpc_contract", msg)
-
-            mock_generate_rpc_contract.assert_called_once_with(msg)
-            self.assertEqual(response, expected_response)
-
-    @patch("zero.protocols.zeromq.worker.async_to_sync", side_effect=lambda x: x)
     def test_handle_msg_rpc_call_exception(self, mock_async_to_sync):
         self.rpc_router["failing_function"] = (
             Mock(side_effect=Exception("RPC Exception")),
@@ -170,43 +150,6 @@ class TestWorker(unittest.TestCase):
             response = worker.execute_rpc("some_function", msg)
 
         self.assertEqual(response, expected_response)
-
-    def test_generate_rpc_contract(self):
-        worker = _Worker(
-            self.rpc_router,
-            self.device_comm_channel,
-            self.encoder,
-            self.rpc_input_type_map,
-            self.rpc_return_type_map,
-        )
-        msg = ["rpc_name", "msg_data"]
-        expected_response = b"generated_code"
-
-        with patch.object(
-            worker.codegen, "generate_code", return_value=expected_response
-        ) as mock_generate_code:
-            response = worker.generate_rpc_contract(msg)
-
-            mock_generate_code.assert_called_once_with("rpc_name", "msg_data")
-            self.assertEqual(response, expected_response)
-
-    def test_generate_rpc_contract_exception_handling(self):
-        worker = _Worker(
-            self.rpc_router,
-            self.device_comm_channel,
-            self.encoder,
-            self.rpc_input_type_map,
-            self.rpc_return_type_map,
-        )
-
-        with patch.object(
-            worker.codegen, "generate_code", side_effect=Exception("Codegen Exception")
-        ):
-            response = worker.generate_rpc_contract(["rpc_name", "msg_data"])
-            self.assertEqual(
-                response,
-                {"__zerror__failed_to_generate_client_code": "Codegen Exception"},
-            )
 
 
 class TestWorkerSpawn(unittest.TestCase):

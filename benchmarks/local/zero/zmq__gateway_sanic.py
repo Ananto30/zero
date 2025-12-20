@@ -4,6 +4,7 @@ from sanic import Sanic
 from sanic.response import json, text
 
 from zero import AsyncZeroClient, ZeroClient
+from zero.protocols.tcp import AsyncTCPClient
 
 # TODO: why we can't use uvloop?
 try:
@@ -18,7 +19,7 @@ except ImportError:
 app = Sanic(__name__)
 
 client = ZeroClient("server", 5559)
-async_client = AsyncZeroClient("server", 5559)
+async_client = AsyncZeroClient("server", 5559, protocol=AsyncTCPClient)
 
 
 @app.route("/hello")

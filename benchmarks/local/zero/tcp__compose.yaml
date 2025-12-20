@@ -1,0 +1,49 @@
+services:
+  # blacksheep gateway
+  # gateway:
+  #   build: .
+  #   container_name: gateway
+  #   command: uvicorn tcp__gateway_blacksheep:app --host 0.0.0.0 --port 8000 --workers 8 --no-access-log
+  #   ports:
+  #     - "8000:8000"
+  #   depends_on:
+  #     - server
+  #     - redis
+
+  # sanic gateway
+  gateway:
+    build: .
+    container_name: gateway
+    command: sanic tcp__gateway_sanic:app --host 0.0.0.0 --port 8000 --workers 8 --no-access-logs
+    ports:
+      - "8000:8000"
+    depends_on:
+      - server
+      - redis
+
+  server:
+    build: .
+    container_name: server
+    command: python tcp__server.py
+    ports:
+      - "5559:5559"
+    # cpus: '0.50'
+    # mem_limit: 256m
+
+  redis:
+    image: eqalpha/keydb:latest
+    container_name: redis
+    ports:
+      - "6378:6379"
+
+  wrk-hello-async:
+    image: skandyla/wrk
+    command: -t 8 -c 80 -d 10s --latency http://gateway:8000/async_hello
+    depends_on:
+      - gateway
+
+  wrk-order-async:
+    image: skandyla/wrk
+    command: -t 8 -c 80 -d 10s --latency http://gateway:8000/async_order
+    depends_on:
+      - gateway
