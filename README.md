@@ -27,7 +27,7 @@
 
 **Features**:
 
-* Zero provides **faster communication** (see [benchmarks](https://github.com/Ananto30/zero#benchmarks-)) between the microservices using [zeromq](https://zeromq.org/) under the hood.
+* Zero provides **faster communication** (see [benchmarks](https://github.com/Ananto30/zero#benchmarks-)) between the microservices using [zeromq](https://zeromq.org/) or raw TCP under the hood.
 * Zero uses messages for communication and traditional **client-server** or **request-reply** pattern is supported.
 * Support for both **async** and **sync**.
 * The base server (ZeroServer) **utilizes all cpu cores**.
@@ -126,6 +126,56 @@ pip install zeroapi
       loop.run_until_complete(hello())
   ```
 
+### TCP client/server
+
+* By default Zero uses ZeroMQ for communication. But if you want to use raw TCP, you can use the protocol parameter.
+
+  ```python
+  from zero import ZeroServer
+  from zero.protocols.tcp import TCPServer
+
+  app = ZeroServer(port=5559, protocol=TCPServer)  # <-- Note the protocol parameter
+
+  @app.register_rpc
+  def echo(msg: str) -> str:
+  return msg
+
+  @app.register_rpc
+  async def hello_world() -> str:
+  return "hello world"
+
+
+  if __name__ == "__main__":
+  app.run()
+  ```
+
+* In that case the client should also use TCP protocol.
+
+  ```python
+  import asyncio
+
+  from zero import AsyncZeroClient
+  from zero import ZeroClient
+  from zero.protocols.tcp import AsyncTCPClient
+  zero_client = ZeroClient("localhost", 5559, protocol=AsyncTCPClient)  # <-- Note the protocol parameter
+
+  async def echo():
+      resp = await zero_client.call("echo", "Hi there!")
+      print(resp)
+
+  async def hello():
+      resp = await zero_client.call("hello_world", None)
+      print(resp)
+
+
+  if __name__ == "__main__":
+      loop = asyncio.get_event_loop()
+      loop.run_until_complete(echo())
+      loop.run_until_complete(hello())
+  ```
+
+TCP has better performance and throughput than ZeroMQ. We might make it the default protocol in future releases.
+
 # Serialization 📦
 
 ## Default serializer
@@ -161,6 +211,39 @@ def save_order(order: Order) -> bool:
     ...
 ```
 
+## Pydantic support
+
+Pydantic models are also supported out of the box. Just use `pydantic.BaseModel` as the argument or return type and install zero with pydantic extra.
+
+```
+pip install zeroapi[pydantic]
+```
+
+## Custom serializer
+
+If you want to use a custom serializer, you can create your own serializer by implementing the [`Encoder`](./zero/encoder/protocols.py) interface.
+
+```python
+class MyCustomEncoder(Encoder):
+    def encode(self, obj: Any) -> bytes:
+        # implement your custom serialization logic here
+        ...
+
+    def decode(self, data: bytes, type_hint: Type[Any]) -> Any:
+        # implement your custom deserialization logic here
+        ...
+```
+
+Then pass the serializer to **both**\* server and client.
+
+```python
+from zero import ZeroServer, ZeroClient
+from my_custom_encoder import MyCustomEncoder
+
+app = ZeroServer(port=5559, encoder=MyCustomEncoder)
+zero_client = ZeroClient("localhost", 5559, encoder=MyCustomEncoder)
+```
+
 ## Return type on client
 
 The return type of the RPC function can be any of the [supported types](https://jcristharif.com/msgspec/supported-types.html). If `return_type` is set in the client `call` method, then the return type will be converted to that type.
@@ -180,14 +263,14 @@ def get_order(id: str) -> Order:
 
 Easy to use code generation tool is also provided with schema support!
 
-* After running the server, like above, it calls the server to get the client code.
+* After running the server, like above, you can generate client code using the `zero.generate_client` module.
 
   This makes it easy to get the latest schemas on live servers and not to maintain other file sharing approach to manage schemas.
 
-  Using `zero.generate_client` generate client code for even remote servers using the `--host` and `--port` options.
+  Using `zero.generate_client` generate client code for even remote servers using the `--host`, `--port`, and `--protocol` options.
 
   ```shell
-  python -m zero.generate_client --host localhost --port 5559 --overwrite-dir ./my_client
+  python -m zero.generate_client --host localhost --port 5559 --protocol zmq --overwrite-dir ./my_client 
   ```
 
 * It will generate client like this -
@@ -240,7 +323,15 @@ Easy to use code generation tool is also provided with schema support!
       client.save_order(Order(id=1, amount=100.0, created_at=datetime.now()))
   ```
 
-*If you want a async client just replace `ZeroClient` with `AsyncZeroClient` in the generated code, and update the methods to be async. (Next version will have async client generation, hopefully 😅)*
+### Async client code generation
+
+* To generate async client code, use the `--async` flag.
+
+  ```shell
+  python -m zero.generate_client --host localhost --port 5559 --protocol zmq --overwrite-dir ./my_async_client --async
+  ```
+
+\*`tcp` protocol will always generate async client.
 
 # Important notes! 📝
 
