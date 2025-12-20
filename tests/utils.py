@@ -3,6 +3,7 @@ import socket
 import subprocess  # nosec
 import time
 import typing
+import sys
 from multiprocessing import Process
 
 # Set spawn method to avoid fork() warnings with asyncio
@@ -75,7 +76,8 @@ def start_subprocess(module: str) -> subprocess.Popen:
         port = 7777
     else:
         port = 5559
-    _ping_until_success(port)
+    timeout = 10 if sys.platform == "win32" else 5
+    _ping_until_success(port, timeout=timeout)
     return p
 
 
