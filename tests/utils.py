@@ -29,20 +29,28 @@ def _ping_until_success(port: int, timeout: int = 5):
 
 
 def _ping(port: int) -> bool:
-    # Try both IPv4 and IPv6 loopback addresses because on Windows
-    # "localhost" may resolve to ::1 (IPv6) while the server could be
-    # listening on IPv4 only (0.0.0.0). Try IPv4 first, then IPv6.
-    for host in ("127.0.0.1", "::1"):
-        family = socket.AF_INET6 if ":" in host else socket.AF_INET
-        sock = socket.socket(family, socket.SOCK_STREAM)
+    # Try multiple addresses since Windows may have different name resolution behavior
+    # Try localhost hostname first, then IPv4 and IPv6 loopback addresses
+    hosts_to_try = ("localhost", "127.0.0.1", "::1")
+    
+    for host in hosts_to_try:
         try:
+            if ":" in host and host != "localhost":
+                # IPv6 address
+                family = socket.AF_INET6
+            else:
+                # Hostname or IPv4
+                family = socket.AF_INET
+            
+            sock = socket.socket(family, socket.SOCK_STREAM)
             sock.settimeout(0.5)
-            sock.connect((host, port))
-            return True
-        except socket.error:
+            try:
+                sock.connect((host, port))
+                return True
+            finally:
+                sock.close()
+        except (socket.error, OSError):
             continue
-        finally:
-            sock.close()
     return False
 
 
@@ -89,7 +97,8 @@ def start_subprocess(module: str) -> subprocess.Popen:
     else:
         port = 5559
 
-    timeout = 5
+    # Increase timeout for Windows where socket binding can be slower
+    timeout = 15
 
     lines: list[str] = []
 
@@ -107,9 +116,11 @@ def start_subprocess(module: str) -> subprocess.Popen:
     start = time.time()
     # Wait for an explicit listening message from the worker which indicates
     # asyncio.start_server has completed and the socket is bound.
+    # For TCP servers with multiple workers, we look for worker listening messages.
     ready_markers = (
-        "listening on",
-        f"Starting TCP server at tcp://0.0.0.0:{port}",
+        "listening on",  # TCP workers log this when bound
+        f"Starting TCP server at tcp://localhost:{port}",  # Updated for localhost binding
+        f"Starting TCP server at tcp://0.0.0.0:{port}",  # Legacy marker
         f"Starting server on port {port}",
     )
 
