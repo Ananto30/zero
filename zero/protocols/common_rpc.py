@@ -41,7 +41,7 @@ def _generate_rpc_contract(
             rpc_input_type_map,
             rpc_return_type_map,
         )
-        return codegen.generate_code(msg[0], msg[1])
+        return codegen.generate_code(msg[0], msg[1], msg[2], msg[3])
 
     except Exception as exc:  # pylint: disable=broad-except
         logging.exception(exc)

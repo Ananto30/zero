@@ -8,16 +8,20 @@ from .rpc.client import AsyncZeroClient
 
 
 async def generate_client_code_and_save(
-    host, port, directory, protocol="zmq", overwrite_dir=False
+    host, port, directory, protocol="zmq", async_client=False, overwrite_dir=False
 ):
     if protocol == "tcp":
+        # TCP protocol always uses async client
+        async_client = True
         zero_client = AsyncZeroClient(host, port, protocol=AsyncTCPClient)
     elif protocol == "zmq":
         zero_client = AsyncZeroClient(host, port, protocol=AsyncZMQClient)
     else:
         raise ValueError(f"Unsupported protocol: {protocol}")
 
-    code = await zero_client.call("get_rpc_contract", [host, port])
+    code = await zero_client.call(
+        "get_rpc_contract", [host, port, protocol, async_client], timeout=10000
+    )
 
     if isinstance(code, dict) and "__zerror__failed_to_generate_client_code" in code:
         print(
@@ -46,11 +50,41 @@ if __name__ == "__main__":  # pragma: no cover
     parser._action_groups.pop()  # pylint: disable=protected-access
     required = parser.add_argument_group("required arguments")
     optional = parser.add_argument_group("optional arguments")
-    parser.add_argument("directory")
-    required.add_argument("--host", required=True)
-    required.add_argument("--port", required=True, type=int)
-    optional.add_argument("--overwrite-dir", action="store_true")
-    optional.add_argument("--protocol", choices=["zmq", "tcp"], default="zmq")
+    parser.add_argument(
+        "directory",
+        type=str,
+        help="Directory to save generated client code",
+    )
+    required.add_argument(
+        "--host",
+        required=True,
+        type=str,
+        help="Server host",
+    )
+    required.add_argument(
+        "--port",
+        required=True,
+        type=int,
+        help="Server port",
+    )
+    optional.add_argument(
+        "--protocol",
+        choices=["zmq", "tcp"],
+        required=True,
+        help="Protocol to use",
+    )
+    optional.add_argument(
+        "--overwrite-dir",
+        action="store_true",
+        help="Overwrite existing directory",
+    )
+    optional.add_argument(
+        "--async",
+        dest="async_client",
+        action="store_true",
+        default=False,
+        help="Generate async client code (default is sync for zmq, always async for tcp)",
+    )
     args = parser.parse_args()
 
     asyncio.run(
@@ -58,6 +92,8 @@ if __name__ == "__main__":  # pragma: no cover
             args.host,
             args.port,
             args.directory,
-            args.overwrite_dir,
+            protocol=args.protocol,
+            async_client=args.async_client,
+            overwrite_dir=args.overwrite_dir,
         )
     )
