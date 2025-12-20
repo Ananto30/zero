@@ -2,6 +2,7 @@ import multiprocessing
 import socket
 import subprocess  # nosec
 import sys
+import threading
 import time
 import typing
 from multiprocessing import Process
@@ -68,7 +69,16 @@ def _wait_for_process_to_die(process, timeout: float = 5.0):
 
 
 def start_subprocess(module: str) -> subprocess.Popen:
-    p = subprocess.Popen(["python", "-m", module], shell=False)  # nosec
+    # Stream subprocess stdout so we can detect a readiness message instead of
+    # relying solely on a port ping timeout. This is more robust across OSes.
+    p = subprocess.Popen(
+        ["python", "-m", module],
+        shell=False,  # nosec
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+    )
     # Determine port based on module name
     if "tcp_server" in module:
         port = 5560
@@ -76,9 +86,50 @@ def start_subprocess(module: str) -> subprocess.Popen:
         port = 7777
     else:
         port = 5559
-    timeout = 10 if sys.platform == "win32" else 5
-    _ping_until_success(port, timeout=timeout)
-    return p
+
+    timeout = 5
+
+    lines: list[str] = []
+
+    def _reader() -> None:
+        try:
+            for line in p.stdout:
+                lines.append(line)
+        except Exception:
+            # If reading fails for any reason, swallow the error; we'll rely on ping
+            return
+
+    t = threading.Thread(target=_reader, daemon=True)
+    t.start()
+
+    start = time.time()
+    ready_markers = (
+        f"Starting TCP server at tcp://0.0.0.0:{port}",
+        "Starting TCP worker",
+        f"Starting server on port {port}",
+    )
+
+    while time.time() - start < timeout:
+        if p.poll() is not None:
+            # Subprocess exited early — include captured output for diagnostics
+            raise RuntimeError(
+                f"Subprocess exited prematurely. Output:\n{''.join(lines)}"
+            )
+
+        # If we see a readiness marker in output, double-check the port is reachable
+        output = "".join(lines)
+        if any(marker in output for marker in ready_markers):
+            if _ping(port):
+                return p
+
+        # fallback to direct ping
+        if _ping(port):
+            return p
+
+        time.sleep(0.1)
+
+    # Timeout — include output for debugging
+    raise TimeoutError(f"Server did not start in time. Output:\n{''.join(lines)}")
 
 
 def kill_subprocess(process: subprocess.Popen):
