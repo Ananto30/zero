@@ -1,9 +1,9 @@
 import multiprocessing
 import socket
 import subprocess  # nosec
+import sys
 import time
 import typing
-import sys
 from multiprocessing import Process
 
 # Set spawn method to avoid fork() warnings with asyncio

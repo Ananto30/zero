@@ -1,6 +1,8 @@
-import sys
 import asyncio
+import sys
+
 import pytest
+
 
 # Ensure the test process uses the selector event loop on Windows.
 # This avoids the Proactor->selector fallback used by pyzmq and keeps

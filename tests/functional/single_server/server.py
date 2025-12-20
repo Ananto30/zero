@@ -1,5 +1,5 @@
-import sys
 import asyncio
+import sys
 
 # On Windows the default ProactorEventLoop doesn't implement the selector
 # based add_reader family required by pyzmq; set the selector policy early
