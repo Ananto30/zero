@@ -71,8 +71,10 @@ def _wait_for_process_to_die(process, timeout: float = 5.0):
 def start_subprocess(module: str) -> subprocess.Popen:
     # Stream subprocess stdout so we can detect a readiness message instead of
     # relying solely on a port ping timeout. This is more robust across OSes.
+    # Run Python in unbuffered mode (-u) so logging from subprocesses is
+    # flushed immediately and our reader thread sees readiness messages.
     p = subprocess.Popen(
-        ["python", "-m", module],
+        ["python", "-u", "-m", module],
         shell=False,  # nosec
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
@@ -103,9 +105,11 @@ def start_subprocess(module: str) -> subprocess.Popen:
     t.start()
 
     start = time.time()
+    # Wait for an explicit listening message from the worker which indicates
+    # asyncio.start_server has completed and the socket is bound.
     ready_markers = (
+        "listening on",
         f"Starting TCP server at tcp://0.0.0.0:{port}",
-        "Starting TCP worker",
         f"Starting server on port {port}",
     )
 
