@@ -23,7 +23,7 @@ curl -X POST -H "Content-Type: application/json" -d '{"username":"user1","passwo
 
 ```json
 {
-  "jwt": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InVzZXIxIn0.hRMeygy71XCgnlQlIZU_4iuOSNkvESMMoP9tEpF9Ja0"
+	"jwt": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InVzZXIxIn0.hRMeygy71XCgnlQlIZU_4iuOSNkvESMMoP9tEpF9Ja0"
 }
 ```
 
@@ -47,20 +47,20 @@ curl -X GET -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c
 
 ```json
 [
-  {
-    "id": "1",
-    "user_id": "1",
-    "placed_at": "2021-10-02T07:07:32.308553",
-    "items": "apple,orange",
-    "status": "1"
-  },
-  {
-    "id": "2",
-    "user_id": "1",
-    "placed_at": "2021-10-02T07:07:32.330865",
-    "items": "python,boa",
-    "status": "1"
-  }
+	{
+		"id": "1",
+		"user_id": "1",
+		"placed_at": "2021-10-02T07:07:32.308553",
+		"items": "apple,orange",
+		"status": "1"
+	},
+	{
+		"id": "2",
+		"user_id": "1",
+		"placed_at": "2021-10-02T07:07:32.330865",
+		"items": "python,boa",
+		"status": "1"
+	}
 ]
 ```
 
