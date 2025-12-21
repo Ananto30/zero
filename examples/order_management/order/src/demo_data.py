@@ -12,6 +12,8 @@ async def create_demo_data():
         await create_order(1, ["python", "boa"])
         await create_order(2, ["pizza", "burger", "coca-cola"])
 
+    await engine.dispose()
+
 
 if __name__ == "__main__":
     asyncio.run(create_demo_data())

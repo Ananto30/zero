@@ -1,4 +1,4 @@
 zeroapi
 PyJWT
-SQLAlchemy==1.4.3
+SQLAlchemy==2.0.45
 aiosqlite

@@ -19,7 +19,7 @@ user_service = UserClient(user_client)
 order_service = OrderClient(order_client)
 
 
-async def extract_and_verify_jwt(request) -> :
+async def extract_and_verify_jwt(request):
     """Extract JWT from Authorization header and verify it."""
     jwt = request.headers.get("Authorization")
     if not jwt:

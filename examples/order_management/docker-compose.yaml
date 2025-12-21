@@ -6,7 +6,7 @@ services:
     container_name: auth
     command: python main.py
     ports:
-      - "6000:6000"
+      - "7101:7101"
   gateway:
     build: ./gateway
     container_name: gateway
@@ -21,10 +21,10 @@ services:
     container_name: order
     command: python main.py
     ports:
-      - "6002:6002"
+      - "7103:7103"
   user:
     build: ./user
     container_name: user
     command: python main.py
     ports:
-      - "6001:6001"
+      - "7102:7102"

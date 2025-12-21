@@ -8,7 +8,7 @@ from msgspec import Struct
 from zero import AsyncZeroClient
 from zero.protocols.tcp import AsyncTCPClient
 
-zero_client = AsyncZeroClient("order", 6002, protocol=AsyncTCPClient)
+zero_client = AsyncZeroClient("order", 7103, protocol=AsyncTCPClient)
 
 
 class OrderReq(Struct):

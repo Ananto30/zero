@@ -11,6 +11,8 @@ async def create_demo_data():
         await create_user("user1", "password1")
         await create_user("user2", "password2")
 
+    await engine.dispose()
+
 
 if __name__ == "__main__":
     asyncio.run(create_demo_data())

@@ -8,7 +8,7 @@ from msgspec import Struct
 from zero import AsyncZeroClient
 from zero.protocols.tcp import AsyncTCPClient
 
-zero_client = AsyncZeroClient("user", 6001, protocol=AsyncTCPClient)
+zero_client = AsyncZeroClient("user", 7102, protocol=AsyncTCPClient)
 
 
 class UserResp(Struct):

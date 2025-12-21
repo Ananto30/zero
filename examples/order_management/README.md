@@ -22,7 +22,7 @@ This example demonstrates a microservices architecture with the following servic
               │             │             │
         ┌─────▼────┐   ┌────▼─────┐   ┌──▼───────┐
         │   Auth   │   │   User   │   │  Order   │
-        │ :6000    │   │  :6001   │   │ :6002    │
+        │ :7101    │   │  :7102   │   │ :7103    │
         │          │   │          │   │          │
         │verify_jwt│   │login     │   │add_order │
         │get_jwt   │   │get_user  │   │get_orders│
@@ -35,16 +35,16 @@ This example demonstrates a microservices architecture with the following servic
 
 **Service Communication:**
 
-* **Gateway** ↔ Auth, User, Order (RPC calls for login, profile, orders)
-* **User** → Auth (calls `get_jwt` to create JWT tokens during login)
-* **Gateway** → Auth (verifies JWT tokens for protected endpoints)
+-   **Gateway** ↔ Auth, User, Order (RPC calls for login, profile, orders)
+-   **User** → Auth (calls `get_jwt` to create JWT tokens during login)
+-   **Gateway** → Auth (verifies JWT tokens for protected endpoints)
 
 ## Run
 
 You can spin up all the services with docker compose.
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ## Tests
@@ -62,7 +62,7 @@ curl -X POST -H "Content-Type: application/json" -d '{"username":"user1","passwo
 
 ```json
 {
-	"jwt": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InVzZXIxIn0.hRMeygy71XCgnlQlIZU_4iuOSNkvESMMoP9tEpF9Ja0"
+	"jwt": "<token_here>"
 }
 ```
 
@@ -71,7 +71,7 @@ Use this token to call `/profile` and `/orders`.
 Profile -
 
 ```bash
-curl -X GET -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InVzZXIxIn0.hRMeygy71XCgnlQlIZU_4iuOSNkvESMMoP9tEpF9Ja0" http://localhost:8000/api/v1/profile
+curl -X GET -H "Authorization: Bearer <token_here>" http://localhost:8000/api/v1/profile
 ```
 
 ```json
@@ -81,7 +81,7 @@ curl -X GET -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c
 Get orders -
 
 ```bash
-curl -X GET -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InVzZXIxIn0.hRMeygy71XCgnlQlIZU_4iuOSNkvESMMoP9tEpF9Ja0" http://localhost:8000/api/v1/orders
+curl -X GET -H "Authorization: Bearer <token_here>" http://localhost:8000/api/v1/orders
 ```
 
 ```json
@@ -106,7 +106,7 @@ curl -X GET -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c
 Create order -
 
 ```bash
-curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InVzZXIxIn0.hRMeygy71XCgnlQlIZU_4iuOSNkvESMMoP9tEpF9Ja0" -d '{"items":["zero", "fastapi"]}' http://localhost:8000/api/v1/orders
+curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer <token_here>" -d '{"items":["zero", "fastapi"]}' http://localhost:8000/api/v1/orders
 ```
 
 ```json

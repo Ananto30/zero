@@ -9,7 +9,7 @@ from zero.protocols.tcp import TCPServer
 
 log = logging.getLogger("OrderService")
 
-app = ZeroServer(port=6002, protocol=TCPServer)
+app = ZeroServer(port=7103, protocol=TCPServer)
 
 
 class OrderResp(Struct):

@@ -7,7 +7,7 @@ from msgspec import Struct
 from zero import AsyncZeroClient
 from zero.protocols.tcp import AsyncTCPClient
 
-zero_client = AsyncZeroClient("auth", 6000, protocol=AsyncTCPClient)
+zero_client = AsyncZeroClient("auth", 7101, protocol=AsyncTCPClient)
 
 
 class Traits(Struct):
@@ -22,4 +22,4 @@ class RpcClient:
         return await self._zero_client.call("get_jwt", username)
 
     async def verify_jwt(self, jwt_token: str) -> Traits:
-        return await self._zero_client.call("verify_jwt", jwt_token)
+        return await self._zero_client.call("verify_jwt", jwt_token, return_type=Traits)

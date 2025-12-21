@@ -7,7 +7,7 @@ from zero.protocols.tcp import TCPServer
 SECRET = "secret"
 ALGORITHM = "HS256"
 
-app = ZeroServer(port=6000, protocol=TCPServer)
+app = ZeroServer(port=7101, protocol=TCPServer)
 
 
 class Traits(Struct):

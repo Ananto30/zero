@@ -14,7 +14,7 @@ log = logging.getLogger("UserService")
 
 auth_rpc = AuthClient(auth_client)
 
-app = ZeroServer(port=6003, protocol=TCPServer)
+app = ZeroServer(port=7102, protocol=TCPServer)
 
 
 class UserResp(Struct):
