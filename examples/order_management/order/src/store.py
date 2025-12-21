@@ -3,15 +3,18 @@ from enum import IntEnum
 from typing import List, Optional
 
 from sqlalchemy import Column, Integer, String
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.future import select
-from sqlalchemy.orm import Session, declarative_base, sessionmaker
+from sqlalchemy.orm import DeclarativeBase
 
 DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 
 engine = create_async_engine(DATABASE_URL, future=True, echo=True)
-async_session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
-Base = declarative_base()
+async_session = async_sessionmaker(engine, expire_on_commit=False)
+
+
+class Base(DeclarativeBase):
+    pass
 
 
 def now():
@@ -48,14 +51,14 @@ async def create_order(user_id: int, items: List[str]):
         await session.commit()
 
 
-async def get_order_by_id(order_id: int) -> Optional[Order]:
+async def get_order_by_id(order_id: int) -> Optional[dict]:
     async with async_session() as session:
         row = await session.execute(select(Order).filter(Order.id == order_id))
         res = row.scalars().first()
-        return row2dict(res) if res else None
+        return row2dict(res)
 
 
-async def get_orders_by_user_id(user_id: int) -> List[Order]:
+async def get_orders_by_user_id(user_id: int) -> List[dict]:
     async with async_session() as session:
         rows = await session.execute(select(Order).filter(Order.user_id == user_id))
         res = rows.scalars()

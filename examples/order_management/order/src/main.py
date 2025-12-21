@@ -1,46 +1,58 @@
 import logging
 from typing import List
 
+from msgspec import Struct
 from src.store import create_order, get_order_by_id, get_orders_by_user_id
 
-from zero import AsyncZeroClient, ZeroServer
+from zero import ZeroServer
+from zero.protocols.tcp import TCPServer
 
 log = logging.getLogger("OrderService")
 
+app = ZeroServer(port=6002, protocol=TCPServer)
 
-async def add_order(msg: dict) -> bool:
+
+class OrderResp(Struct):
+    id: int
+    user_id: int
+    placed_at: str
+    items: List[str]
+    status: int
+
+
+class OrderReq(Struct):
+    user_id: int
+    items: List[str]
+
+
+@app.register_rpc
+async def add_order(req: OrderReq) -> bool:
     """
     Create a new order for the given user.
     """
-    try:
-        await create_order(msg.get("user_id"), msg.get("items"))
-        return True
-    except Exception as e:
-        log.error(f"Failed to create order: {e}")
-        return False
+    await create_order(req.user_id, req.items)
+    return True
 
 
-async def get_order(order_id: int) -> dict:
+@app.register_rpc
+async def get_order(order_id: int) -> OrderResp:
     """
     Get the order with the given ID.
     """
     order = await get_order_by_id(order_id)
-    if order:
-        return order
-    else:
-        return {"error": "Order not found"}
+    if not order:
+        raise ValueError(f"Order with id {order_id} not found")
+    return OrderResp(**order)
 
 
-async def get_orders(user_id: int) -> List[dict]:
+@app.register_rpc
+async def get_orders(user_id: int) -> List[OrderResp]:
     """
     Get all orders for the given user.
     """
-    return await get_orders_by_user_id(user_id)
+    orders = await get_orders_by_user_id(user_id)
+    return [OrderResp(**order) for order in orders]
 
 
 if __name__ == "__main__":
-    app = ZeroServer(port=6002)
-    app.register_rpc(add_order)
-    app.register_rpc(get_order)
-    app.register_rpc(get_orders)
-    app.run()
+    app.run(workers=2)

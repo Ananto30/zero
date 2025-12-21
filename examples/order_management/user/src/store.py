@@ -1,15 +1,18 @@
 from typing import Optional
 
 from sqlalchemy import Column, Integer, String
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.future import select
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import DeclarativeBase
 
 DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 
 engine = create_async_engine(DATABASE_URL, future=True, echo=False)
-async_session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
-Base = declarative_base()
+async_session = async_sessionmaker(engine, expire_on_commit=False)
+
+
+class Base(DeclarativeBase):
+    pass
 
 
 class User(Base):
@@ -27,17 +30,18 @@ async def create_user(username: str, password: str):
         await session.commit()
 
 
-async def get_user_by_username(username: str) -> Optional[User]:
+async def get_user_by_username(username: str) -> Optional[dict]:
     async with async_session() as session:
         row = await session.execute(select(User).filter(User.username == username))
         res = row.scalars().first()
         if res:
             return row2dict(res)
+        return None
 
 
 async def get_user_by_username_and_password(
     username: str, password: str
-) -> Optional[User]:
+) -> Optional[dict]:
     async with async_session() as session:
         row = await session.execute(
             select(User).filter(User.username == username, User.password == password)
@@ -45,6 +49,7 @@ async def get_user_by_username_and_password(
         res = row.scalars().first()
         if res:
             return row2dict(res)
+        return None
 
 
 def row2dict(row):

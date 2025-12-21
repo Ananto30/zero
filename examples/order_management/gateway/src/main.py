@@ -1,72 +1,84 @@
 import logging
-from typing import Optional
 
-from aiohttp import ClientSession, web
+from aiohttp import web
 
-from zero import AsyncZeroClient
+from zero.error import RemoteException
+
+from .generated_client.auth_client import RpcClient as AuthClient
+from .generated_client.auth_client import zero_client as auth_client
+from .generated_client.order_client import OrderReq
+from .generated_client.order_client import RpcClient as OrderClient
+from .generated_client.order_client import zero_client as order_client
+from .generated_client.user_client import RpcClient as UserClient
+from .generated_client.user_client import zero_client as user_client
 
 log = logging.getLogger(__name__)
 
-auth_service = AsyncZeroClient("auth", 6000)
-user_service = AsyncZeroClient("user", 6001)
-order_service = AsyncZeroClient("order", 6002)
+auth_service = AuthClient(auth_client)
+user_service = UserClient(user_client)
+order_service = OrderClient(order_client)
+
+
+async def extract_and_verify_jwt(request) -> :
+    """Extract JWT from Authorization header and verify it."""
+    jwt = request.headers.get("Authorization")
+    if not jwt:
+        return None, web.json_response(
+            {"error": "Missing Authorization header"}, status=401
+        )
+
+    jwt = jwt.split(" ")[1]
+    try:
+        auth = await auth_service.verify_jwt(jwt)
+    except RemoteException as e:
+        log.exception("JWT verification failed", e)
+        return None, web.json_response({"error": str(e)}, status=401)
+
+    return auth, None
 
 
 async def login(request):
     data = await request.json()
     username = data.get("username")
     password = data.get("password")
-    jwt = await user_service.call("login", (username, password))
-    if "error" in jwt:
-        return web.json_response(jwt, status=401)
+
+    try:
+        jwt = await user_service.login((username, password))
+    except RemoteException as e:
+        return web.json_response({"error": str(e)}, status=401)
+
     return web.json_response({"jwt": jwt})
 
 
 async def profile(request):
-    jwt = request.headers.get("Authorization")
-    if not jwt:
-        return web.json_response({"error": "Missing Authorization header"}, status=401)
-    jwt = jwt.split(" ")[1]
-    auth = await auth_service.call("verify_jwt", jwt)
-    if "error" in auth:
-        return web.json_response(auth, status=401)
+    auth, error = await extract_and_verify_jwt(request)
+    if error:
+        return error
 
-    username = auth.get("username")
-    user = await user_service.call("get_user", username)
+    user = await user_service.get_user(auth.username)
     return web.json_response(user)
 
 
 async def get_orders(request):
-    jwt = request.headers.get("Authorization")
-    if not jwt:
-        return web.json_response({"error": "Missing Authorization header"}, status=401)
-    jwt = jwt.split(" ")[1]
-    auth = await auth_service.call("verify_jwt", jwt)
-    if "error" in auth:
-        return web.json_response(auth, status=401)
+    auth, error = await extract_and_verify_jwt(request)
+    if error:
+        return error
 
-    username = auth.get("username")
-    user = await user_service.call("get_user", username)
-    orders = await order_service.call("get_orders", user.get("id"))
+    user = await user_service.get_user(auth.username)
+    orders = await order_service.get_orders(user.id)
     return web.json_response(orders)
 
 
 async def add_order(request):
-    jwt = request.headers.get("Authorization")
-    if not jwt:
-        return web.json_response({"error": "Missing Authorization header"}, status=401)
-    jwt = jwt.split(" ")[1]
-    auth = await auth_service.call("verify_jwt", jwt)
-    if "error" in auth:
-        return web.json_response(auth, status=401)
+    auth, error = await extract_and_verify_jwt(request)
+    if error:
+        return error
 
     request_data = await request.json()
     items = request_data.get("items")
 
-    username = auth.get("username")
-    user = await user_service.call("get_user", username)
-    data = {"user_id": user.get("id"), "items": items}
-    created = await order_service.call("add_order", data)
+    user = await user_service.get_user(auth.username)
+    created = await order_service.add_order(OrderReq(user_id=user.id, items=items))
     if created:
         return web.json_response({"status": "success"})
     return web.json_response({"error": "Failed to create order"}, status=500)

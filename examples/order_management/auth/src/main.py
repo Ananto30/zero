@@ -1,26 +1,30 @@
 import jwt
+from msgspec import Struct
 
 from zero import ZeroServer
+from zero.protocols.tcp import TCPServer
 
 SECRET = "secret"
 ALGORITHM = "HS256"
 
+app = ZeroServer(port=6000, protocol=TCPServer)
 
+
+class Traits(Struct):
+    username: str
+
+
+@app.register_rpc
 async def get_jwt(username: str) -> str:
     data = {"username": username}
     return jwt.encode(data, SECRET, algorithm=ALGORITHM)
 
 
-async def verify_jwt(jwt_token: str) -> dict:
-    try:
-        data = jwt.decode(jwt_token, SECRET, algorithms=[ALGORITHM])
-        return data
-    except jwt.exceptions.InvalidSignatureError:
-        return {"error": "Invalid token"}
+@app.register_rpc
+async def verify_jwt(jwt_token: str) -> Traits:
+    data = jwt.decode(jwt_token, SECRET, algorithms=[ALGORITHM])
+    return Traits(**data)
 
 
 if __name__ == "__main__":
-    app = ZeroServer(port=6000)
-    app.register_rpc(get_jwt)
-    app.register_rpc(verify_jwt)
-    app.run()
+    app.run(workers=2)

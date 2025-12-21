@@ -1,5 +1,44 @@
 # Order management microservices example
 
+## Architecture
+
+This example demonstrates a microservices architecture with the following services:
+
+```
+                          Client
+                            │
+                  ┌─────────┴──────────┐
+                  │     Gateway        │
+                  │   (port 8000)      │
+                  │                    │
+                  │  Routes:           │
+                  │  • POST /login     │
+                  │  • GET /profile    │
+                  │  • GET /orders     │
+                  │  • POST /orders    │
+                  └─────────┬──────────┘
+                            │(RPC calls)
+              ┌─────────────┼─────────────┐
+              │             │             │
+        ┌─────▼────┐   ┌────▼─────┐   ┌──▼───────┐
+        │   Auth   │   │   User   │   │  Order   │
+        │ :6000    │   │  :6001   │   │ :6002    │
+        │          │   │          │   │          │
+        │verify_jwt│   │login     │   │add_order │
+        │get_jwt   │   │get_user  │   │get_orders│
+        └────▲─────┘   └────▲─────┘   └──────────┘
+             │              │
+             └──────┬───────┘
+                get_jwt
+              (RPC call)
+```
+
+**Service Communication:**
+
+* **Gateway** ↔ Auth, User, Order (RPC calls for login, profile, orders)
+* **User** → Auth (calls `get_jwt` to create JWT tokens during login)
+* **Gateway** → Auth (verifies JWT tokens for protected endpoints)
+
 ## Run
 
 You can spin up all the services with docker compose.
