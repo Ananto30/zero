@@ -9,7 +9,6 @@ try:
     uvloop.install()
 except ImportError:
     logging.warning("Cannot use uvloop")
-    pass
 
 aiozmq_client = None
 

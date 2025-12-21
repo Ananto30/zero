@@ -1,0 +1,40 @@
+ Container redis  Running
+ Container server  Running
+ Container gateway  Running
+ Container zero_tcp-wrk-hello-async-1  Creating
+ Container zero_tcp-wrk-hello-async-1  Created
+Attaching to wrk-hello-async-1
+wrk-hello-async-1  | Running 30s test @ http://gateway:8000/async_hello
+wrk-hello-async-1  |   8 threads and 80 connections
+wrk-hello-async-1  |   Thread Stats   Avg      Stdev     Max   +/- Stdev
+wrk-hello-async-1  |     Latency     0.86ms    1.40ms  63.22ms   98.66%
+wrk-hello-async-1  |     Req/Sec    12.68k     2.02k   26.96k    65.72%
+wrk-hello-async-1  |   Latency Distribution
+wrk-hello-async-1  |      50%  692.00us
+wrk-hello-async-1  |      75%    0.98ms
+wrk-hello-async-1  |      90%    1.43ms
+wrk-hello-async-1  |      99%    2.33ms
+wrk-hello-async-1  |   3032567 requests in 30.10s, 332.59MB read
+wrk-hello-async-1  | Requests/sec: 100752.12
+wrk-hello-async-1  | Transfer/sec:     11.05MB
+wrk-hello-async-1 exited with code 0
+ Container redis  Running
+ Container server  Running
+ Container gateway  Running
+ Container zero_tcp-wrk-order-async-1  Creating
+ Container zero_tcp-wrk-order-async-1  Created
+Attaching to wrk-order-async-1
+wrk-order-async-1  | Running 30s test @ http://gateway:8000/async_order
+wrk-order-async-1  |   8 threads and 80 connections
+wrk-order-async-1  |   Thread Stats   Avg      Stdev     Max   +/- Stdev
+wrk-order-async-1  |     Latency     2.68ms    2.63ms  40.29ms   89.36%
+wrk-order-async-1  |     Req/Sec     4.51k     1.20k   13.71k    70.97%
+wrk-order-async-1  |   Latency Distribution
+wrk-order-async-1  |      50%    1.96ms
+wrk-order-async-1  |      75%    3.27ms
+wrk-order-async-1  |      90%    5.49ms
+wrk-order-async-1  |      99%   13.48ms
+wrk-order-async-1  |   1077934 requests in 30.10s, 189.15MB read
+wrk-order-async-1  | Requests/sec:  35812.88
+wrk-order-async-1  | Transfer/sec:      6.28MB
+wrk-order-async-1 exited with code 0

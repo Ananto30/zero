@@ -32,9 +32,6 @@ class OrderStatus:
 
 
 class Order(Btype):
-    # cache
-    orders = {}
-
     def __init__(self, id, items, created_by, created_at, status, updated_at=None):
         self.id = id
         self.items = items
@@ -87,15 +84,6 @@ async def async_save_order(order: Order) -> Order:
 async def async_get_order(id: str) -> Order:
     r = AsyncRedisClient()
     return Order.unpack(await r.get(id))
-
-
-class SingletonMeta(type):
-    _instance = None
-
-    def __call__(self):
-        if self._instance is None:
-            self._instance = super().__call__()
-        return self._instance
 
 
 class RedisClient(metaclass=SingletonMeta):

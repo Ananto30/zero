@@ -1,0 +1,40 @@
+ Container redis  Running
+ Container server  Running
+ Container gateway  Running
+ Container sanic-wrk-hello-1  Creating
+ Container sanic-wrk-hello-1  Created
+Attaching to wrk-hello-1
+wrk-hello-1  | Running 30s test @ http://gateway:8000/hello
+wrk-hello-1  |   8 threads and 80 connections
+wrk-hello-1  |   Thread Stats   Avg      Stdev     Max   +/- Stdev
+wrk-hello-1  |     Latency     1.43ms  831.22us  10.75ms   84.53%
+wrk-hello-1  |     Req/Sec     7.40k     1.34k   17.34k    67.60%
+wrk-hello-1  |   Latency Distribution
+wrk-hello-1  |      50%    1.20ms
+wrk-hello-1  |      75%    1.65ms
+wrk-hello-1  |      90%    2.43ms
+wrk-hello-1  |      99%    4.43ms
+wrk-hello-1  |   1770187 requests in 30.10s, 194.14MB read
+wrk-hello-1  | Requests/sec:  58811.27
+wrk-hello-1  | Transfer/sec:      6.45MB
+wrk-hello-1 exited with code 0
+ Container redis  Running
+ Container server  Running
+ Container gateway  Running
+ Container sanic-wrk-order-1  Creating
+ Container sanic-wrk-order-1  Created
+Attaching to wrk-order-1
+wrk-order-1  | Running 30s test @ http://gateway:8000/order
+wrk-order-1  |   8 threads and 80 connections
+wrk-order-1  |   Thread Stats   Avg      Stdev     Max   +/- Stdev
+wrk-order-1  |     Latency     3.46ms    1.85ms  25.41ms   71.07%
+wrk-order-1  |     Req/Sec     2.97k   672.15     5.52k    65.00%
+wrk-order-1  |   Latency Distribution
+wrk-order-1  |      50%    3.19ms
+wrk-order-1  |      75%    4.47ms
+wrk-order-1  |      90%    5.84ms
+wrk-order-1  |      99%    9.22ms
+wrk-order-1  |   711022 requests in 30.10s, 120.70MB read
+wrk-order-1  | Requests/sec:  23622.69
+wrk-order-1  | Transfer/sec:      4.01MB
+wrk-order-1 exited with code 0

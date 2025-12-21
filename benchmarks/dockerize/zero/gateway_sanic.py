@@ -5,14 +5,12 @@ from sanic.response import json, text
 
 from zero import AsyncZeroClient, ZeroClient
 
-# TODO: why we can't use uvloop?
 try:
     import uvloop
 
     uvloop.install()
 except ImportError:
     logging.warning("Cannot use uvloop")
-    pass
 
 
 app = Sanic(__name__)

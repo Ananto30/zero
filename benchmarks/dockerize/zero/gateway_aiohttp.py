@@ -1,15 +1,15 @@
+import logging
+
 from aiohttp import web
 
 from zero import AsyncZeroClient, ZeroClient, ZeroPublisher
 
-# TODO: why we can't use uvloop?
-# try:
-#     import uvloop
+try:
+    import uvloop
 
-#     uvloop.install()
-# except ImportError:
-#     logging.warning("Cannot use uvloop")
-#     pass
+    uvloop.install()
+except ImportError:
+    logging.warning("Cannot use uvloop")
 
 client = ZeroClient("server", 5559)
 async_client = AsyncZeroClient("server", 5559)

@@ -5,3 +5,4 @@ redis>=4.2.0rc1
 uvloop
 msgpack
 aiohttp
+ujson

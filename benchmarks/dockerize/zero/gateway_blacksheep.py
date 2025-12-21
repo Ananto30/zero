@@ -6,7 +6,6 @@ from blacksheep import text
 
 from zero import AsyncZeroClient, ZeroClient
 
-# TODO: why we can't use uvloop?
 try:
     import uvloop
 

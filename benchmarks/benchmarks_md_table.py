@@ -8,12 +8,13 @@ available_benchmarks = [
     "benchmark-fastapi",
     "benchmark-sanic",
     "benchmark-zero",
+    "benchmark-zero-tcp",
 ]
 
 
 def get_latest_history():
     # file format is `<available_benchmark>__<date>.log`
-    history_dir = "dockerize/history"
+    history_dir = "benchmarks/dockerize/history"
     if not os.path.exists(history_dir):
         return []
     files = os.listdir(history_dir)
@@ -87,6 +88,7 @@ def make_comparison_table(all_results):
         "sanic": "sanic",
         "zero": "zero(sync)",
         "zero-async": "zero(async)",
+        "zero-tcp": "zero(tcp)",
     }
     # Prepare a dict to collect results
     table_data = {fw: {} for fw in framework_map.values()}
@@ -102,6 +104,11 @@ def make_comparison_table(all_results):
                 return "zero(async)", "hello"
             elif test == "async_order":
                 return "zero(async)", "order"
+        elif framework == "zero-tcp":
+            if test == "async_hello":
+                return "zero(tcp)", "hello"
+            elif test == "async_order":
+                return "zero(tcp)", "order"
         else:
             if test == "hello":
                 return framework_map[framework], "hello"
@@ -129,6 +136,7 @@ def make_comparison_table(all_results):
         "sanic",
         "zero(sync)",
         "zero(async)",
+        "zero(tcp)",
     ]:
         hello = table_data[fw].get("hello", {})
         order = table_data[fw].get("order", {})
@@ -145,7 +153,7 @@ if __name__ == "__main__":
     history_files = get_latest_history()
     all_results = {}
     for history_file in history_files:
-        filepath = os.path.join("dockerize/history", history_file)
+        filepath = os.path.join("benchmarks/dockerize/history", history_file)
         if os.path.exists(filepath):
             benchmark_name = history_file.split("__")[0]
             results = parse_benchmark_log(filepath)

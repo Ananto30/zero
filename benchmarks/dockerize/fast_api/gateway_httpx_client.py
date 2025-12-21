@@ -1,3 +1,5 @@
+# IMPORTANT: httpx is slower than aiohttp client
+
 import logging
 from typing import Optional
 
@@ -11,8 +13,7 @@ try:
 
     uvloop.install()
 except ImportError:
-    logger.warn("Cannot use uvloop")
-    pass
+    logger.warning("Cannot use uvloop")
 
 client: Optional[httpx.AsyncClient] = None
 
@@ -20,7 +21,7 @@ app = FastAPI()
 
 
 @app.get("/hello")
-async def root():
+async def hello():
     global client
     if client is None:
         client = httpx.AsyncClient()
@@ -30,7 +31,7 @@ async def root():
 
 
 @app.get("/order")
-async def root():
+async def order():
     global client
     if client is None:
         client = httpx.AsyncClient()

@@ -366,15 +366,15 @@ Compare the results! 👇
 
 | Framework   | "hello world" (req/s) | 99% latency (ms) | redis save (req/s) | 99% latency (ms) |
 | ----------- | --------------------- | ---------------- | ------------------ | ---------------- |
-| aiohttp     | 35023.07              | 7.66             | 17153.06           | 12.09            |
-| aiozmq      | 20621.64              | 6.88             | 7651.61            | 11.13            |
-| blacksheep  | 21887.95              | 8.9              | 11446.89           | 15.77            |
-| fastApi     | 19857.4               | 9.66             | 9781.64            | 18.58            |
-| sanic       | 46143.93              | 5.22             | 20062.11           | 9.77             |
-| zero(sync)  | 22556.58              | 8.86             | 11779.06           | 20.13            |
-| zero(async) | 34411.23              | 5.73             | 23638.82           | 8.13             |
+| aiohttp     | 33167.69              | 11.89            | 17959.46           | 12.76            |
+| aiozmq      | 25174.24              | 6.13             | 8850.15            | 10.19            |
+| blacksheep  | 38025.53              | 8.41             | 16324.19           | 13.54            |
+| fastApi     | 19682.99              | 9.09             | 12775.97           | 16.28            |
+| sanic       | 58811.27              | 4.43             | 23622.69           | 9.22             |
+| zero(sync)  | 27570.85              | 6.65             | 10269.1            | 23.71            |
+| zero(async) | 41091.96              | 4.41             | 23996.18           | 8.64             |
+| zero(tcp)   | 100752.12             | 2.33             | 35812.88           | 13.48            |
 
-Seems like sanic is the fastest in hello world response, but zero is the fastest in redis save 🎉
 
 # Contribution
 

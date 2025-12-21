@@ -1,27 +1,32 @@
 services:
+  # sanic gateway
   gateway:
     build: .
     container_name: gateway
-    command: gunicorn gateway:app --bind 0.0.0.0:8000 --worker-class aiohttp.worker.GunicornWebWorker --workers 8 --log-level  warning
+    command: sanic gateway_sanic:app --host 0.0.0.0 --port 8000 --workers 8 --no-access-logs
     depends_on:
       - server
       - redis
+
   server:
     build: .
     container_name: server
     command: python server.py
-    # cpus: '0.40'
+    # cpus: '0.50'
     # mem_limit: 256m
+
   redis:
     image: eqalpha/keydb:latest
     container_name: redis
-  wrk-hello:
+
+  wrk-hello-async:
     image: skandyla/wrk
-    command: -t 8 -c 80 -d 30s --latency http://gateway:8000/hello
+    command: -t 8 -c 80 -d 30s --latency http://gateway:8000/async_hello
     depends_on:
       - gateway
-  wrk-order:
+
+  wrk-order-async:
     image: skandyla/wrk
-    command: -t 8 -c 80 -d 30s --latency http://gateway:8000/order
+    command: -t 8 -c 80 -d 30s --latency http://gateway:8000/async_order
     depends_on:
       - gateway

@@ -7,10 +7,6 @@ from typing import List
 from blacksheep import Application, FromJSON, json, text
 from shared import Order, OrderResp, OrderStatus, async_save_order
 
-app = Application()
-get = app.router.get
-post = app.router.post
-
 logger = logging.getLogger(__name__)
 
 try:
@@ -19,6 +15,11 @@ try:
     uvloop.install()
 except ImportError:
     logger.warning("Cannot use uvloop")
+
+
+app = Application()
+get = app.router.get
+post = app.router.post
 
 
 @get("/hello")

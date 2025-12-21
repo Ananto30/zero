@@ -1,3 +1,4 @@
+import logging
 import uuid
 from datetime import datetime
 
@@ -5,11 +6,25 @@ from sanic import Sanic
 from sanic.response import json, text
 from shared import Order, OrderResp, OrderStatus, async_save_order
 
+logger = logging.getLogger(__name__)
+
+try:
+    import uvloop
+
+    uvloop.install()
+except ImportError:
+    logger.warning("Cannot use uvloop")
+
 app = Sanic("hello_world")
 
 
+@app.route("/hello")
+async def hello(request):
+    return text("hello world")
+
+
 @app.post("/order")
-async def root(request):
+async def order(request):
     body = request.json
     saved_order = await async_save_order(
         Order(
@@ -23,11 +38,6 @@ async def root(request):
 
     resp = OrderResp(saved_order.id, saved_order.status, saved_order.items)
     return json({"id": resp.order_id, "status": resp.status, "items": resp.items})
-
-
-@app.route("/hello")
-async def test(request):
-    return text("hello world")
 
 
 if __name__ == "__main__":

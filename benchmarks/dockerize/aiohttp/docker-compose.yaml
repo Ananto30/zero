@@ -1,12 +1,8 @@
-version: '3'
-
 services:
   gateway:
     build: .
     container_name: gateway
     command: gunicorn gateway:app --bind 0.0.0.0:8000 --worker-class aiohttp.worker.GunicornWebWorker --workers 8 --log-level  warning
-    ports:
-      - "8000:8000"
     depends_on:
       - server
       - redis
@@ -14,15 +10,11 @@ services:
     build: .
     container_name: server
     command: gunicorn server:app --bind 0.0.0.0:8011 --worker-class aiohttp.worker.GunicornWebWorker --workers 8 --log-level warning
-    ports:
-      - "8011:8011"
     # cpus: '0.50'
     # mem_limit: 256m
   redis:
     image: eqalpha/keydb:latest
     container_name: redis
-    ports:
-      - "6379:6379"
   wrk-hello:
     image: skandyla/wrk
     command: -t 8 -c 80 -d 30s --latency http://gateway:8000/hello

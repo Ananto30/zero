@@ -1,0 +1,7 @@
+zeroapi[all]
+redis>=4.2.0rc1
+uvloop
+gunicorn
+sanic
+msgpack
+uvicorn

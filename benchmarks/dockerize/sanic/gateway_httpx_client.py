@@ -12,8 +12,7 @@ try:
 
     uvloop.install()
 except ImportError:
-    logger.warn("Cannot use uvloop")
-    pass
+    logger.warning("Cannot use uvloop")
 
 client: Optional[httpx.AsyncClient] = None
 
@@ -21,7 +20,7 @@ app = Sanic("My Hello, world app")
 
 
 @app.route("/hello")
-async def test(request):
+async def hello(request):
     global client
     if client is None:
         client = httpx.AsyncClient()
@@ -31,7 +30,7 @@ async def test(request):
 
 
 @app.route("/order")
-async def test(request):
+async def order(request):
     global client
     if client is None:
         client = httpx.AsyncClient()

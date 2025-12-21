@@ -6,9 +6,6 @@ from blacksheep import json as json_resp
 from blacksheep import text
 from blacksheep.client import ClientSession
 
-app = Application()
-get = app.router.get
-
 logger = logging.getLogger(__name__)
 
 try:
@@ -18,15 +15,29 @@ try:
 except ImportError:
     logger.warning("Cannot use uvloop")
 
+
 session: Optional[ClientSession] = None
+
+app = Application()
+get = app.router.get
+
+
+@app.on_start
+async def startup(app):
+    """Initialize session at app startup"""
+    global session
+    session = ClientSession()
+
+
+@app.on_stop
+async def shutdown(app):
+    """Close session on shutdown"""
+    if session:
+        await session.close()
 
 
 @get("/hello")
 async def hello():
-    global session
-    if session is None:
-        session = ClientSession()
-
     resp = await session.get("http://server:8011/hello")
     txt = await resp.text()
     return text(txt)
@@ -34,10 +45,6 @@ async def hello():
 
 @get("/order")
 async def order():
-    global session
-    if session is None:
-        session = ClientSession()
-
     content = JSONContent(
         data={
             "user_id": "1",

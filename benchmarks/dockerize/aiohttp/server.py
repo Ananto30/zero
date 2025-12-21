@@ -12,8 +12,7 @@ try:
 
     uvloop.install()
 except ImportError:
-    logger.warn("Cannot use uvloop")
-    pass
+    logger.warning("Cannot use uvloop")
 
 
 async def hello(request):

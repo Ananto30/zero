@@ -1,10 +1,17 @@
 import asyncio
+import logging
 import uuid
 from datetime import datetime
 
 import aiozmq.rpc
 from shared import CreateOrderReq, Order, OrderResp, OrderStatus, async_save_order
-from shared import save_order as saveOrder
+
+try:
+    import uvloop
+
+    uvloop.install()
+except ImportError:
+    logging.warning("Cannot use uvloop")
 
 
 class ServerHandler(aiozmq.rpc.AttrHandler):
