@@ -32,12 +32,10 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        working-directory: ./docs
         run: |
-          pip install -r requirements.txt
+          pip install -r docs/requirements.txt
 
       - name: Build MkDocs
-        working-directory: ./docs
         run: mkdocs build
 
       - name: Upload artifact

@@ -1,0 +1,81 @@
+site_name: Zero
+site_description: Zero - A simple Python RPC framework to build fast and high performance microservices
+site_url: https://ananto30.github.io/zero/
+repo_url: https://github.com/Ananto30/zero
+repo_name: Ananto30/zero
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  logo: https://ananto30.github.io/i/1200xCL_TP.png
+  favicon: https://ananto30.github.io/i/1200xCL_TP.png
+  palette:
+    - scheme: default
+      primary: black
+      accent: grey
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: black
+      accent: grey
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Guides:
+    - Installation: guides/installation.md
+    - Basic Usage: guides/basic-usage.md
+    - Error Handling: guides/error-handling.md
+    - Serialization/Encoding: guides/serialization.md
+    - TCP Protocol: guides/tcp-protocol.md
+    - Code Generation: guides/code-generation.md
+    - Async/Await: guides/async-await.md
+  - Examples:
+    - Basic Echo: examples/basic-echo.md
+    - Order Management: examples/order-management.md
+  - API Reference:
+    - Server: api/server.md
+    - Client: api/client.md
+    - Async Client: api/async-client.md
+  - Benchmarks: benchmarks.md
+  - Contributing: contributing.md
+
+docs_dir: docs
+site_dir: site
+
+plugins:
+  - search
+
+markdown_extensions:
+  - pymdownx.highlight:
+      use_pygments: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - admonition
+  - pymdownx.details
+  - toc:
+      permalink: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/Ananto30/zero
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/zeroapi/
