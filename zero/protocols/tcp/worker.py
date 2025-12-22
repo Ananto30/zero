@@ -238,7 +238,12 @@ class _TCPWorker:
                         else await func()
                     )
                 else:
-                    result = func(data) if self._func_has_args[fn_name] else func()
+                    # Run sync function in thread pool to avoid blocking event loop
+                    result = (
+                        await asyncio.to_thread(func, data)
+                        if self._func_has_args[fn_name]
+                        else await asyncio.to_thread(func)
+                    )
 
                 return result
 
