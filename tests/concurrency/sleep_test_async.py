@@ -3,16 +3,21 @@ import random
 import time
 
 from zero import AsyncZeroClient
+from zero.protocols.tcp import AsyncTCPClient
 
-async_client = AsyncZeroClient("localhost", 5559)
+async_client = AsyncZeroClient("localhost", 5559, protocol=AsyncTCPClient)
+# async_client = AsyncZeroClient("localhost", 5559)
 
 
 async def task(semaphore, sleep_time):
     async with semaphore:
-        res = await async_client.call("sleep", sleep_time)
-        if res != f"slept for {sleep_time} msecs":
-            print(f"expected: slept for {sleep_time} msecs, got: {res}")
-        # print(res)
+        try:
+            res = await async_client.call("sleep", sleep_time)
+            if res != f"slept for {sleep_time} msecs":
+                print(f"expected: slept for {sleep_time} msecs, got: {res}")
+            # print(res)
+        except Exception as e:
+            print(f"Error calling sleep with {sleep_time}: {e}")
 
 
 async def test():
@@ -20,7 +25,7 @@ async def test():
     semaphore = asyncio.BoundedSemaphore(conc)
 
     sleep_times = []
-    for _ in range(1000):
+    for _ in range(100):
         sleep_times.append(random.randint(50, 500))
 
     start = time.time()

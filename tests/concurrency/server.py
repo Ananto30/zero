@@ -5,6 +5,7 @@ from zero import ZeroServer
 from zero.protocols.tcp import TCPServer
 
 app = ZeroServer(port=5559, protocol=TCPServer)
+# app = ZeroServer(port=5559)
 
 
 @app.register_rpc

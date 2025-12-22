@@ -63,40 +63,43 @@ class AsyncTCPClient:
         await self._ensure_pool_started()
 
         conn = await self._pool.acquire()
-        conn_broken = False
         try:
             request = {"fn": rpc_func_name, "data": msg}
             _timeout = timeout or self._default_timeout
             # Convert timeout from milliseconds to seconds for asyncio.wait_for
             _timeout_seconds = _timeout / 1000
+
             try:
-                response = await asyncio.wait_for(
+                response_bytes = await asyncio.wait_for(
                     conn.request(request), timeout=_timeout_seconds
                 )
+
             except asyncio.TimeoutError as e:
-                # Timeout: Check if connection is still alive before deciding to close it.
-                # A timeout doesn't necessarily mean the connection is broken—the server
-                # might just be slow. However, the delayed response will corrupt the buffer
-                # if we reuse the connection. So we always mark it as broken after timeout.
-                # (In the future, we could implement a graceful drain of the delayed response.)
-                conn_broken = True
+                # Timeout: The connection is still valid because we use request IDs
+                # to correlate responses. The delayed response will be discarded
+                # when it arrives and matches a different request ID.
                 raise TimeoutException(f"Call timed out after {_timeout}ms") from e
 
-            # Return the full response dict so check_response() can handle errors
-            # For normal responses, extract data; for error responses, return the dict as-is
-            if isinstance(response, dict) and "data" in response:
-                data = response["data"]
-                return (
-                    data
-                    if return_type is None
-                    else self._encoder.decode_type(data, return_type)
-                )
+            except (OSError, EOFError, asyncio.IncompleteReadError) as e:
+                # Connection is broken - mark it and remove from pool
+                conn._broken = True
+                raise ConnectionException(f"Connection lost: {e}") from e
 
-            # Response contains error keys like __zerror__*, return as-is for check_response()
+            if return_type is not None:
+                response = self._encoder.decode_type(response_bytes, return_type)
+            else:
+                response = self._encoder.decode(response_bytes)
+
+            # Return it for check_response()
+            if isinstance(response, dict) and any(
+                k.startswith("__zerror__") for k in response.keys()
+            ):
+                return response  # type: ignore
+
             return response
 
         finally:
-            await self._pool.release(conn, broken=conn_broken)
+            await self._pool.release(conn)
 
     def close(self) -> None:
         # Note: close() is sync but pool.close() is async
@@ -125,11 +128,50 @@ class PooledTCPConn:
     writer: asyncio.StreamWriter
     encoder: Encoder
     lock: asyncio.Lock  # ensures 1 in-flight req per connection, simple & safe
+    _request_id: int = 0  # Simple sequence counter for request IDs
+    _broken: bool = False  # Mark connection as broken if I/O fails
 
-    async def request(self, obj: Any) -> Any:
+    @property
+    def is_broken(self) -> bool:
+        """Check if the connection is broken."""
+        # Connection is broken if:
+        # 1. Explicitly marked as broken due to I/O error
+        # 2. Writer is closed
+        # 3. Writer has an exception
+        return (
+            self._broken
+            or self.writer.is_closing()
+            or self.writer.get_extra_info("socket") is None
+        )
+
+    async def request(self, obj: Any) -> bytes:
+        """
+        Send a request and wait for the matching response.
+
+        Uses request IDs to match responses with requests, allowing stale
+        responses from timed-out requests to be discarded gracefully.
+
+        Returns the raw encoded payload bytes (not decoded).
+        """
         async with self.lock:
-            await write_frame(self.writer, obj, self.encoder)
-            return await read_frame(self.reader, self.encoder)
+            # Increment request ID (wraps at 2^32), increment possible because of lock
+            self._request_id = (self._request_id + 1) & 0xFFFFFFFF
+            request_id = self._request_id.to_bytes(4, "big")
+
+            await write_frame(self.writer, obj, self.encoder, request_id)
+
+            while True:
+                resp_id, resp_payload = await read_frame(self.reader)
+                resp_id_int = int.from_bytes(resp_id, "big")
+
+                if resp_id_int == self._request_id:
+                    return resp_payload
+                else:
+                    logging.debug(
+                        "Discarding stale response (expected %d, got %d)",
+                        self._request_id,
+                        resp_id_int,
+                    )
 
     async def close(self) -> None:
         try:
@@ -154,23 +196,15 @@ class AsyncTCPConnPool:
         self._q: asyncio.Queue[PooledTCPConn] = asyncio.Queue(maxsize=size)
         self._all: List[PooledTCPConn] = []
         self._started = False
-        self._replacing: set[int] = set()  # Track connection IDs being replaced
 
     async def start(self) -> None:
         if self._started:
             return
 
         # Create all connections concurrently for faster startup
-        async def create_connection() -> PooledTCPConn:
-            reader, writer = await asyncio.open_connection(self._host, self._port)
-            return PooledTCPConn(
-                reader=reader,
-                writer=writer,
-                encoder=self._encoder,
-                lock=asyncio.Lock(),
-            )
-
-        conns = await asyncio.gather(*[create_connection() for _ in range(self._size)])
+        conns = await asyncio.gather(
+            *[self._create_single_connection() for _ in range(self._size)]
+        )
         self._all.extend(conns)
         for conn in conns:
             self._q.put_nowait(conn)
@@ -179,59 +213,57 @@ class AsyncTCPConnPool:
         logging.debug("TCP connection pool initialized with %d connections", self._size)
 
     async def acquire(self) -> PooledTCPConn:
-        # Get connections, skipping any that are currently being replaced
-        while True:
-            conn = await self._q.get()
-            if id(conn) not in self._replacing:
-                return conn
-            # This connection is being replaced, put it back and try again
-            await self._q.put(conn)
+        # Get a connection from the pool
+        return await self._q.get()
 
-    async def release(self, conn: PooledTCPConn, broken: bool = False) -> None:
-        if broken:
-            await conn.close()
-            self._replacing.add(id(conn))
-            # Create a background task to replace the connection asynchronously
-            asyncio.create_task(self._replace_connection_async(conn))
+    async def release(self, conn: PooledTCPConn) -> None:
+        if conn.is_broken:
+            logging.debug(
+                "Detected broken connection, scheduling replacement in background"
+            )
+            asyncio.create_task(self._replace_broken_connection_with_backoff(conn))
         else:
-            # Add health check/reconnect logic here if needed
+            # Connection is healthy, put it back in the pool
             await self._q.put(conn)
 
-    async def _replace_connection_async(self, old_conn: PooledTCPConn) -> None:
-        old_conn_id = id(old_conn)
-        retry_count = 0
-        max_wait = 30  # seconds
+    async def _replace_broken_connection_with_backoff(
+        self, broken_conn: PooledTCPConn
+    ) -> None:
+        base_delay = 1  # second
+        max_delay = 20  # seconds
 
+        await broken_conn.close()
+
+        attempt = 0
         while True:
             try:
-                reader, writer = await asyncio.open_connection(self._host, self._port)
-                new_conn = PooledTCPConn(
-                    reader=reader,
-                    writer=writer,
-                    encoder=self._encoder,
-                    lock=asyncio.Lock(),
-                )
-                # Replace in all list and put in queue
-                idx = self._all.index(old_conn)
-                self._all[idx] = new_conn
-                self._replacing.discard(old_conn_id)
+                new_conn = await self._create_single_connection()
                 await self._q.put(new_conn)
-                logging.info("Replaced broken connection after %d retries", retry_count)
+                logging.debug(
+                    "Successfully created replacement connection after %d attempt(s)",
+                    attempt + 1,
+                )
                 return
             except Exception as e:  # pylint: disable=broad-except
-                retry_count += 1
-                # Exponential backoff with max wait
-                wait_time = min(2 ** min(retry_count, 5), max_wait)
+                attempt += 1
+                delay = min(base_delay * (2 ** (attempt - 1)), max_delay)
                 logging.warning(
-                    "Failed to create replacement connection (retry %d), "
-                    "waiting %ds before retry: %s",
-                    retry_count,
-                    wait_time,
+                    "Failed to create replacement connection (attempt %d), retrying in %.2fs: %s",
+                    attempt,
+                    delay,
                     e,
-                    exc_info=e,
-                    stack_info=True,
                 )
-                await asyncio.sleep(wait_time)
+                await asyncio.sleep(delay)
+
+    async def _create_single_connection(self) -> PooledTCPConn:
+        """Create a single TCP connection."""
+        reader, writer = await asyncio.open_connection(self._host, self._port)
+        return PooledTCPConn(
+            reader=reader,
+            writer=writer,
+            encoder=self._encoder,
+            lock=asyncio.Lock(),
+        )
 
     async def close(self) -> None:
         for c in self._all:

@@ -137,7 +137,8 @@ class _TCPWorker:
         try:
             while self._running:
                 try:
-                    req = await read_frame(reader, self._encoder)
+                    request_id, req_payload = await read_frame(reader)
+                    req = self._encoder.decode(req_payload)
 
                 except ConnectionError:
                     logging.debug(
@@ -154,7 +155,7 @@ class _TCPWorker:
                 resp = await self._process_rpc(req)
 
                 try:
-                    await write_frame(writer, resp, self._encoder)
+                    await write_frame(writer, resp, self._encoder, request_id)
 
                 except (BrokenPipeError, ConnectionResetError):
                     logging.debug(
@@ -183,7 +184,7 @@ class _TCPWorker:
             except Exception:  # pylint: disable=broad-except
                 pass
 
-    async def _process_rpc(self, req: Dict[str, Any]) -> Dict[str, Any]:
+    async def _process_rpc(self, req: Dict[str, Any]) -> Any:
         """
         Process an RPC request.
 
@@ -194,8 +195,8 @@ class _TCPWorker:
 
         Returns
         -------
-        Dict[str, Any]
-            Response dict with 'data' on success or '__zerror__*' on failure
+        Any
+            The function result on success, or error dict with '__zerror__*' keys on failure
         """
         try:
             if not isinstance(req, dict):
@@ -224,7 +225,7 @@ class _TCPWorker:
                 else:
                     result = func(data) if data is not None else func()
 
-                return {"data": result}
+                return result
 
             except Exception as e:  # pylint: disable=broad-except
                 logging.error(

@@ -116,6 +116,42 @@ async def test_random_timeout_async():
     assert fails >= should_fail
 
 
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="TCP tests not supported on Windows"
+)
+@pytest.mark.asyncio
+async def test_return_type_parameter():
+    """Test that return_type parameter is used for proper decoding."""
+    from . import tcp_server
+
+    client = AsyncZeroClient(tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient)
+
+    # Test with int return type
+    result = await client.call("echo_int", 42, return_type=int)
+    assert result == 42
+    assert isinstance(result, int)
+
+    # Test with str return type
+    result = await client.call("echo_str", "hello", return_type=str)
+    assert result == "hello"
+    assert isinstance(result, str)
+
+    # Test with float return type
+    result = await client.call("echo_float", 3.14, return_type=float)
+    assert result == 3.14
+    assert isinstance(result, float)
+
+    # Test with bool return type
+    result = await client.call("echo_bool", True, return_type=bool)
+    assert result is True
+    assert isinstance(result, bool)
+
+    # Test with list return type
+    result = await client.call("echo_list", [1, 2, 3], return_type=list[int])
+    assert result == [1, 2, 3]
+    assert isinstance(result, list)
+
+
 # For some reason this is failing in MacOS
 # @pytest.mark.skipif(
 #     sys.platform == "win32", reason="TCP tests not supported on Windows"
