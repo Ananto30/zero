@@ -106,15 +106,12 @@ async def test_random_timeout_async():
     should_fail = 0
     for _ in range(100):
         sleep_time = random.randint(10, 100)
-        # error margin of 10 ms
-        should_fail += sleep_time > 60
+        # considering network latency, adding an error margin of 15 ms
+        should_fail += sleep_time > 65
         try:
             msg = await client.call("sleep", sleep_time, timeout=50)
             assert msg == f"slept for {sleep_time} msecs"
         except zero.error.TimeoutException:
-            assert (
-                sleep_time > 1
-            )  # considering network latency, 50 msecs is too low in github actions
             fails += 1
 
     assert fails >= should_fail

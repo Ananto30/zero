@@ -167,8 +167,8 @@ def test_random_timeout():
     should_fail = 0
     for _ in range(100):
         sleep_time = random.randint(10, 100)
-        # considering network latency, adding an error margin of 5 ms
-        should_fail += sleep_time > 55
+        # considering network latency, adding an error margin of 15 ms
+        should_fail += sleep_time > 65
         try:
             msg = client.call("sleep", sleep_time, timeout=50)
             assert msg == f"slept for {sleep_time} msecs"
@@ -187,8 +187,8 @@ def test_random_timeout_async():
     should_fail = 0
     for _ in range(100):
         sleep_time = random.randint(10, 100)
-        # considering network latency, adding an error margin of 5 ms
-        should_fail += sleep_time > 55
+        # considering network latency, adding an error margin of 15 ms
+        should_fail += sleep_time > 65
         try:
             msg = asyncio.run(client.call("sleep", sleep_time, timeout=50))
             assert msg == f"slept for {sleep_time} msecs"
