@@ -6,7 +6,7 @@ class ZeroMQClient(Protocol):  # pragma: no cover
     def __init__(
         self,
         address: str,
-        default_timeout: int = 2000,
+        default_timeout: int = 5000,
     ): ...
 
     def connect(self, address: str) -> None: ...
@@ -21,7 +21,7 @@ class AsyncZeroMQClient(Protocol):  # pragma: no cover
     def __init__(
         self,
         address: str,
-        default_timeout: int = 2000,
+        default_timeout: int = 5000,
     ): ...
 
     async def connect(self, address: str) -> None: ...

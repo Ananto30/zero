@@ -10,7 +10,7 @@
 AsyncZeroClient(
     host: str,
     port: int,
-    default_timeout: int = 2000,
+    default_timeout: int = 5000,
     encoder: Type[Encoder] = GenericEncoder,
     protocol: Type[AsyncZeroClientProtocol] = AsyncZMQClient,
     pool_size: int = 50,
@@ -21,7 +21,7 @@ AsyncZeroClient(
 
 - **host** (str): Server hostname or IP address.
 - **port** (int): Server port number.
-- **default_timeout** (int): Default timeout for calls in milliseconds. Default: 2000
+- **default_timeout** (int): Default timeout for calls in milliseconds. Default: 5000
 - **encoder** (Encoder): Message encoder matching server. Default: Msgspec
 - **protocol** (AsyncClientProtocol): Async communication protocol. Default: ZeroMQ
     - `zero.protocols.zeromq.AsyncZeroMQClient` - ZeroMQ (default)

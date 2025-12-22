@@ -3,7 +3,7 @@ from zero.zeromq_patterns import queue_device
 from .interfaces import AsyncZeroMQClient, ZeroMQBroker, ZeroMQClient, ZeroMQWorker
 
 
-def get_client(pattern: str, default_timeout: int = 2000) -> ZeroMQClient:
+def get_client(pattern: str, default_timeout: int) -> ZeroMQClient:
     if pattern == "proxy":
         return queue_device.ZeroMQClient(default_timeout)
 
