@@ -2,6 +2,7 @@ import asyncio
 import logging
 import signal
 import sys
+from inspect import signature
 from typing import Any, Callable, Dict, Optional, Tuple
 
 from zero.encoder import Encoder
@@ -31,6 +32,12 @@ class _TCPWorker:
         self._rpc_return_type_map = rpc_return_type_map
         self._encoder = encoder
         self._worker_id = worker_id
+
+        # Cache function signatures to avoid expensive introspection on every call
+        self._func_has_args: Dict[str, bool] = {}
+        for fn_name, (func, _) in rpc_router.items():
+            sig = signature(func)
+            self._func_has_args[fn_name] = len(sig.parameters) > 0
 
         # Parse address
         addr = address
@@ -137,7 +144,7 @@ class _TCPWorker:
         try:
             while self._running:
                 try:
-                    request_id, req_payload = await read_frame(reader)
+                    request_id, req_payload, _ = await read_frame(reader)
                     req = self._encoder.decode(req_payload)
 
                 except ConnectionError:
@@ -153,9 +160,13 @@ class _TCPWorker:
                     break
 
                 resp = await self._process_rpc(req)
+                is_error = isinstance(resp, dict) and any(
+                    isinstance(key, str) and key.startswith("__zerror__")
+                    for key in resp.keys()
+                )
 
                 try:
-                    await write_frame(writer, resp, self._encoder, request_id)
+                    await write_frame(writer, resp, self._encoder, request_id, is_error)
 
                 except (BrokenPipeError, ConnectionResetError):
                     logging.debug(
@@ -221,9 +232,13 @@ class _TCPWorker:
 
             try:
                 if is_coro:
-                    result = await func(data) if data is not None else await func()
+                    result = (
+                        await func(data)
+                        if self._func_has_args[fn_name]
+                        else await func()
+                    )
                 else:
-                    result = func(data) if data is not None else func()
+                    result = func(data) if self._func_has_args[fn_name] else func()
 
                 return result
 

@@ -2,7 +2,7 @@ import asyncio
 import logging
 import sys
 from dataclasses import dataclass
-from typing import Any, List, Optional, Type, TypeVar
+from typing import Any, List, Optional, Tuple, Type, TypeVar
 
 from zero.encoder import Encoder
 from zero.error import ConnectionException, TimeoutException
@@ -70,7 +70,7 @@ class AsyncTCPClient:
             _timeout_seconds = _timeout / 1000
 
             try:
-                response_bytes = await asyncio.wait_for(
+                response_bytes, is_error = await asyncio.wait_for(
                     conn.request(request), timeout=_timeout_seconds
                 )
 
@@ -85,16 +85,13 @@ class AsyncTCPClient:
                 conn._broken = True
                 raise ConnectionException(f"Connection lost: {e}") from e
 
+            if is_error:
+                return self._encoder.decode_type(response_bytes, dict)
+
             if return_type is not None:
                 response = self._encoder.decode_type(response_bytes, return_type)
             else:
                 response = self._encoder.decode(response_bytes)
-
-            # Return it for check_response()
-            if isinstance(response, dict) and any(
-                k.startswith("__zerror__") for k in response.keys()
-            ):
-                return response  # type: ignore
 
             return response
 
@@ -144,14 +141,14 @@ class PooledTCPConn:
             or self.writer.get_extra_info("socket") is None
         )
 
-    async def request(self, obj: Any) -> bytes:
+    async def request(self, obj: Any) -> Tuple[bytes, bool]:
         """
         Send a request and wait for the matching response.
 
         Uses request IDs to match responses with requests, allowing stale
         responses from timed-out requests to be discarded gracefully.
 
-        Returns the raw encoded payload bytes (not decoded).
+        Returns a tuple of (raw_encoded_payload_bytes, is_error).
         """
         async with self.lock:
             # Increment request ID (wraps at 2^32), increment possible because of lock
@@ -161,11 +158,11 @@ class PooledTCPConn:
             await write_frame(self.writer, obj, self.encoder, request_id)
 
             while True:
-                resp_id, resp_payload = await read_frame(self.reader)
+                resp_id, resp_payload, is_error = await read_frame(self.reader)
                 resp_id_int = int.from_bytes(resp_id, "big")
 
                 if resp_id_int == self._request_id:
-                    return resp_payload
+                    return resp_payload, is_error
                 else:
                     logging.debug(
                         "Discarding stale response (expected %d, got %d)",

@@ -1,6 +1,7 @@
 import asyncio
 import random
 import sys
+import typing
 
 import pytest
 
@@ -150,6 +151,195 @@ async def test_return_type_parameter():
     result = await client.call("echo_list", [1, 2, 3], return_type=list[int])
     assert result == [1, 2, 3]
     assert isinstance(result, list)
+
+
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="TCP tests not supported on Windows"
+)
+@pytest.mark.asyncio
+async def test_complex_return_types_union():
+    """Test Union return types with proper decoding."""
+    from . import tcp_server
+
+    client = AsyncZeroClient(tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient)
+
+    # Test Union[int, str] with int value
+    result = await client.call(
+        "echo_typing_union", 42, return_type=typing.Union[int, str]
+    )
+    assert result == 42
+    assert isinstance(result, int)
+
+    # Test Union[int, str] with str value
+    result = await client.call(
+        "echo_typing_union", "hello", return_type=typing.Union[int, str]
+    )
+    assert result == "hello"
+    assert isinstance(result, str)
+
+
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="TCP tests not supported on Windows"
+)
+@pytest.mark.asyncio
+async def test_complex_return_types_tuple():
+    """Test Tuple return types with proper decoding."""
+    from . import tcp_server
+
+    client = AsyncZeroClient(tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient)
+
+    # Test Tuple[int, str]
+    result = await client.call(
+        "echo_typing_tuple", (42, "test"), return_type=typing.Tuple[int, str]
+    )
+    assert result == (42, "test") or result == [42, "test"]
+    assert result[0] == 42
+    assert result[1] == "test"
+
+    # Test Tuple with different types
+    result = await client.call(
+        "echo_tuple", (100, "hello"), return_type=typing.Tuple[int, str]
+    )
+    assert result[0] == 100
+    assert result[1] == "hello"
+
+
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="TCP tests not supported on Windows"
+)
+@pytest.mark.asyncio
+async def test_complex_return_types_nested_dict():
+    """Test nested Dict return types with proper decoding."""
+    from . import tcp_server
+
+    client = AsyncZeroClient(tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient)
+
+    # Test Dict[int, str] - basic dict
+    result = await client.call(
+        "echo_dict", {1: "one", 2: "two"}, return_type=typing.Dict[int, str]
+    )
+    assert result == {1: "one", 2: "two"}
+    assert isinstance(result, dict)
+    assert all(isinstance(k, int) for k in result.keys())
+    assert all(isinstance(v, str) for v in result.values())
+
+
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="TCP tests not supported on Windows"
+)
+@pytest.mark.asyncio
+async def test_complex_return_types_pydantic():
+    """Test Pydantic model return types with proper decoding."""
+    from . import tcp_server
+
+    client = AsyncZeroClient(tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient)
+
+    # Create a pydantic model instance
+    model = tcp_server.PydanticModel(name="Alice", age=30)
+
+    # Test Pydantic model return type
+    result = await client.call(
+        "echo_pydantic",
+        {"name": "Alice", "age": 30},
+        return_type=tcp_server.PydanticModel,
+    )
+    assert isinstance(result, tcp_server.PydanticModel)
+    assert result.name == "Alice"
+    assert result.age == 30
+
+
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="TCP tests not supported on Windows"
+)
+@pytest.mark.asyncio
+async def test_complex_return_types_msgspec_struct():
+    """Test msgspec Struct return types with proper decoding."""
+    import datetime
+
+    from . import tcp_server
+
+    client = AsyncZeroClient(tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient)
+
+    # Create a message struct
+    now = datetime.datetime.now()
+    message_data = {"msg": "test message", "start_time": now}
+
+    # Test msgspec Struct return type
+    result = await client.call(
+        "echo_msgspec_struct", message_data, return_type=tcp_server.Message
+    )
+    assert isinstance(result, tcp_server.Message)
+    assert result.msg == "test message"
+    assert result.start_time.year == now.year
+    assert result.start_time.month == now.month
+    assert result.start_time.day == now.day
+
+
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="TCP tests not supported on Windows"
+)
+@pytest.mark.asyncio
+async def test_complex_return_types_optional():
+    """Test Optional return types with proper decoding."""
+    from . import tcp_server
+
+    client = AsyncZeroClient(tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient)
+
+    # Test Optional[int] with value
+    result = await client.call("echo_typing_optional", 42, return_type=int)
+    assert result == 42
+    assert isinstance(result, int)
+
+    # Test Optional[int] with None (should return 0 per server implementation)
+    result = await client.call("echo_typing_optional", None, return_type=int)
+    assert result == 0
+    assert isinstance(result, int)
+
+
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="TCP tests not supported on Windows"
+)
+@pytest.mark.asyncio
+async def test_complex_return_types_dataclass():
+    """Test dataclass return types with proper decoding."""
+    from . import tcp_server
+
+    client = AsyncZeroClient(tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient)
+
+    # Test dataclass return type
+    result = await client.call(
+        "echo_dataclass", {"name": "Bob", "age": 25}, return_type=tcp_server.Dataclass
+    )
+    assert isinstance(result, tcp_server.Dataclass)
+    assert result.name == "Bob"
+    assert result.age == 25
+
+
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="TCP tests not supported on Windows"
+)
+@pytest.mark.asyncio
+async def test_complex_return_types_enum():
+    """Test enum return types with proper decoding."""
+    from . import tcp_server
+
+    client = AsyncZeroClient(tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient)
+
+    # Test enum return type
+    result = await client.call(
+        "echo_enum", tcp_server.Color.RED, return_type=tcp_server.Color
+    )
+    assert isinstance(result, tcp_server.Color)
+    assert result == tcp_server.Color.RED
+    assert result.value == 1
+
+    # Test IntEnum return type
+    result = await client.call(
+        "echo_enum_int", tcp_server.ColorInt.GREEN, return_type=tcp_server.ColorInt
+    )
+    assert isinstance(result, tcp_server.ColorInt)
+    assert result == tcp_server.ColorInt.GREEN
+    assert result.value == 2
 
 
 # For some reason this is failing in MacOS

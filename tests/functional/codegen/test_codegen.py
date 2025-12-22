@@ -417,109 +417,109 @@ class RpcClient:
         self._zero_client = zero_client
 
     def func_none(selfarg: None) -> str:
-        return self._zero_client.call("func_none", None)
+        return self._zero_client.call("func_none", None, return_type=str)
 
     def func_bool(self, arg: bool) -> str:
-        return self._zero_client.call("func_bool", arg)
+        return self._zero_client.call("func_bool", arg, return_type=str)
 
     def func_int(self, arg: int) -> str:
-        return self._zero_client.call("func_int", arg)
+        return self._zero_client.call("func_int", arg, return_type=str)
 
     def func_float(self, arg: float) -> str:
-        return self._zero_client.call("func_float", arg)
+        return self._zero_client.call("func_float", arg, return_type=str)
 
     def func_str(self, arg: str) -> str:
-        return self._zero_client.call("func_str", arg)
+        return self._zero_client.call("func_str", arg, return_type=str)
 
     def func_bytes(self, arg: bytes) -> str:
-        return self._zero_client.call("func_bytes", arg)
+        return self._zero_client.call("func_bytes", arg, return_type=str)
 
     def func_bytearray(self, arg: bytearray) -> str:
-        return self._zero_client.call("func_bytearray", arg)
+        return self._zero_client.call("func_bytearray", arg, return_type=str)
 
     def func_tuple(self, arg: tuple) -> str:
-        return self._zero_client.call("func_tuple", arg)
+        return self._zero_client.call("func_tuple", arg, return_type=str)
 
     def func_list(self, arg: list) -> str:
-        return self._zero_client.call("func_list", arg)
+        return self._zero_client.call("func_list", arg, return_type=str)
 
     def func_dict(self, arg: dict) -> str:
-        return self._zero_client.call("func_dict", arg)
+        return self._zero_client.call("func_dict", arg, return_type=str)
 
     def func_optional_dict(self, arg: Optional[dict]) -> str:
-        return self._zero_client.call("func_optional_dict", arg)
+        return self._zero_client.call("func_optional_dict", arg, return_type=str)
 
     def func_set(self, arg: set) -> str:
-        return self._zero_client.call("func_set", arg)
+        return self._zero_client.call("func_set", arg, return_type=str)
 
     def func_frozenset(self, arg: frozenset) -> str:
-        return self._zero_client.call("func_frozenset", arg)
+        return self._zero_client.call("func_frozenset", arg, return_type=str)
 
     def func_datetime(self, arg: datetime) -> str:
-        return self._zero_client.call("func_datetime", arg)
+        return self._zero_client.call("func_datetime", arg, return_type=str)
 
     def func_date(self, arg: date) -> str:
-        return self._zero_client.call("func_date", arg)
+        return self._zero_client.call("func_date", arg, return_type=str)
 
     def func_time(self, arg: time) -> str:
-        return self._zero_client.call("func_time", arg)
+        return self._zero_client.call("func_time", arg, return_type=str)
 
     def func_uuid(self, arg: uuid.UUID) -> str:
-        return self._zero_client.call("func_uuid", arg)
+        return self._zero_client.call("func_uuid", arg, return_type=str)
 
     def func_decimal(self, arg: decimal.Decimal) -> str:
-        return self._zero_client.call("func_decimal", arg)
+        return self._zero_client.call("func_decimal", arg, return_type=str)
 
     def func_enum(self, arg: SimpleEnum) -> str:
-        return self._zero_client.call("func_enum", arg)
+        return self._zero_client.call("func_enum", arg, return_type=str)
 
     def func_intenum(self, arg: SimpleIntEnum) -> str:
-        return self._zero_client.call("func_intenum", arg)
+        return self._zero_client.call("func_intenum", arg, return_type=str)
 
     def func_dataclass(self, arg: SimpleDataclass) -> str:
-        return self._zero_client.call("func_dataclass", arg)
+        return self._zero_client.call("func_dataclass", arg, return_type=str)
 
     def func_tuple_typing(self, arg: Tuple[int, str]) -> str:
-        return self._zero_client.call("func_tuple_typing", arg)
+        return self._zero_client.call("func_tuple_typing", arg, return_type=str)
 
     def func_list_typing(self, arg: List[int]) -> str:
-        return self._zero_client.call("func_list_typing", arg)
+        return self._zero_client.call("func_list_typing", arg, return_type=str)
 
     def func_dict_typing(self, arg: Dict[str, int]) -> str:
-        return self._zero_client.call("func_dict_typing", arg)
+        return self._zero_client.call("func_dict_typing", arg, return_type=str)
 
     def func_set_typing(self, arg: Set[int]) -> str:
-        return self._zero_client.call("func_set_typing", arg)
+        return self._zero_client.call("func_set_typing", arg, return_type=str)
 
     def func_frozenset_typing(self, arg: FrozenSet[int]) -> str:
-        return self._zero_client.call("func_frozenset_typing", arg)
+        return self._zero_client.call("func_frozenset_typing", arg, return_type=str)
 
     def func_any_typing(self, arg: Any) -> str:
-        return self._zero_client.call("func_any_typing", arg)
+        return self._zero_client.call("func_any_typing", arg, return_type=str)
 
     def func_union_typing(self, arg: Union[int, str]) -> str:
-        return self._zero_client.call("func_union_typing", arg)
+        return self._zero_client.call("func_union_typing", arg, return_type=str)
 
     def func_optional_typing(self, arg: Optional[int]) -> str:
-        return self._zero_client.call("func_optional_typing", arg)
+        return self._zero_client.call("func_optional_typing", arg, return_type=str)
 
     def func_msgspec_struct(self, arg: SimpleStruct) -> str:
-        return self._zero_client.call("func_msgspec_struct", arg)
+        return self._zero_client.call("func_msgspec_struct", arg, return_type=str)
 
     def func_msgspec_struct_complex(self, arg: ComplexStruct) -> str:
-        return self._zero_client.call("func_msgspec_struct_complex", arg)
+        return self._zero_client.call("func_msgspec_struct_complex", arg, return_type=str)
 
     def func_child_complex_struct(self, arg: ChildComplexStruct) -> str:
-        return self._zero_client.call("func_child_complex_struct", arg)
+        return self._zero_client.call("func_child_complex_struct", arg, return_type=str)
 
     def func_return_complex_struct(self) -> ComplexStruct:
-        return self._zero_client.call("func_return_complex_struct", None)
+        return self._zero_client.call("func_return_complex_struct", None, return_type=ComplexStruct)
 
     def func_pydantic_model(self, arg: SimplePydanticModel) -> str:
-        return self._zero_client.call("func_pydantic_model", arg)
+        return self._zero_client.call("func_pydantic_model", arg, return_type=str)
 
     def func_return_pydantic_model(self) -> SimplePydanticModel:
-        return self._zero_client.call("func_return_pydantic_model", None)
+        return self._zero_client.call("func_return_pydantic_model", None, return_type=SimplePydanticModel)
 """
         self.assertEqual(code, expected_code)
 
@@ -581,7 +581,7 @@ class RpcClient:
         self._zero_client = zero_client
 
     def func_return_complex_struct(self) -> ComplexStruct:
-        return self._zero_client.call("func_return_complex_struct", None)
+        return self._zero_client.call("func_return_complex_struct", None, return_type=ComplexStruct)
 """
         self.assertEqual(code, expected_code)
 
@@ -651,7 +651,7 @@ class RpcClient:
         self._zero_client = zero_client
 
     def func_return_optional_child_complex_struct(self) -> Optional[ChildComplexStruct]:
-        return self._zero_client.call("func_return_optional_child_complex_struct", None)
+        return self._zero_client.call("func_return_optional_child_complex_struct", None, return_type=Optional[ChildComplexStruct])
 """
         self.assertEqual(code, expected_code)
 
@@ -735,6 +735,6 @@ class RpcClient:
     def func_take_optional_child_dataclass_return_optional_child_complex_struct(self, 
     arg: Optional[ChildDataclass],
 ) -> Optional[ChildComplexStruct]:
-        return self._zero_client.call("func_take_optional_child_dataclass_return_optional_child_complex_struct", arg)
+        return self._zero_client.call("func_take_optional_child_dataclass_return_optional_child_complex_struct", arg, return_type=Optional[ChildComplexStruct])
 """
         self.assertEqual(code, expected_code)

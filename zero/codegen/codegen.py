@@ -99,16 +99,17 @@ class RpcClient:
                 if self._rpc_input_type_map[func_name] is None
                 else self.get_function_input_param_name(func_name)
             )
+            return_type_param = self.get_return_type_param(func_name)
             func_def = self.get_function_str(func_name, is_async)
             if is_async:
                 code += f"""
     {func_def}
-        return await self._zero_client.call("{func_name}", {input_param_name})
+        return await self._zero_client.call("{func_name}", {input_param_name}{return_type_param})
 """
             else:
                 code += f"""
     {func_def}
-        return self._zero_client.call("{func_name}", {input_param_name})
+        return self._zero_client.call("{func_name}", {input_param_name}{return_type_param})
 """
 
         # add imports after first 2 lines
@@ -214,6 +215,21 @@ class RpcClient:
         # everything until :
         input_param_name = input_param_name.split(":")[0]
         return input_param_name.strip()
+
+    def get_return_type_param(self, func_name: str) -> str:
+        """Get the return_type parameter string for the call() method."""
+        return_type = self._rpc_return_type_map[func_name]
+        if return_type is None:
+            return ""
+
+        # Extract return type from function signature
+        func = self._rpc_router[func_name][0]
+        func_lines = inspect.getsourcelines(func)[0]
+        func_str = "".join(func_lines)
+        # Extract the return type from -> to :
+        return_type_str = func_str.split("->")[1].split(":")[0].strip()
+
+        return f", return_type={return_type_str}"
 
     def _generate_class_code(self, cls: Type, already_generated: Set[Type]) -> str:
         if cls in already_generated:

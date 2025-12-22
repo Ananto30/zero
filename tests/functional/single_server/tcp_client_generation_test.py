@@ -75,115 +75,115 @@ class RpcClient:
         self._zero_client = zero_client
 
     async def echo_bool(self, msg: bool) -> bool:
-        return await self._zero_client.call("echo_bool", msg)
+        return await self._zero_client.call("echo_bool", msg, return_type=bool)
 
     async def echo_int(self, msg: int) -> int:
-        return await self._zero_client.call("echo_int", msg)
+        return await self._zero_client.call("echo_int", msg, return_type=int)
 
     async def echo_float(self, msg: float) -> float:
-        return await self._zero_client.call("echo_float", msg)
+        return await self._zero_client.call("echo_float", msg, return_type=float)
 
     async def echo_str(self, msg: str) -> str:
-        return await self._zero_client.call("echo_str", msg)
+        return await self._zero_client.call("echo_str", msg, return_type=str)
 
     async def echo_bytes(self, msg: bytes) -> bytes:
-        return await self._zero_client.call("echo_bytes", msg)
+        return await self._zero_client.call("echo_bytes", msg, return_type=bytes)
 
     async def echo_bytearray(self, msg: bytearray) -> bytearray:
-        return await self._zero_client.call("echo_bytearray", msg)
+        return await self._zero_client.call("echo_bytearray", msg, return_type=bytearray)
 
     async def echo_tuple(self, msg: Tuple[int, str]) -> Tuple[int, str]:
-        return await self._zero_client.call("echo_tuple", msg)
+        return await self._zero_client.call("echo_tuple", msg, return_type=Tuple[int, str])
 
     async def echo_list(self, msg: List[int]) -> List[int]:
-        return await self._zero_client.call("echo_list", msg)
+        return await self._zero_client.call("echo_list", msg, return_type=List[int])
 
     async def echo_dict(self, msg: Dict[int, str]) -> Dict[int, str]:
-        return await self._zero_client.call("echo_dict", msg)
+        return await self._zero_client.call("echo_dict", msg, return_type=Dict[int, str])
 
     async def echo_set(self, msg: Set[int]) -> Set[int]:
-        return await self._zero_client.call("echo_set", msg)
+        return await self._zero_client.call("echo_set", msg, return_type=Set[int])
 
     async def echo_frozenset(self, msg: FrozenSet[int]) -> FrozenSet[int]:
-        return await self._zero_client.call("echo_frozenset", msg)
+        return await self._zero_client.call("echo_frozenset", msg, return_type=FrozenSet[int])
 
     async def echo_datetime(self, msg: datetime) -> datetime:
-        return await self._zero_client.call("echo_datetime", msg)
+        return await self._zero_client.call("echo_datetime", msg, return_type=datetime)
 
     async def echo_date(self, msg: date) -> date:
-        return await self._zero_client.call("echo_date", msg)
+        return await self._zero_client.call("echo_date", msg, return_type=date)
 
     async def echo_time(self, msg: time) -> time:
-        return await self._zero_client.call("echo_time", msg)
+        return await self._zero_client.call("echo_time", msg, return_type=time)
 
     async def echo_uuid(self, msg: uuid.UUID) -> uuid.UUID:
-        return await self._zero_client.call("echo_uuid", msg)
+        return await self._zero_client.call("echo_uuid", msg, return_type=uuid.UUID)
 
     async def echo_decimal(self, msg: decimal.Decimal) -> decimal.Decimal:
-        return await self._zero_client.call("echo_decimal", msg)
+        return await self._zero_client.call("echo_decimal", msg, return_type=decimal.Decimal)
 
     async def echo_enum(self, msg: Color) -> Color:
-        return await self._zero_client.call("echo_enum", msg)
+        return await self._zero_client.call("echo_enum", msg, return_type=Color)
 
     async def echo_enum_int(self, msg: ColorInt) -> ColorInt:
-        return await self._zero_client.call("echo_enum_int", msg)
+        return await self._zero_client.call("echo_enum_int", msg, return_type=ColorInt)
 
     async def echo_dataclass(self, msg: Dataclass) -> Dataclass:
-        return await self._zero_client.call("echo_dataclass", msg)
+        return await self._zero_client.call("echo_dataclass", msg, return_type=Dataclass)
 
     async def echo_pydantic(self, msg: PydanticModel) -> PydanticModel:
-        return await self._zero_client.call("echo_pydantic", msg)
+        return await self._zero_client.call("echo_pydantic", msg, return_type=PydanticModel)
 
     async def echo_typing_tuple(self, msg: Tuple[int, str]) -> Tuple[int, str]:
-        return await self._zero_client.call("echo_typing_tuple", msg)
+        return await self._zero_client.call("echo_typing_tuple", msg, return_type=Tuple[int, str])
 
     async def echo_typing_list(self, msg: List[int]) -> List[int]:
-        return await self._zero_client.call("echo_typing_list", msg)
+        return await self._zero_client.call("echo_typing_list", msg, return_type=List[int])
 
     async def echo_typing_dict(self, msg: Dict[int, str]) -> Dict[int, str]:
-        return await self._zero_client.call("echo_typing_dict", msg)
+        return await self._zero_client.call("echo_typing_dict", msg, return_type=Dict[int, str])
 
     async def echo_typing_set(self, msg: Set[int]) -> Set[int]:
-        return await self._zero_client.call("echo_typing_set", msg)
+        return await self._zero_client.call("echo_typing_set", msg, return_type=Set[int])
 
     async def echo_typing_frozenset(self, msg: FrozenSet[int]) -> FrozenSet[int]:
-        return await self._zero_client.call("echo_typing_frozenset", msg)
+        return await self._zero_client.call("echo_typing_frozenset", msg, return_type=FrozenSet[int])
 
     async def echo_typing_union(self, msg: Union[int, str]) -> Union[int, str]:
-        return await self._zero_client.call("echo_typing_union", msg)
+        return await self._zero_client.call("echo_typing_union", msg, return_type=Union[int, str])
 
     async def echo_typing_optional(self, msg: Optional[int]) -> int:
-        return await self._zero_client.call("echo_typing_optional", msg)
+        return await self._zero_client.call("echo_typing_optional", msg, return_type=int)
 
     async def echo_msgspec_struct(self, msg: Message) -> Message:
-        return await self._zero_client.call("echo_msgspec_struct", msg)
+        return await self._zero_client.call("echo_msgspec_struct", msg, return_type=Message)
 
     async def sleep(self, msec: int) -> str:
-        return await self._zero_client.call("sleep", msec)
+        return await self._zero_client.call("sleep", msec, return_type=str)
 
     async def sleep_async(self, msec: int) -> str:
-        return await self._zero_client.call("sleep_async", msec)
+        return await self._zero_client.call("sleep_async", msec, return_type=str)
 
     async def error(self, msg: str) -> str:
-        return await self._zero_client.call("error", msg)
+        return await self._zero_client.call("error", msg, return_type=str)
 
     async def send_bytes(self, msg: bytes) -> bytes:
-        return await self._zero_client.call("send_bytes", msg)
+        return await self._zero_client.call("send_bytes", msg, return_type=bytes)
 
     async def echo(self, msg: str) -> str:
-        return await self._zero_client.call("echo", msg)
+        return await self._zero_client.call("echo", msg, return_type=str)
 
     async def hello_world(self) -> str:
-        return await self._zero_client.call("hello_world", None)
+        return await self._zero_client.call("hello_world", None, return_type=str)
 
     async def decode_jwt(self, msg: str) -> str:
-        return await self._zero_client.call("decode_jwt", msg)
+        return await self._zero_client.call("decode_jwt", msg, return_type=str)
 
     async def sum_list(self, msg: List[int]) -> int:
-        return await self._zero_client.call("sum_list", msg)
+        return await self._zero_client.call("sum_list", msg, return_type=int)
 
     async def divide(self, msg: Tuple[int, int]) -> int:
-        return await self._zero_client.call("divide", msg)
+        return await self._zero_client.call("divide", msg, return_type=int)
 """
         )
 
