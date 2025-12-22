@@ -1,5 +1,6 @@
 import logging
 
+import msgspec
 from aiohttp import web
 
 from zero.error import RemoteException
@@ -23,9 +24,7 @@ async def extract_and_verify_jwt(request):
     """Extract JWT from Authorization header and verify it."""
     jwt = request.headers.get("Authorization")
     if not jwt:
-        return None, web.json_response(
-            {"error": "Missing Authorization header"}, status=401
-        )
+        return None, web.json_response({"error": "Missing Authorization header"}, status=401)
 
     jwt = jwt.split(" ")[1]
     try:
@@ -56,7 +55,7 @@ async def profile(request):
         return error
 
     user = await user_service.get_user(auth.username)
-    return web.json_response(user)
+    return web.json_response(msgspec.convert(user, dict))
 
 
 async def get_orders(request):
@@ -66,7 +65,7 @@ async def get_orders(request):
 
     user = await user_service.get_user(auth.username)
     orders = await order_service.get_orders(user.id)
-    return web.json_response(orders)
+    return web.json_response(orders.__dict__)
 
 
 async def add_order(request):

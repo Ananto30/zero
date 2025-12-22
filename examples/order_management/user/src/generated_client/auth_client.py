@@ -19,7 +19,7 @@ class RpcClient:
         self._zero_client = zero_client
 
     async def get_jwt(self, username: str) -> str:
-        return await self._zero_client.call("get_jwt", username)
+        return await self._zero_client.call("get_jwt", username, return_type=str)
 
     async def verify_jwt(self, jwt_token: str) -> Traits:
-        return await self._zero_client.call("verify_jwt", jwt_token)
+        return await self._zero_client.call("verify_jwt", jwt_token, return_type=Traits)

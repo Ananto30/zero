@@ -21,7 +21,7 @@ class RpcClient:
         self._zero_client = zero_client
 
     async def login(self, msg: Tuple[str, str]) -> str:
-        return await self._zero_client.call("login", msg)
+        return await self._zero_client.call("login", msg, return_type=str)
 
     async def get_user(self, username: str) -> UserResp:
-        return await self._zero_client.call("get_user", username)
+        return await self._zero_client.call("get_user", username, return_type=UserResp)

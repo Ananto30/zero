@@ -35,7 +35,7 @@ async def login(msg: Tuple[str, str]) -> str:
 async def get_user(username: str) -> UserResp:
     user = await get_user_by_username(username)
     if user:
-        return UserResp(**user)
+        return UserResp(id=user.id, username=user.username)
     raise ValueError(f"User with username {username} not found")
 
 

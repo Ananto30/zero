@@ -51,23 +51,14 @@ async def create_order(user_id: int, items: List[str]):
         await session.commit()
 
 
-async def get_order_by_id(order_id: int) -> Optional[dict]:
+async def get_order_by_id(order_id: int) -> Optional[Order]:
     async with async_session() as session:
-        row = await session.execute(select(Order).filter(Order.id == order_id))
-        res = row.scalars().first()
-        return row2dict(res)
+        return (
+            await session.execute(select(Order).filter(Order.id == order_id))
+        ).scalar_one_or_none()
 
 
-async def get_orders_by_user_id(user_id: int) -> List[dict]:
+async def get_orders_by_user_id(user_id: int) -> List[Order]:
     async with async_session() as session:
         rows = await session.execute(select(Order).filter(Order.user_id == user_id))
-        res = rows.scalars()
-        return [row2dict(row) for row in res]
-
-
-def row2dict(row):
-    d = {}
-    for column in row.__table__.columns:
-        d[column.name] = str(getattr(row, column.name))
-
-    return d
+        return list(rows.scalars())

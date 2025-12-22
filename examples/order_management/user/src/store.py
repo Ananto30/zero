@@ -30,31 +30,17 @@ async def create_user(username: str, password: str):
         await session.commit()
 
 
-async def get_user_by_username(username: str) -> Optional[dict]:
+async def get_user_by_username(username: str) -> Optional[User]:
     async with async_session() as session:
-        row = await session.execute(select(User).filter(User.username == username))
-        res = row.scalars().first()
-        if res:
-            return row2dict(res)
-        return None
+        return (
+            await session.execute(select(User).filter(User.username == username))
+        ).scalar_one_or_none()
 
 
-async def get_user_by_username_and_password(
-    username: str, password: str
-) -> Optional[dict]:
+async def get_user_by_username_and_password(username: str, password: str) -> Optional[User]:
     async with async_session() as session:
-        row = await session.execute(
-            select(User).filter(User.username == username, User.password == password)
-        )
-        res = row.scalars().first()
-        if res:
-            return row2dict(res)
-        return None
-
-
-def row2dict(row):
-    d = {}
-    for column in row.__table__.columns:
-        d[column.name] = str(getattr(row, column.name))
-
-    return d
+        return (
+            await session.execute(
+                select(User).filter(User.username == username, User.password == password)
+            )
+        ).scalar_one_or_none()

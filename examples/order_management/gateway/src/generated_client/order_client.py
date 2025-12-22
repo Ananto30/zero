@@ -28,11 +28,11 @@ class RpcClient:
     def __init__(self, zero_client: AsyncZeroClient):
         self._zero_client = zero_client
 
-    async def add_order(self, msg: OrderReq) -> bool:
-        return await self._zero_client.call("add_order", msg)
+    async def add_order(self, req: OrderReq) -> bool:
+        return await self._zero_client.call("add_order", req, return_type=bool)
 
     async def get_order(self, order_id: int) -> OrderResp:
-        return await self._zero_client.call("get_order", order_id)
+        return await self._zero_client.call("get_order", order_id, return_type=OrderResp)
 
     async def get_orders(self, user_id: int) -> List[OrderResp]:
-        return await self._zero_client.call("get_orders", user_id)
+        return await self._zero_client.call("get_orders", user_id, return_type=List[OrderResp])

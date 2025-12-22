@@ -42,7 +42,13 @@ async def get_order(order_id: int) -> OrderResp:
     order = await get_order_by_id(order_id)
     if not order:
         raise ValueError(f"Order with id {order_id} not found")
-    return OrderResp(**order)
+    return OrderResp(
+        id=order.id,
+        user_id=order.user_id,
+        placed_at=order.placed_at,
+        items=order.get_items(),
+        status=order.status,
+    )
 
 
 @app.register_rpc
@@ -51,7 +57,16 @@ async def get_orders(user_id: int) -> List[OrderResp]:
     Get all orders for the given user.
     """
     orders = await get_orders_by_user_id(user_id)
-    return [OrderResp(**order) for order in orders]
+    return [
+        OrderResp(
+            id=order.id,
+            user_id=order.user_id,
+            placed_at=order.placed_at,
+            items=order.get_items(),
+            status=order.status,
+        )
+        for order in orders
+    ]
 
 
 if __name__ == "__main__":
