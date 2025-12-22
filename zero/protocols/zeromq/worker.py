@@ -9,7 +9,6 @@ from zero import config
 from zero.encoder.protocols import Encoder
 from zero.error import SERVER_PROCESSING_ERROR
 from zero.protocols.common_rpc import execute_common_rpc
-from zero.utils.async_to_sync import async_to_sync
 from zero.zeromq_patterns.factory import get_worker
 
 
@@ -28,12 +27,10 @@ class _Worker:
         self._rpc_input_type_map = rpc_input_type_map
         self._rpc_return_type_map = rpc_return_type_map
 
-        self._loop = asyncio.new_event_loop() or asyncio.get_event_loop()
-
-    def start_dealer_worker(self, worker_id):
+    async def start_dealer_worker(self, worker_id):
         worker = get_worker(config.ZEROMQ_PATTERN, worker_id)
         try:
-            worker.listen(self._device_comm_channel, self.handle_msg)
+            await worker.listen(self._device_comm_channel, self.handle_msg)
 
         except KeyboardInterrupt:
             logging.warning(
@@ -47,7 +44,9 @@ class _Worker:
             logging.warning("Closing worker %d", worker_id)
             worker.close()
 
-    def handle_msg(self, func_name_encoded: bytes, data: bytes) -> Optional[bytes]:
+    async def handle_msg(
+        self, func_name_encoded: bytes, data: bytes
+    ) -> Optional[bytes]:
         try:
             func_name = func_name_encoded.decode()
             input_type = self._rpc_input_type_map.get(func_name)
@@ -59,7 +58,7 @@ class _Worker:
                 else:
                     msg = self._encoder.decode(data)
 
-            response = self.execute_rpc(func_name, msg)
+            response = await self.execute_rpc(func_name, msg)
             return self._encoder.encode(response)
 
         except ValidationError as exc:
@@ -72,7 +71,7 @@ class _Worker:
                 {"__zerror__server_exception": SERVER_PROCESSING_ERROR}
             )
 
-    def execute_rpc(self, func_name: str, msg: Any):
+    async def execute_rpc(self, func_name: str, msg: Any):
         if common_rpc := execute_common_rpc(
             func_name,
             msg,
@@ -86,11 +85,18 @@ class _Worker:
         ret = None
 
         try:
-            func_to_call = async_to_sync(func) if is_coro else func
-            if self._rpc_input_type_map.get(func_name):
-                ret = func_to_call(msg)
+            if is_coro:
+                # Await async function directly
+                ret = await (
+                    func(msg) if self._rpc_input_type_map.get(func_name) else func()
+                )
             else:
-                ret = func_to_call()
+                # Call sync function directly
+                ret = (
+                    await asyncio.to_thread(func, msg)
+                    if self._rpc_input_type_map.get(func_name)
+                    else await asyncio.to_thread(func)
+                )
 
         except Exception as exc:  # pylint: disable=broad-except
             logging.exception(exc)
@@ -124,4 +130,4 @@ class _Worker:
             rpc_input_type_map,
             rpc_return_type_map,
         )
-        worker.start_dealer_worker(worker_id)
+        asyncio.run(worker.start_dealer_worker(worker_id))

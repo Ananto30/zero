@@ -5,8 +5,8 @@ import time
 from zero import AsyncZeroClient
 from zero.protocols.tcp import AsyncTCPClient
 
-async_client = AsyncZeroClient("localhost", 5559, protocol=AsyncTCPClient)
-# async_client = AsyncZeroClient("localhost", 5559)
+# async_client = AsyncZeroClient("localhost", 5559, protocol=AsyncTCPClient)
+async_client = AsyncZeroClient("localhost", 5559)
 
 
 async def task(semaphore, sleep_time):

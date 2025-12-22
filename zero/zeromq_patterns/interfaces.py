@@ -1,4 +1,4 @@
-from typing import Callable, Optional, Protocol, runtime_checkable
+from typing import Any, Awaitable, Callable, Optional, Protocol, runtime_checkable
 
 
 @runtime_checkable
@@ -40,8 +40,10 @@ class ZeroMQBroker(Protocol):  # pragma: no cover
 
 @runtime_checkable
 class ZeroMQWorker(Protocol):  # pragma: no cover
-    def listen(
-        self, address: str, msg_handler: Callable[[bytes, bytes], Optional[bytes]]
+    async def listen(
+        self,
+        address: str,
+        msg_handler: Callable[[bytes, bytes], Awaitable[Optional[bytes]]],
     ) -> None: ...
 
     def close(self) -> None: ...
