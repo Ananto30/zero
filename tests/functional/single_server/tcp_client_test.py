@@ -1,6 +1,8 @@
 import asyncio
+import datetime
 import random
 import sys
+import time
 import typing
 
 import pytest
@@ -10,16 +12,24 @@ from zero import AsyncZeroClient
 from zero.protocols.tcp import AsyncTCPClient
 
 
+def get_async_client():
+    from . import tcp_server
+
+    return AsyncZeroClient(
+        tcp_server.HOST,
+        tcp_server.PORT,
+        protocol=AsyncTCPClient,
+        default_timeout=5000,  # github runners can be slow
+        pool_size=5,
+    )
+
+
 @pytest.mark.skipif(
     sys.platform == "win32", reason="TCP tests not supported on Windows"
 )
 @pytest.mark.asyncio
 async def test_concurrent_divide():
-    from . import tcp_server
-
-    async_client = AsyncZeroClient(
-        tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient
-    )
+    client = get_async_client()
 
     req_resp = {
         (10, 2): 5,
@@ -43,9 +53,7 @@ async def test_concurrent_divide():
     async def divide(semaphore, req):
         async with semaphore:
             try:
-                assert (
-                    await async_client.call("divide", req, timeout=500) == req_resp[req]
-                )
+                assert await client.call("divide", req, timeout=500) == req_resp[req]
                 nonlocal total_pass
                 total_pass += 1
             except zero.error.TimeoutException:
@@ -64,9 +72,8 @@ async def test_concurrent_divide():
 )
 @pytest.mark.asyncio
 async def test_server_error():
-    from . import tcp_server
+    client = get_async_client()
 
-    client = AsyncZeroClient(tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient)
     try:
         await client.call("error", "some error")
         raise AssertionError("Should have thrown an Exception")
@@ -79,9 +86,7 @@ async def test_server_error():
 )
 @pytest.mark.asyncio
 async def test_timeout_all_async():
-    from . import tcp_server
-
-    client = AsyncZeroClient(tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient)
+    client = get_async_client()
 
     with pytest.raises(zero.error.TimeoutException):
         await client.call("sleep", 1000, timeout=10)
@@ -95,9 +100,7 @@ async def test_timeout_all_async():
 )
 @pytest.mark.asyncio
 async def test_random_timeout_async():
-    from . import tcp_server
-
-    client = AsyncZeroClient(tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient)
+    client = get_async_client()
 
     fails = 0
     should_fail = 0
@@ -122,32 +125,24 @@ async def test_random_timeout_async():
 )
 @pytest.mark.asyncio
 async def test_return_type_parameter():
-    """Test that return_type parameter is used for proper decoding."""
-    from . import tcp_server
+    client = get_async_client()
 
-    client = AsyncZeroClient(tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient)
-
-    # Test with int return type
     result = await client.call("echo_int", 42, return_type=int)
     assert result == 42
     assert isinstance(result, int)
 
-    # Test with str return type
     result = await client.call("echo_str", "hello", return_type=str)
     assert result == "hello"
     assert isinstance(result, str)
 
-    # Test with float return type
     result = await client.call("echo_float", 3.14, return_type=float)
     assert result == 3.14
     assert isinstance(result, float)
 
-    # Test with bool return type
     result = await client.call("echo_bool", True, return_type=bool)
     assert result is True
     assert isinstance(result, bool)
 
-    # Test with list return type
     result = await client.call("echo_list", [1, 2, 3], return_type=list[int])
     assert result == [1, 2, 3]
     assert isinstance(result, list)
@@ -158,19 +153,14 @@ async def test_return_type_parameter():
 )
 @pytest.mark.asyncio
 async def test_complex_return_types_union():
-    """Test Union return types with proper decoding."""
-    from . import tcp_server
+    client = get_async_client()
 
-    client = AsyncZeroClient(tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient)
-
-    # Test Union[int, str] with int value
     result = await client.call(
         "echo_typing_union", 42, return_type=typing.Union[int, str]
     )
     assert result == 42
     assert isinstance(result, int)
 
-    # Test Union[int, str] with str value
     result = await client.call(
         "echo_typing_union", "hello", return_type=typing.Union[int, str]
     )
@@ -183,10 +173,7 @@ async def test_complex_return_types_union():
 )
 @pytest.mark.asyncio
 async def test_complex_return_types_tuple():
-    """Test Tuple return types with proper decoding."""
-    from . import tcp_server
-
-    client = AsyncZeroClient(tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient)
+    client = get_async_client()
 
     # Test Tuple[int, str]
     result = await client.call(
@@ -209,10 +196,7 @@ async def test_complex_return_types_tuple():
 )
 @pytest.mark.asyncio
 async def test_complex_return_types_nested_dict():
-    """Test nested Dict return types with proper decoding."""
-    from . import tcp_server
-
-    client = AsyncZeroClient(tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient)
+    client = get_async_client()
 
     # Test Dict[int, str] - basic dict
     result = await client.call(
@@ -229,10 +213,9 @@ async def test_complex_return_types_nested_dict():
 )
 @pytest.mark.asyncio
 async def test_complex_return_types_pydantic():
-    """Test Pydantic model return types with proper decoding."""
     from . import tcp_server
 
-    client = AsyncZeroClient(tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient)
+    client = get_async_client()
 
     # Create a pydantic model instance
     model = tcp_server.PydanticModel(name="Alice", age=30)
@@ -253,12 +236,9 @@ async def test_complex_return_types_pydantic():
 )
 @pytest.mark.asyncio
 async def test_complex_return_types_msgspec_struct():
-    """Test msgspec Struct return types with proper decoding."""
-    import datetime
-
     from . import tcp_server
 
-    client = AsyncZeroClient(tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient)
+    client = get_async_client()
 
     # Create a message struct
     now = datetime.datetime.now()
@@ -280,10 +260,7 @@ async def test_complex_return_types_msgspec_struct():
 )
 @pytest.mark.asyncio
 async def test_complex_return_types_optional():
-    """Test Optional return types with proper decoding."""
-    from . import tcp_server
-
-    client = AsyncZeroClient(tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient)
+    client = get_async_client()
 
     # Test Optional[int] with value
     result = await client.call("echo_typing_optional", 42, return_type=int)
@@ -301,10 +278,9 @@ async def test_complex_return_types_optional():
 )
 @pytest.mark.asyncio
 async def test_complex_return_types_dataclass():
-    """Test dataclass return types with proper decoding."""
     from . import tcp_server
 
-    client = AsyncZeroClient(tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient)
+    client = get_async_client()
 
     # Test dataclass return type
     result = await client.call(
@@ -320,10 +296,9 @@ async def test_complex_return_types_dataclass():
 )
 @pytest.mark.asyncio
 async def test_complex_return_types_enum():
-    """Test enum return types with proper decoding."""
     from . import tcp_server
 
-    client = AsyncZeroClient(tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient)
+    client = get_async_client()
 
     # Test enum return type
     result = await client.call(
@@ -342,26 +317,21 @@ async def test_complex_return_types_enum():
     assert result.value == 2
 
 
-# For some reason this is failing in MacOS
-# @pytest.mark.skipif(
-#     sys.platform == "win32", reason="TCP tests not supported on Windows"
-# )
-# @pytest.mark.asyncio
-# async def test_async_sleep():
-#     from . import tcp_server
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="TCP tests not supported on Windows"
+)
+@pytest.mark.asyncio
+async def test_async_sleep():
+    client = get_async_client()
 
-#     client = AsyncZeroClient(
-#         tcp_server.HOST, tcp_server.PORT, protocol=AsyncTCPClient, pool_size=5
-#     )
+    async def task(sleep_time):
+        res = await client.call("sleep_async", sleep_time)
+        assert res == f"slept for {sleep_time} msecs"
 
-#     async def task(sleep_time):
-#         res = await client.call("sleep_async", sleep_time)
-#         assert res == f"slept for {sleep_time} msecs"
+    tasks = [task(200) for _ in range(5)]
 
-#     tasks = [task(200) for _ in range(5)]
+    start = time.perf_counter()
+    await asyncio.gather(*tasks)
+    time_taken_ms = (time.perf_counter() - start) * 1000
 
-#     start = time.perf_counter()
-#     await asyncio.gather(*tasks)
-#     time_taken_ms = (time.perf_counter() - start) * 1000
-
-#     assert time_taken_ms < 1000
+    assert time_taken_ms < 1000
