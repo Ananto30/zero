@@ -1,0 +1,33 @@
+
+/* options : https://github.com/vuejs/vitepress/blob/main/src/client/theme-default/styles/vars.css */
+
+
+/* import fonr */
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,500;0,600;0,700;1,500;1,600;1,700&display=swap');
+
+
+:root {
+
+    --vp-font-family-base: 'Verdana';
+    /* --vp-font-family-base: 'Verdana'; */
+    /* --vp-font-family-base: 'Monaco' ; */
+
+
+    --vp-c-brand: #8e43b6;
+    --vp-c-brand-light: #712b94;
+
+    --vp-c-green: #660099;
+    --vp-c-green-light: #7f4b98;
+    --vp-c-green-lighter: #8f7e98;
+    --vp-c-green-dark: #500077;
+    --vp-c-green-darker: #1d002c;
+
+    /* Typography */
+    /* --vp-font-family-base: 'Quicksand', sans-serif; */
+    
+    /* Code Snippet font */
+    --vp-font-family-mono:  'Roboto Mono' ,  monospace;
+
+}
+  
