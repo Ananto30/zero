@@ -5,8 +5,6 @@ from typing import Awaitable, Callable, Optional
 import zmq
 import zmq.asyncio
 
-# import zmq.green as zmq
-
 
 class ZeroMQWorker:
     """Async worker using zmq.asyncio for non-blocking I/O."""
