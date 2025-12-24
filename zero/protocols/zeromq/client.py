@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import threading
 from typing import Dict, Optional, Type, TypeVar
@@ -62,8 +63,7 @@ class AsyncZMQClient:
         pool_size: int,
     ):
         self._encoder = encoder
-
-        self.client_pool = AsyncZMQClientPool(address, default_timeout)
+        self.client_pool = AsyncZMQClientPool(address, default_timeout, pool_size)
 
     async def call(
         self,
@@ -72,19 +72,25 @@ class AsyncZMQClient:
         timeout: Optional[int] = None,
         return_type: Optional[Type[T]] = None,
     ) -> T:
+        # Initialize pool on first call
+        await self.client_pool._initialize()
+
         zmqc = await self.client_pool.get()
+        try:
+            # make function name exactly 80 bytes
+            func_name_bytes = rpc_func_name.ljust(80).encode()
+            msg_bytes = b"" if msg is None else self._encoder.encode(msg)
 
-        # make function name exactly 80 bytes
-        func_name_bytes = rpc_func_name.ljust(80).encode()
-        msg_bytes = b"" if msg is None else self._encoder.encode(msg)
+            resp_data_bytes = await zmqc.request(func_name_bytes + msg_bytes, timeout)
 
-        resp_data_bytes = await zmqc.request(func_name_bytes + msg_bytes, timeout)
-
-        return (
-            self._encoder.decode(resp_data_bytes)
-            if return_type is None
-            else self._encoder.decode_type(resp_data_bytes, return_type)
-        )
+            return (
+                self._encoder.decode(resp_data_bytes)
+                if return_type is None
+                else self._encoder.decode_type(resp_data_bytes, return_type)
+            )
+        finally:
+            # Return connection to pool
+            await self.client_pool.release(zmqc)
 
     def close(self):
         self.client_pool.close()
@@ -121,30 +127,64 @@ class ZMQClientPool:
 
 class AsyncZMQClientPool:
     """
-    Connections are based on different threads and processes.
-    Each time a call is made it tries to get the connection from the pool,
-    based on the thread/process id.
-    If the connection is not available, it creates a new connection and stores it in the pool.
+    Async connection pool that pre-creates and reuses a fixed number of connections.
+    Uses asyncio.Queue for connection management and asyncio.Lock for synchronization.
     """
 
-    __slots__ = ["_pool", "_address", "_timeout"]
+    __slots__ = [
+        "_queue",
+        "_address",
+        "_timeout",
+        "_pool_size",
+        "_lock",
+        "_initialized",
+    ]
 
-    def __init__(self, address: str, timeout: int):
-        self._pool: Dict[int, AsyncZeroMQClient] = {}
+    def __init__(self, address: str, timeout: int, pool_size: int):
+        self._queue: Optional[asyncio.Queue] = None
         self._address = address
         self._timeout = timeout
+        self._pool_size = pool_size
+        self._lock = asyncio.Lock()
+        self._initialized = False
+
+    async def _initialize(self) -> None:
+        async with self._lock:
+            if self._initialized:
+                return
+
+            logging.debug(
+                f"Initializing async connection pool with {self._pool_size} connections"
+            )
+            self._queue = asyncio.Queue(maxsize=self._pool_size)
+
+            for _ in range(self._pool_size):
+                client = get_async_client(config.ZEROMQ_PATTERN, self._timeout)
+                await client.connect(self._address)
+                await self._queue.put(client)
+
+            self._initialized = True
 
     async def get(self) -> AsyncZeroMQClient:
-        thread_id = threading.get_ident()
-        if thread_id not in self._pool:
-            logging.debug("No connection found in current thread, creating new one")
-            self._pool[thread_id] = get_async_client(
-                config.ZEROMQ_PATTERN, self._timeout
+        if not self._initialized or self._queue is None:
+            raise RuntimeError(
+                "Connection pool not initialized. Call _initialize() first."
             )
-            await self._pool[thread_id].connect(self._address)
-        return self._pool[thread_id]
+
+        return await self._queue.get()
+
+    async def release(self, client: AsyncZeroMQClient) -> None:
+        if self._queue is None:
+            raise RuntimeError("Connection pool not initialized.")
+        await self._queue.put(client)
 
     def close(self):
-        for client in self._pool.values():
-            client.close()
-        self._pool = {}
+        if self._queue is None:
+            return
+        while not self._queue.empty():
+            try:
+                client = self._queue.get_nowait()
+                client.close()
+            except asyncio.QueueEmpty:
+                break
+        self._initialized = False
